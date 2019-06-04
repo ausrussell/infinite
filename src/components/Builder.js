@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import * as THREE from "three";
 import Uploader from "./Uploader";
+import "../css/builder.css";
+
 // import {OrbitControls} = require("three-orbit-controls")(THREE);
 // const OrbitControls = require("three-orbit-controls")(THREE);
 // import OrbitControls from "orbit-controls-es6";
@@ -60,6 +62,7 @@ class ArtWork {
 class Builder extends Component {
   state = {
     wallOver: {},
+    wallSideOver: "",
     selectedTile: null,
     vaultOpen: false
   };
@@ -111,8 +114,9 @@ class Builder extends Component {
     this.addGrid();
     this.addBox();
     this.setWalls();
+    this.setFloor();
     this.addLight();
-    this.addFloorPlane();
+
     // this.initialAnimate();
     this.setupListeners();
     this.animate();
@@ -213,7 +217,28 @@ class Builder extends Component {
 
     this.scene.add(this.gridHelper);
   }
-  addFloorPlane() {
+
+  setWalls() {
+    // let walls = {};
+    this.wallEntities = [];
+    for (let i = 0; i < this.voxelsX; i++) {
+      // walls[i] = {};
+      for (let j = 0; j < this.voxelsY; j++) {
+        if (this.walls[i][j][0].built) {
+          this.wallEntities.push(new WallEntity(this.walls[i][j][0], this));
+        }
+        if (this.walls[i][j][1].built) {
+          this.wallEntities.push(new WallEntity(this.walls[i][j][1], this));
+        }
+      }
+    }
+    console.log(this.wallEntities);
+    this.meshes = this.wallEntities.map(item => item.getMesh()); //used for raycaster
+    console.log("this.meshes", this.meshes);
+    return this.walls;
+  }
+
+  setFloor() {
     this.floorPlane = new THREE.PlaneBufferGeometry(
       this.gridWidth,
       this.gridWidth,
@@ -237,27 +262,13 @@ class Builder extends Component {
     this.floorMesh.receiveShadow = true;
     this.floorMesh.rotateX(-Math.PI / 2);
     console.log("this.floorMesh", this.floorMesh);
-    this.scene.add(this.floorMesh);
-  }
+    // this.scene = this.builder.scene;
 
-  setWalls() {
-    // let walls = {};
-    this.wallEntities = [];
-    for (let i = 0; i < this.voxelsX; i++) {
-      // walls[i] = {};
-      for (let j = 0; j < this.voxelsY; j++) {
-        if (this.walls[i][j][0].built) {
-          this.wallEntities.push(new WallEntity(this.walls[i][j][0], this));
-        }
-        if (this.walls[i][j][1].built) {
-          this.wallEntities.push(new WallEntity(this.walls[i][j][1], this));
-        }
-      }
-    }
-    console.log(this.wallEntities);
-    this.meshes = this.wallEntities.map(item => item.getMesh()); //used for raycaster
-    console.log("this.meshes", this.meshes);
-    return this.walls;
+    // this.scene.add(this.floorMesh);
+
+    this.floor = new Floor(this);
+
+    // this.floor.addFloorMesh(); //addFloorPlane();
   }
 
   increaseWallsHeights() {
@@ -278,12 +289,12 @@ class Builder extends Component {
     });
   }
 
-  renderWalls() {
-    this.wallEntities.forEach((wall, index) => {
-      wall.setHeight(this.wallHeight);
-      wall.renderWall();
-    });
-  }
+  // renderWalls() {
+  //   this.wallEntities.forEach((wall, index) => {
+  //     wall.setHeight(this.wallHeight);
+  //     wall.renderWall();
+  //   });
+  // }
 
   initialAnimate() {
     this.initialAnimation = false;
@@ -347,125 +358,55 @@ class Builder extends Component {
       default:
         side = null;
     }
+
     console.log("side", side);
     if (side) {
       // debugger;
       if (this.state.selectedTile) {
         this.wallEntities[intersectedWallIndex].setFrameColor(
-          this.state.selectedTile
+          this.state.selectedTile,
+          side
         );
         // this.wallEntities[intersectedWallIndex].renderWall();
       }
     }
-    return this.wallEntities[intersectedWallIndex] || null;
+
+    const intersectedData = {
+      wallOver: this.wallEntities[intersectedWallIndex] || null,
+      wallSideOver: side
+    };
+
+    return intersectedData;
     // this.animate();
   }
 
   dragOverHandler = e => {
     console.log("builder dragOverHandler", e);
     this.onMouseMove(e);
-    const wallOver = this.checkForIntersecting();
-    console.log("this.state.wallOver", this.state.wallOver);
-    if (
-      Object.entries(this.state.wallOver).length !== 0 &&
-      wallOver !== this.state.wallOver
-    ) {
-      // debugger;
-      console.log("call dragout");
-      this.state.wallOver.dragOutHandler();
-      // return;
-    }
-    console.log("setState");
-    // if (this.state.wallOver !== wallOver) {
-    this.setState({ wallOver: wallOver });
-    // return;
-    // }
+    const intersectedData = this.checkForIntersecting();
+    const { wallOver, wallSideOver } = intersectedData;
 
-    if (wallOver) {
-      wallOver.dragOverHandler();
+    if (this.currentWallOver && this.currentWallOver !== wallOver) {
+      this.currentWallOver.dragOutHandler(this.currentSide);
+    } // // }
+
+    if (wallOver && wallSideOver) {
+      wallOver.dragOverHandler(wallSideOver);
+      this.currentWallOver = wallOver;
+      this.currentSide = wallSideOver;
     }
+    // this.setState(intersectedData);
   };
   fileDropHandler = file => {
-    if (this.state.wallOver) this.state.wallOver.addImageFile(file);
+    // debugger;
+    if (this.currentWallOver)
+      this.currentWallOver.addImageFile(file, this.currentSide);
+    // if (this.state.wallOver) this.state.wallOver.addImageFile(file);
   };
 
   tileCallback = item => {
     console.log("type", item.type, item.color);
     this.setState({ selectedTile: item });
-  };
-
-  floorLoadHandler = texture => {
-    this.floorMaterial.color.set("#fff");
-    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(25, 25);
-    this.floorMaterial.map = texture;
-  };
-
-  floorArrayMapLoadHandler = map => {
-    // this.floorMaterial.color.set("#fff");
-
-    map.wrapS = THREE.RepeatWrapping;
-    map.wrapT = THREE.RepeatWrapping;
-    map.anisotropy = 4;
-    map.repeat.set(10, 24);
-    this.floorMaterial.map = map;
-    this.floorMaterial.needsUpdate = true;
-  };
-
-  floorArrayMapLoadHandler = map => {
-    console.log("floorArrayMapLoadHandler");
-    this.floorMaterial.color.set("#fff");
-
-    map.wrapS = THREE.RepeatWrapping;
-    map.wrapT = THREE.RepeatWrapping;
-    map.anisotropy = 4;
-    map.repeat.set(10, 24);
-    this.floorMaterial.map = map;
-    this.floorMaterial.needsUpdate = true;
-  };
-  floorArrayMapBumpLoadHandler = map => {
-    map.wrapS = THREE.RepeatWrapping;
-    map.wrapT = THREE.RepeatWrapping;
-    map.anisotropy = 4;
-    map.repeat.set(10, 24);
-    this.floorMaterial.bumpMap = map;
-    this.floorMaterial.needsUpdate = true;
-    console.log("floorArrayMapBumpLoadHandler");
-  };
-  floorArrayMapRoughnessLoadHandler = map => {
-    map.wrapS = THREE.RepeatWrapping;
-    map.wrapT = THREE.RepeatWrapping;
-    map.anisotropy = 4;
-    map.repeat.set(10, 24);
-    this.floorMaterial.roughnessMap = map;
-    this.floorMaterial.needsUpdate = true;
-    console.log("floorArrayMapRoughnessLoadHandler");
-    console.log("floorMesh", this.floorMesh);
-  };
-
-  floorTileCallback = item => {
-    console.log("floor tile", item);
-    if (item.color) {
-      this.floorMaterial.map = null;
-      this.floorMaterial.needsUpdate = true;
-      this.floorMaterial.color.set(item.color);
-    } else if (item.type === "texture") {
-      var loader = new THREE.TextureLoader();
-      // loader.crossOrigin = "";
-      this.floorMaterial.map = null;
-
-      loader.load(item.url, texture => this.floorLoadHandler(texture));
-    } else if (item.type === "texture-array") {
-      // this.floorMaterial = item.floorMat;
-      var textureLoader = new THREE.TextureLoader();
-      textureLoader.load(item.map, map => this.floorArrayMapLoadHandler(map));
-      textureLoader.load(item.bumpMap, map =>
-        this.floorArrayMapBumpLoadHandler(map)
-      );
-      textureLoader.load(item.roughnessMap, map =>
-        this.floorArrayMapRoughnessLoadHandler(map)
-      );
-    }
   };
 
   animate() {
@@ -490,33 +431,33 @@ class Builder extends Component {
 
     // this.renderer.toneMappingExposure = Math.pow(params.exposure, 5.0); // to allow for very bright scenes.
     // this.renderer.shadowMap.enabled = params.shadows;
-    //
-    // let time = Date.now() * 0.0005;
-    // this.bulbLight.position.y = Math.cos(time) * 25 + 15;
-    // this.bulbLight.position.y = Math.cos(time) * 0.75 + 1.25;
 
     if (this.stats) this.stats.update();
   }
+  floorTileCallback(item) {
+    this.floor.floorTileCallback(item);
+  }
+
+  // <Uploader
+  //   fileDragover={this.dragOverHandler}
+  //   fileDrop={item => this.fileDropHandler(item)}
+  //   wallOver={this.state.wallOver}
+  // />
 
   render() {
     const tileCallbackFunction = this.state.vaultOpen
       ? item => this.tileCallback(item)
       : null;
-    const floorTileCallbackFunction = this.state.vaultOpen
-      ? item => this.floorTileCallback(item)
-      : null;
+    // const floorTileCallbackFunction = this.state.vaultOpen
+    //   ? item => this.floor.floorTileCallback(item)
+    //   : null;
     return (
       <div>
         <div> Builder</div>
         <MainCanvas refer={mount => (this.mount = mount)} />
         <Elevator
           tileCallback={this.tileCallback}
-          floorTileCallback={this.floorTileCallback}
-        />
-        <Uploader
-          fileDragover={this.dragOverHandler}
-          fileDrop={this.fileDropHandler}
-          wallOver={this.state.wallOver}
+          floorTileCallback={this.floorTileCallback.bind(this)}
         />
       </div>
     );

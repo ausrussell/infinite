@@ -1,8 +1,8 @@
 import React, { Component } from "react";
 // import FileUploader from "react-firebase-file-uploader";
-import firebase from "firebase";
-import config from "../api/firebase-config";
-firebase.initializeApp(config);
+// import firebase from "firebase";
+// import config from "../api/firebase-config";
+// firebase.initializeApp(config);
 
 class Uploader extends Component {
   state = {
@@ -83,12 +83,12 @@ class Uploader extends Component {
       progress: 100
     });
     console.log("uploaded", filename);
-    firebase
-      .storage()
-      .ref("art")
-      .child(filename)
-      .getDownloadURL()
-      .then(url => this.setState({ imageURL: url }));
+    // firebase
+    //   .storage()
+    //   .ref("art")
+    //   .child(filename)
+    //   .getDownloadURL()
+    //   .then(url => this.setState({ imageURL: url }));
   };
 
   // <FileUploader

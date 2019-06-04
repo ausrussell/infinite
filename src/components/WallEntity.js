@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import * as THREE from "three";
 import Frame from "./Frame";
+import WallLight from "./WallLight";
 import * as dat from "dat.gui";
 
 const gui = new dat.GUI();
@@ -15,6 +16,8 @@ class WallEntity extends Component {
     this.wallDepth = 5;
     this.wallHeight = 60;
 
+    this.defaultFrameWidth = this.wallWidth * 0.8;
+    this.defaultFrameHeight = 20;
     this.builderWidth = this.builder.width;
     this.midpointX = this.builder.voxelsX / 2;
     this.midpointY = this.builder.voxelsY / 2;
@@ -22,6 +25,8 @@ class WallEntity extends Component {
 
     this.buildVelocity = 10;
     this.setXYZ();
+    this.sides = { front: {}, back: {} };
+
     this.renderWall();
     this.color = 0xfffefe;
     this.lightOn = false;
@@ -68,73 +73,31 @@ class WallEntity extends Component {
     return controls;
   }
 
-  dragOverHandler() {
-    if (!this.spotlightAdded && !this.hasArt) {
-      // this.wallSpotlight = this.getDefaultWallSpotlight();
-      // this.group.add(this.wallSpotlight);
-      this.spotLight.intensity = 1;
-      this.spotlightAdded = true;
-      // debugger;
-      this.frameGroup.children[0].material.opacity = 1;
-    }
+  dragOverHandler(side) {
+    this.currentSideOver = this.sides[side];
+    // if (!this.spotlightAdded && !this.hasArt) {
+    //   // this.wallSpotlight = this.getDefaultWallSpotlight();
+    //   // this.group.add(this.wallSpotlight);
+    //   this.spotLight.intensity = 1;
+    //   this.spotlightAdded = true;
+    //   this.frameGroup.children[0].material.opacity = 1;
+    // }
+
+    this.currentSideOver.wallLight.switchOn(0.5);
 
     // this.group.add(this.wallSpotlight);
-
-    // debugger;
   }
-  dragOutHandler() {
-    // debugger;
-    if (!this.hasArt) {
-      this.frameGroup.children[0].material.opacity = 0;
+  dragOutHandler(side) {
+    const currentSide = this.sides[side];
 
-      this.spotLight.intensity = 0;
-      this.spotlightAdded = false;
+    if (!this.hasArt) {
+      // this.frameGroup.children[0].material.opacity = 0;
+
+      this.currentSideOver.wallLight.switchOff();
+      // this.currentSide.spotlightAdded = false;
     }
   }
 
-  getDefaultWallSpotlight() {
-    // this.controls = this.setupControls();
-
-    this.spotLightColor = "#ffffff";
-    this.spotLight = new THREE.SpotLight(this.spotLightColor);
-    const wallMatrix = this.mesh.matrixWorld;
-    const shiftedLight = wallMatrix.makeTranslation(
-      0,
-      0, //this.wallHeight,
-      20 //this.wallDepth + 20
-    );
-
-    // this.spotLight.castShadow = true;
-    this.spotLight.shadow.camera.near = 1;
-    this.spotLight.shadow.camera.far = 1000;
-    this.spotLight.angle = 0.4;
-    this.spotLight.intensity = 0;
-    this.spotLight.distance = 0;
-    this.spotLight.target = this.group;
-    // this.spotLight.shadow.camera.fov = this.controls.fov;
-    this.spotLight.penumbra = 1;
-
-    const frameMatrix = this.mesh.matrixWorld;
-    const shifted = frameMatrix.makeTranslation(0, this.wallHeight, 60);
-    this.spotLight.position.setFromMatrixPosition(shifted);
-    this.group.add(this.spotLight);
-
-    this.pp = new THREE.SpotLightHelper(this.spotLight);
-    this.pp.matrix = this.pp.light.matrix;
-
-    var geometry = new THREE.SphereGeometry(3, 32, 32);
-    var material = new THREE.MeshBasicMaterial({ color: 0xf0ef00 });
-    var sphere = new THREE.Mesh(geometry, material);
-
-    sphere.position.setFromMatrixPosition(shifted);
-
-    this.lightGroup = new THREE.Group();
-
-    // this.lightGroup.add(sphere);
-    //
-    // this.lightGroup.add(this.pp);
-    return this.lightGroup;
-  }
   setXYZ() {
     // if (this.wall.pos === "top") {
     this.depth = this.wallDepth;
@@ -165,7 +128,7 @@ class WallEntity extends Component {
       this.mesh = new THREE.Mesh(geometry, material);
       this.mesh.receiveShadow = true;
       this.mesh.castShadow = true;
-      this.frame = new Frame(this);
+      // this.frame = new Frame(this);
       this.group = new THREE.Group();
       // this.group.receiveShadow = true;
       // this.group.castShadow = true;
@@ -183,16 +146,10 @@ class WallEntity extends Component {
       }
       // this.wallSpotlight = this.getDefaultWallSpotlight();
       // this.group.add(this.wallSpotlight);
-      this.wallSpotlight = this.getDefaultWallSpotlight();
-      this.group.add(this.wallSpotlight);
-      this.frameGroup = this.frame.getFrameGroup();
-
-      console.log("this.frame.hasArt", this.frame.hasArt);
-      // if (this.frame.hasArt) {
-      //   debugger;
-      //   this.spotLight.intensity = 0.1;
-      // }
-      this.group.add(this.frameGroup);
+      // this.wallSpotlight = this.getDefaultWallSpotlight();
+      // this.group.add(this.wallSpotlight);
+      this.addLights();
+      this.addFrames();
     }
     // if (this.frameGroup) this.group.remove(this.frameGroup);
     // this.frameGroup = this.frame.getFrameGroup();
@@ -207,6 +164,47 @@ class WallEntity extends Component {
     // }
 
     console.log("render wall", this.wallHeight);
+  }
+
+  addFrames() {
+    this.frameFront = new Frame(this);
+    this.frameFront.setFrameMesh(
+      this.defaultFrameWidth,
+      this.defaultFrameHeight
+    );
+    this.frameGroupFront = this.frameFront.getFrameGroup();
+    this.frameBack = new Frame(this, "back");
+    this.frameBack.setFrameMesh(
+      this.defaultFrameWidth,
+      this.defaultFrameHeight
+    );
+    this.frameGroupBack = this.frameBack.getFrameGroup();
+
+    // console.log("this.frame.hasArt", this.frame.hasArt);
+    // if (this.frame.hasArt) {
+    //   this.spotLight.intensity = 0.1;
+    // }
+    this.sides.front.frame = this.frameFront;
+    this.sides.back.frame = this.frameBack;
+
+    this.group.add(this.frameGroupFront);
+    this.group.add(this.frameGroupBack);
+  }
+
+  addLights() {
+    this.wallLightFront = new WallLight(this);
+    this.wallLightFront.setWallLight();
+    // this.spotLight.shadow.camera.fov = this.controls.fov;
+    this.mesh.updateMatrix();
+    this.wallLightFrontGroup = this.wallLightFront.getWallLightGroup();
+    this.sides.front.wallLight = this.wallLightFront;
+    this.group.add(this.wallLightFrontGroup);
+
+    this.wallLightBack = new WallLight(this, "back");
+    this.wallLightBack.setWallLight();
+    this.wallLightBackGroup = this.wallLightBack.getWallLightGroup();
+    this.sides.back.wallLight = this.wallLightBack;
+    this.group.add(this.wallLightBackGroup);
   }
 
   getMesh() {
@@ -228,23 +226,23 @@ class WallEntity extends Component {
     console.log("setColor", color);
   }
 
-  setFrameColor(item) {
-    this.frame.setFrameColor(item);
+  setFrameColor(item, side) {
+    this.sides[side].frame.setFrameColor(item);
   }
 
   renderColor() {
     console.log("renderColor", this.color);
     this.mesh.material.emissive.setHex(this.color);
   }
-  addImageFile(file) {
+  addImageFile(file, side) {
     console.log("addImageFile", file);
-    // debugger;
-    this.frame.addArt(file);
+    this.builder.scene.updateMatrixWorld(true);
+    this.sides[side].frame.addArt(file);
+    this.sides[side].wallLight.switchOn();
     this.hasArt = true;
-    this.spotLight.intensity = 1;
-    this.spotlightAdded = true;
-    // debugger;
-    this.frameGroup.children[0].material.opacity = 1;
+    // this.sides[side].wallLight.switchOn
+    // this.sidess[side].spotlightAdded = true;
+    // this.frameGroup.children[0].material.opacity = 1;
   }
 }
 

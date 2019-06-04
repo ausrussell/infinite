@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 class Frame {
-  constructor(props) {
+  constructor(props, side = "front") {
     // super(props);
     this.wall = props;
     const { wallDepth, wallWidth, wallHeight } = this.wall;
@@ -12,9 +12,9 @@ class Frame {
     this.maxFrameHeight = wallHeight * 0.8;
     this.hasArt = false;
     this.loader = new THREE.TextureLoader();
-    this.setFrameMesh();
+    this.side = side;
   }
-  setFrameMesh(totalWidth = this.wallWidth * 0.8, totalHeight = 20) {
+  setFrameMesh(totalWidth, totalHeight) {
     // let totalWidth = this.wallWidth * 0.8;
     //
     // let totalHeight = 20;
@@ -76,9 +76,11 @@ class Frame {
     const shiftedLeft = wallMatrix.makeTranslation(
       -(totalWidth / 2),
       -(totalHeight / 2),
-      this.wallDepth / 2
+      this.side === "back" ? -(this.wallDepth * 1.5) : this.wallDepth * 0.5
     );
+    // debugger;
     this.mesh.position.setFromMatrixPosition(shiftedLeft);
+    this.mesh.updateMatrix();
     this.mesh.castShadow = true;
     this.totalWidth = totalWidth;
     this.totalHeight = totalHeight;
@@ -136,12 +138,12 @@ class Frame {
     const artPlane = new THREE.PlaneGeometry(
       artDimensions[0],
       artDimensions[1],
-      10
+      0
     );
     if (!this.iMaterial) {
       this.iMaterial = new THREE.MeshBasicMaterial({
         // color: 0xfff0f0,
-        // side: THREE.DoubleSide,
+        side: THREE.DoubleSide,
         map: texture
       });
     } else {
@@ -149,8 +151,13 @@ class Frame {
     }
     if (this.artMesh) this.group.remove(this.artMesh);
     this.artMesh = new THREE.Mesh(artPlane, this.iMaterial);
+    this.mesh.updateMatrixWorld();
     const frameMatrix = this.mesh.matrixWorld;
-    const shifted = frameMatrix.makeTranslation(0, 0, this.wallDepth);
+    const shifted = frameMatrix.makeTranslation(
+      0,
+      0,
+      this.side === "back" ? -this.wallDepth : this.wallDepth
+    );
     this.artMesh.position.setFromMatrixPosition(shifted);
     this.setFrameMesh(artDimensions[0], artDimensions[1]);
     // if (!this.hasArt) {

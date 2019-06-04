@@ -5,10 +5,6 @@ import { Transition, Spring, animated, config } from "react-spring/renderprops";
 import * as THREE from "three";
 import { floorData } from "./Floor";
 
-// import firebase from "firebase";
-// import configf from "../api/firebase-config";
-// firebase.initializeApp(configf);
-
 const Floors = {
   0: {
     name: "Gallery"
@@ -90,43 +86,6 @@ class TilesFloor extends Component {
   }
 }
 
-class ArtFloor extends Component {
-  constructor(props) {
-    super(props);
-    //
-    // var storageRef = firebase.storage().ref("art");
-    //
-    // // Now we get the references of these images
-    // storageRef
-    //   .listAll()
-    //   .then(function(result) {
-    //     result.items.forEach(function(imageRef) {
-    //       // And finally display them
-    //       displayImage(imageRef);
-    //     });
-    //   })
-    //   .catch(function(error) {
-    //     // Handle any errors
-    //   });
-    //
-    // function displayImage(imageRef) {
-    //   imageRef
-    //     .getDownloadURL()
-    //     .then(function(url) {
-    //       console.log("url of image", url);
-    //       // TODO: Display the image on the UI
-    //     })
-    //     .catch(function(error) {
-    //       // Handle any errors
-    //     });
-    // }
-  }
-
-  render() {
-    return <div> art works</div>;
-  }
-}
-
 class Elevator extends PureComponent {
   state = {
     currentFloor: Floors[0],
@@ -142,10 +101,7 @@ class Elevator extends PureComponent {
   state = { y: 0 };
   el = React.createRef();
   spring = React.createRef();
-  setY = y => {
-    console.log("set y");
-    this.setState({ y: y });
-  };
+  setY = () => this.setState({ y: Math.round(Math.random() * 50) + 50 });
   // User interaction should stop animation in order to prevent scroll-hijacking
   // Doing this on onWheel isn't enough, but just to illustrate ...
   stop = () => this.spring.current.stop();
@@ -166,6 +122,34 @@ class Elevator extends PureComponent {
       <div className={`vault-container ${vaultOpen ? "open" : "closed"}`}>
         <div className="vault-doors">
           <div className="vault-floors-container">
+            <FloorWrapper title={y}>
+              <TilesFloor
+                tilesData={framesData}
+                tileCallback={this.props.tileCallback}
+              />
+            </FloorWrapper>
+
+            <FloorWrapper title="Floors">
+              <TilesFloor
+                tilesData={floorData}
+                tileCallback={this.props.floorTileCallback}
+              />
+            </FloorWrapper>
+          </div>
+          <div className="elevator-panel">
+            <div className="elevator header">
+              <div className="elevator-current-floor">current </div>
+            </div>
+            <div className="elevator-floors-list">
+              <ul>
+                <li>Frames</li>
+                <li>Floors</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div className="scrolltop-main-holder">
+          <div className="scrolltop-main">
             <Spring
               native
               reset
@@ -181,11 +165,7 @@ class Elevator extends PureComponent {
                   onWheel={this.stop}
                   scrollTop={props.y}
                 >
-                  <FloorWrapper title="Artworks">
-                    <ArtFloor />
-                  </FloorWrapper>
-
-                  <FloorWrapper title="Frames">
+                  <FloorWrapper title={y}>
                     <TilesFloor
                       tilesData={framesData}
                       tileCallback={this.props.tileCallback}
@@ -202,19 +182,8 @@ class Elevator extends PureComponent {
               )}
             </Spring>
           </div>
-          <div className="elevator-panel">
-            <div className="elevator header">
-              <div className="elevator-current-floor">current </div>
-            </div>
-            <div className="elevator-floors-list">
-              <ul>
-                <li onClick={() => this.setY(0)}>Frames</li>
-                <li onClick={() => this.setY(235)}>Floors</li>
-              </ul>
-            </div>
-          </div>
+          <div className="scrolltop-b" onClick={this.setY} />
         </div>
-
         <div className="vault-button-panel">
           <div
             onClick={() => this.vaultButtonHandler()}

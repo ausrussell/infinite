@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import "../css/maker.css";
 import Wall from "./Wall";
+import { FirebaseContext } from "../api";
 
 const paddedWall = 15;
 const voxelSizePlus = 30 + paddedWall;
@@ -317,7 +318,11 @@ class Maker extends Component {
             </div>
 
             <Instructions />
-
+            <FirebaseContext.Consumer>
+              {firebase => {
+                return <div>I've access to Firebase and render something.</div>;
+              }}
+            </FirebaseContext.Consumer>
             <PreFab useStoredPlan={plan => this.useStoredPlan(plan)} />
           </div>
         </div>
