@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import "../css/maker.css";
 import Wall from "./Wall";
-import { FirebaseContext } from "../api";
+import { FirebaseContext } from "./Firebase";
 
 const paddedWall = 15;
 const voxelSizePlus = 30 + paddedWall;

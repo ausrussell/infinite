@@ -20,6 +20,7 @@ import * as dat from "dat.gui";
 import * as Stats from "stats-js";
 
 import FirstPersonControls from "./FirstPersonControls";
+import { FirebaseContext } from "./Firebase";
 
 const bulbLuminousPowers = {
   "110000 lm (1000W)": 110000,
@@ -36,6 +37,9 @@ const hemiLuminousIrradiances = {
   "0.0001 lx (Moonless Night)": 0.0001,
   "0.002 lx (Night Airglow)": 0.002,
   "0.5 lx (Full Moon)": 0.5,
+  "0.9 lx (Fuller Moon)": 0.9,
+  "1.5 lx (Gloaming)": 1.5,
+
   "3.4 lx (City Twilight)": 3.4,
   "50 lx (Living Room)": 50,
   "100 lx (Very Overcast)": 100,
@@ -97,7 +101,7 @@ class Builder extends Component {
     // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.camera.position.x = 0;
     this.camera.position.y = 45;
-    this.camera.position.z = 60;
+    this.camera.position.z = 360;
     this.camera.lookAt(new THREE.Vector3(10, 10, 10));
 
     this.setUpFirstPersonControls();
@@ -112,7 +116,7 @@ class Builder extends Component {
     this.mount.appendChild(this.renderer.domElement);
 
     this.addGrid();
-    this.addBox();
+    // this.addBox();
     this.setWalls();
     this.setFloor();
     this.addLight();
@@ -133,9 +137,7 @@ class Builder extends Component {
       "hemiIrradiance",
       Object.keys(hemiLuminousIrradiances)
     );
-    this.gui.add(params, "bulbPower", Object.keys(bulbLuminousPowers));
-    this.gui.add(params, "exposure", 0, 1);
-    this.gui.add(params, "shadows");
+
     this.gui.open();
   }
   setUpFirstPersonControls() {
@@ -215,7 +217,7 @@ class Builder extends Component {
       0x808080
     );
 
-    this.scene.add(this.gridHelper);
+    // this.scene.add(this.gridHelper);
   }
 
   setWalls() {
@@ -459,6 +461,16 @@ class Builder extends Component {
           tileCallback={this.tileCallback}
           floorTileCallback={this.floorTileCallback.bind(this)}
         />
+        <FirebaseContext.Consumer>
+          {firebase => (
+            <Uploader
+              fileDragover={this.dragOverHandler}
+              fileDrop={item => this.fileDropHandler(item)}
+              wallOver={this.state.wallOver}
+              firebase={firebase}
+            />
+          )}
+        </FirebaseContext.Consumer>
       </div>
     );
   }

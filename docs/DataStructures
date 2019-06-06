@@ -1,0 +1,18 @@
+Data structure:
+
+
+
+Galleries {
+galler
+}
+User data
+Private Data - links owners to Galleries and vaults
+vaults:
+{
+vaultid:xxx,
+images:{
+imageid: xxx,
+url:xxx,
+appearsIn: _galleryid
+}
+}

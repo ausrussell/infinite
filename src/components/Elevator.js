@@ -5,16 +5,20 @@ import { Transition, Spring, animated, config } from "react-spring/renderprops";
 import * as THREE from "three";
 import { floorData } from "./Floor";
 
+import { FirebaseContext } from "./Firebase";
+
 // import firebase from "firebase";
 // import configf from "../api/firebase-config";
 // firebase.initializeApp(configf);
 
 const Floors = {
   0: {
-    name: "Gallery"
+    name: "Frames",
+    y: 0
   },
   1: {
-    name: "Frames"
+    name: "Floors",
+    y: 235
   }
 };
 
@@ -93,6 +97,8 @@ class TilesFloor extends Component {
 class ArtFloor extends Component {
   constructor(props) {
     super(props);
+    // this.props.firebase.listArt();
+
     //
     // var storageRef = firebase.storage().ref("art");
     //
@@ -129,9 +135,9 @@ class ArtFloor extends Component {
 
 class Elevator extends PureComponent {
   state = {
-    currentFloor: Floors[0],
+    currentFloor: 0,
     vaultOpen: false,
-    y: 20
+    y: 0
   };
   constructor(props) {
     super(props);
@@ -139,12 +145,13 @@ class Elevator extends PureComponent {
   vaultButtonHandler() {
     this.setState({ vaultOpen: !this.state.vaultOpen });
   }
-  state = { y: 0 };
+
   el = React.createRef();
   spring = React.createRef();
-  setY = y => {
-    console.log("set y");
-    this.setState({ y: y });
+  handleFloorClick = floorNo => {
+    console.log("set y", floorNo);
+
+    this.setState({ y: Floors[floorNo].y, currentFloor: floorNo });
   };
   // User interaction should stop animation in order to prevent scroll-hijacking
   // Doing this on onWheel isn't enough, but just to illustrate ...
@@ -159,6 +166,9 @@ class Elevator extends PureComponent {
         color: "#fff"
       }
     };
+    // <FloorWrapper title="Artworks">
+    //   <ArtFloor />
+    // </FloorWrapper>;
 
     //{props.y}
     const y = this.el.current ? this.el.current.scrollTop : 0;
@@ -181,22 +191,22 @@ class Elevator extends PureComponent {
                   onWheel={this.stop}
                   scrollTop={props.y}
                 >
-                  <FloorWrapper title="Artworks">
-                    <ArtFloor />
-                  </FloorWrapper>
-
                   <FloorWrapper title="Frames">
                     <TilesFloor
                       tilesData={framesData}
                       tileCallback={this.props.tileCallback}
                     />
                   </FloorWrapper>
-
                   <FloorWrapper title="Floors">
                     <TilesFloor
                       tilesData={floorData}
                       tileCallback={this.props.floorTileCallback}
                     />
+                  </FloorWrapper>
+                  <FloorWrapper title="Artworks">
+                    <FirebaseContext.Consumer>
+                      {firebase => <ArtFloor firebase={firebase} />}
+                    </FirebaseContext.Consumer>
                   </FloorWrapper>
                 </animated.div>
               )}
@@ -204,12 +214,16 @@ class Elevator extends PureComponent {
           </div>
           <div className="elevator-panel">
             <div className="elevator header">
-              <div className="elevator-current-floor">current </div>
+              <div className="elevator-current-floor">
+                {this.state.currentFloor +
+                  " " +
+                  Floors[this.state.currentFloor].name}
+              </div>
             </div>
             <div className="elevator-floors-list">
               <ul>
-                <li onClick={() => this.setY(0)}>Frames</li>
-                <li onClick={() => this.setY(235)}>Floors</li>
+                <li onClick={() => this.handleFloorClick(0)}>Frames</li>
+                <li onClick={() => this.handleFloorClick(1)}>Floors</li>
               </ul>
             </div>
           </div>

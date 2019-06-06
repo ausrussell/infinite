@@ -63,13 +63,13 @@ class Wall {
       this.pos === "top" ? voxelSizePlus - hoverDelta.horiz : 5,
       this.pos === "top" ? 5 : voxelSizePlus - hoverDelta.vert
     ); //horiz
-    this.ctx.font = "14px Arial";
-    this.ctx.fillStyle = "#559";
-    this.ctx.fillText(
-      this.col + "," + this.row,
-      this.col * voxelSizePlus + 20,
-      this.row * voxelSizePlus + 40
-    );
+    // this.ctx.font = "14px Arial";
+    // this.ctx.fillStyle = "#559";
+    // this.ctx.fillText(
+    //   this.col + "," + this.row,
+    //   this.col * voxelSizePlus + 20,
+    //   this.row * voxelSizePlus + 40
+    // );
   }
   drawPost() {
     this.ctx.fillStyle = this.styleMap[2];

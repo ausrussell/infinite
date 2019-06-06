@@ -84,7 +84,9 @@ class WallEntity extends Component {
     // }
 
     this.currentSideOver.wallLight.switchOn(0.5);
+    // debugger;
 
+    this.currentSideOver.frame.mesh.material.opacity = 0.75;
     // this.group.add(this.wallSpotlight);
   }
   dragOutHandler(side) {
@@ -94,6 +96,7 @@ class WallEntity extends Component {
       // this.frameGroup.children[0].material.opacity = 0;
 
       this.currentSideOver.wallLight.switchOff();
+      this.currentSideOver.frame.mesh.material.opacity = 0;
       // this.currentSide.spotlightAdded = false;
     }
   }
@@ -117,18 +120,22 @@ class WallEntity extends Component {
         this.depth
       );
       // Create a MeshBasicMaterial with a color white and with its wireframe turned on
-      const material = new THREE.MeshStandardMaterial({
+      //MeshStandardMaterial
+      //MeshLambertMaterial
+      this.wallMaterial = new THREE.MeshStandardMaterial({
         // wireframe: true
+        color: 0xe1f5fe
       });
-
+      //amber : ffecb3
       // const material = new THREE.MeshLambertMaterial({
       //   //MeshStandardMaterial
       //   // wireframe: true
       // });
-      this.mesh = new THREE.Mesh(geometry, material);
-      this.mesh.receiveShadow = true;
-      this.mesh.castShadow = true;
+      this.mesh = new THREE.Mesh(geometry, this.wallMaterial);
+      // this.mesh.receiveShadow = true;
+      // this.mesh.castShadow = true;
       // this.frame = new Frame(this);
+
       this.group = new THREE.Group();
       // this.group.receiveShadow = true;
       // this.group.castShadow = true;
@@ -239,10 +246,11 @@ class WallEntity extends Component {
     this.builder.scene.updateMatrixWorld(true);
     this.sides[side].frame.addArt(file);
     this.sides[side].wallLight.switchOn();
+    // this.sides[side].frame.material.opacity = 1;
     this.hasArt = true;
     // this.sides[side].wallLight.switchOn
     // this.sidess[side].spotlightAdded = true;
-    // this.frameGroup.children[0].material.opacity = 1;
+    this.sides[side].frame.mesh.material.opacity = 1;
   }
 }
 
