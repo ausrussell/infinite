@@ -51,23 +51,21 @@ class Frame {
 
     const texture1 = this.loader.load("../textures/wood/wood3.png");
     this.fgeometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
-    // this.fmaterial = new THREE.MeshLambertMaterial({
-    //
-    //
-    //   color: 0x666666,
-    //   side: THREE.DoubleSide,
-    //   transparent: true,
-    //   opacity: 0,
-    //   map: texture1
-    // });
-
-    this.fmaterial = new THREE.MeshStandardMaterial({
+    this.fmaterial = new THREE.MeshLambertMaterial({
       color: 0x666666,
       side: THREE.DoubleSide,
-      // transparent: true,
-      opacity: 0
-      // map: texture1
+      transparent: true,
+      opacity: 0,
+      map: texture1
     });
+
+    // this.fmaterial = new THREE.MeshStandardMaterial({
+    //   color: 0x666666,
+    //   side: THREE.DoubleSide,
+    //   // transparent: true,
+    //   opacity: 0
+    //   // map: texture1
+    // });
 
     this.mesh = new THREE.Mesh(this.fgeometry, this.fmaterial);
 

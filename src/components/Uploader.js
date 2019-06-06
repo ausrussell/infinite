@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 // import FileUploader from "react-firebase-file-uploader";
-// import firebase from "firebase";
+import firebase from "./Firebase";
 // import config from "../api/firebase-config";
 // firebase.initializeApp(config);
 
@@ -64,7 +64,10 @@ class Uploader extends Component {
     // Create a root reference
 
     //uncomment these to save image
-    // const storageRef = firebase.storage().ref();
+    // debugger;
+
+    this.props.firebase.storeArt(file);
+    // const storageRef = this.props.firebase.storage().ref();
     // const imageRef = storageRef.child("art2/" + file.name);
     // imageRef.put(file).then(function(snapshot) {
     //   console.log("Uploaded a blob or file!");

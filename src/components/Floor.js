@@ -32,11 +32,6 @@ export const floorData = [
     bumpMap: texturesPath + "concrete_stone/concrete01_norm.jpg",
     roughnessMap: texturesPath + "concrete_stone/concrete01_spec.jpg"
   },
-  { key: 9, type: "color", color: "#543499" },
-  { key: 10, color: "#564449", type: "color" },
-  { key: 2, type: "color", color: "#111111" },
-  { key: 3, type: "color", color: "#FFFFFF" },
-  { key: 4, type: "texture", url: "../textures/wood/hardwood.jpg" },
   {
     key: 5,
     type: "texture",
@@ -56,7 +51,12 @@ export const floorData = [
     key: 8,
     type: "texture",
     url: "../textures/concrete_stone/stonetiles_003_diff.jpg"
-  }
+  },
+  { key: 9, type: "color", color: "#F9FBE7" },
+  { key: 10, color: "#F0F4C3", type: "color" },
+  { key: 2, type: "color", color: "#FFECB3" },
+  { key: 3, type: "color", color: "#FFCC80" },
+  { key: 4, type: "texture", url: "../textures/wood/hardwood.jpg" }
 ];
 
 export default class Floor {
@@ -91,7 +91,7 @@ export default class Floor {
     });
 
     this.floorMesh = new THREE.Mesh(this.floorPlane, this.floorMaterial);
-    this.floorMesh.receiveShadow = true;
+    // this.floorMesh.receiveShadow = true;
     this.floorMesh.rotateX(-Math.PI / 2);
     console.log("this.floorMesh", this.floorMesh);
     // this.scene = this.builder.scene;
