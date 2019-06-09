@@ -1,7 +1,10 @@
 import React, { Component } from "react";
 import "../css/maker.css";
 import Wall from "./Wall";
-import { FirebaseContext } from "./Firebase";
+import PreFab from "./PreFab";
+
+import { withFirebase } from "./Firebase";
+import Elevator from "./Elevator";
 
 const paddedWall = 15;
 const voxelSizePlus = 30 + paddedWall;
@@ -9,15 +12,15 @@ const voxelSizePlus = 30 + paddedWall;
 /// data an array of arrays: row, col, pos
 // [[x,y,0 or 1],...] for each wall
 
-function Button(props) {
+const Button = props => {
   return (
     <button className="primary-button" onClick={() => props.onClick()}>
       Save
     </button>
   );
-}
+};
 
-function Instructions() {
+const Instructions = () => {
   return (
     <div className="instructions-holder">
       <ul>
@@ -27,45 +30,22 @@ function Instructions() {
       </ul>
     </div>
   );
-}
-
-class PreFab extends Component {
-  constructor(props) {
-    super(props);
-  }
-
-  useLocalStorage = () => {
-    const localPlan = JSON.parse(localStorage.getItem("planData"));
-    console.log(localPlan);
-    this.props.useStoredPlan(localPlan);
-  };
-
-  render() {
-    return <button onClick={this.useLocalStorage}>prefab</button>;
-  }
-}
-
-//volxels {x:x,y:y,walls:[left,top]}
-
-//
+};
 
 class Maker extends Component {
   constructor(props) {
     super(props);
-    console.log("props", props);
-    console.log("this.props", this.props);
+    // console.log("props", props);
     this.voxelsX = 700 / voxelSizePlus;
     this.voxelsY = 500 / voxelSizePlus;
-    console.log("this.voxelsX,this.voxelsy", this.voxelsX, this.voxelsY);
     this.state = {
       width: 700,
       height: 520,
       posts: {},
       data: [],
-      voxels: {}
+      voxels: {},
+      shiftDown: false
     };
-    this.shiftDown = false;
-    this.data = []; //
   }
 
   componentDidMount() {
@@ -73,8 +53,8 @@ class Maker extends Component {
     this.ctx = this.canvas.getContext("2d");
     this.setState({ walls: this.setWalls() }, this.renderCanvas);
     this.setupListeners();
-    var planData = JSON.parse(localStorage.getItem("planData"));
-    console.log("planData", planData);
+    // var planData = JSON.parse(localStorage.getItem("planData"));
+    // console.log("planData", planData);
   }
 
   setupListeners() {
@@ -87,21 +67,27 @@ class Maker extends Component {
       }
       const walls = this.getWallsFromPos(x, y);
       console.log("walls", x, y, walls);
-      if (!walls && !this.shiftDown) return;
+      if (!walls && !this.state.shiftDown) return;
       const options = {
-        shiftDown: this.shiftDown
+        // shiftDown: this.shiftDown
       };
       if ((x - 5) % voxelSizePlus < paddedWall) {
         //left
         this.mouseoverWall = walls[0];
-        console.log("this.shiftDown left", this.shiftDown);
-        if (this.shiftDown && this.mousedown) {
+        console.log("this.shiftDown left", this.state.shiftDown);
+        if (
+          this.state.shiftDown &&
+          this.mousedown &&
+          this.mouseoverWall.built === 1
+        ) {
+          console.log("this.mouseoverWall", this.mouseoverWall);
+          // debugger;
           this.mouseoverWall.removeWall();
           console.log("remove because shift down");
           return;
         }
         if (this.buildingWall) {
-          console.log("build on mousedown left", this.shiftDown);
+          console.log("build on mousedown left", this.state.shiftDown);
           options.isAdjacentToWall = this.isAdjacentToWall(walls[0]);
           this.mouseoverWall.onMouseDown(options);
 
@@ -113,9 +99,9 @@ class Maker extends Component {
       } else if ((y - 5) % voxelSizePlus < paddedWall) {
         //top
         this.mouseoverWall = walls[1];
-        if (this.shiftDown && this.mousedown) {
+        if (this.state.shiftDown && this.mousedown) {
           this.mouseoverWall.removeWall();
-          console.log("remove because shift down");
+          console.log("remove top because shift down");
           return;
         }
         if (this.buildingWall) {
@@ -147,19 +133,13 @@ class Maker extends Component {
       voxels[i] = [];
       for (let j in this.state.walls[i]) {
         const walls = this.getWallsFromState(i, j);
-
         voxels[i][j] = { walls: [walls[0].built, walls[1].built] };
-        // walls.forEach(wall => {
-        //   if (wall.built) {
-        //     const { row, col, pos } = wall;
-        //     this.data.push([row, col, pos === "left" ? 0 : 1]);
-        //   }
-        // });
       }
     }
-    this.data = voxels;
+    const dataStringified = JSON.stringify(voxels);
     console.log("this.data", this.data);
-    localStorage.setItem("planData", JSON.stringify(this.data));
+    localStorage.setItem("planData", dataStringified);
+    this.props.firebase.storeFloorplan(dataStringified);
     // });
   }
 
@@ -180,7 +160,8 @@ class Maker extends Component {
   onKeyDown(e) {
     switch (e.keyCode) {
       case 16:
-        this.shiftDown = true;
+        console.log("shift down true");
+        this.setState({ shiftDown: true });
         break;
     }
   }
@@ -189,7 +170,10 @@ class Maker extends Component {
     console.log("keyup ", e.key);
     switch (e.keyCode) {
       case 16:
-        this.shiftDown = false;
+        console.log("shift down false");
+
+        this.setState({ shiftDown: false });
+
         break;
     }
   }
@@ -286,6 +270,10 @@ class Maker extends Component {
     this.props.buildHandler(this.state.walls);
   }
 
+  clearWalls(plan) {
+    this.changePlan(plan, "removeWall");
+  }
+
   useStoredPlan(plan) {
     console.log("make this plan", plan);
     for (let i in plan) {
@@ -298,6 +286,41 @@ class Maker extends Component {
     }
     this.renderWalls();
   }
+
+  changePlan(plan, changeFunction) {
+    for (let i in plan) {
+      for (let j in plan[i]) {
+        const walls = this.getWallsFromState(i, j);
+
+        walls[0][changeFunction]();
+        walls[1][changeFunction]();
+      }
+    }
+    this.renderWalls();
+  }
+
+  tileClickHandler = data => {
+    console.log("tileClickHandler", data);
+    this.clearWalls(data);
+    this.useStoredPlan(data);
+  };
+  floors = {
+    0: {
+      level: 0,
+      name: "Help",
+      y: 0,
+      floorComponent: HelpFloor
+    },
+    1: {
+      level: 1,
+      name: "Floorplans",
+      y: 235,
+      floorComponent: PreFab,
+      tileCallback: this.tileClickHandler
+    }
+  };
+
+  // tileCallback={this.tileCallback}
 
   render() {
     return (
@@ -317,13 +340,7 @@ class Maker extends Component {
               />
             </div>
 
-            <Instructions />
-            <FirebaseContext.Consumer>
-              {firebase => {
-                return <div>I've access to Firebase and render something.</div>;
-              }}
-            </FirebaseContext.Consumer>
-            <PreFab useStoredPlan={plan => this.useStoredPlan(plan)} />
+            <Elevator name="Plans" floors={this.floors} />
           </div>
         </div>
       </div>
@@ -331,4 +348,12 @@ class Maker extends Component {
   }
 }
 
-export default Maker;
+const HelpFloor = () => {
+  return <Instructions />;
+};
+
+const PlansFloor = floor => {
+  return <PreFab floor={floor} />;
+};
+
+export default withFirebase(Maker);

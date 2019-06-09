@@ -20,7 +20,7 @@ import * as dat from "dat.gui";
 import * as Stats from "stats-js";
 
 import FirstPersonControls from "./FirstPersonControls";
-import { FirebaseContext } from "./Firebase";
+import { withFirebase } from "./Firebase";
 
 const bulbLuminousPowers = {
   "110000 lm (1000W)": 110000,
@@ -445,7 +445,16 @@ class Builder extends Component {
   //   fileDrop={item => this.fileDropHandler(item)}
   //   wallOver={this.state.wallOver}
   // />
-
+  floors = {
+    0: {
+      name: "Frames",
+      y: 0
+    },
+    1: {
+      name: "Floor surfaces",
+      y: 235
+    }
+  };
   render() {
     const tileCallbackFunction = this.state.vaultOpen
       ? item => this.tileCallback(item)
@@ -458,19 +467,17 @@ class Builder extends Component {
         <div> Builder</div>
         <MainCanvas refer={mount => (this.mount = mount)} />
         <Elevator
+          name="Vault"
+          floors={this.floors}
           tileCallback={this.tileCallback}
           floorTileCallback={this.floorTileCallback.bind(this)}
         />
-        <FirebaseContext.Consumer>
-          {firebase => (
-            <Uploader
-              fileDragover={this.dragOverHandler}
-              fileDrop={item => this.fileDropHandler(item)}
-              wallOver={this.state.wallOver}
-              firebase={firebase}
-            />
-          )}
-        </FirebaseContext.Consumer>
+        <Uploader
+          fileDragover={this.dragOverHandler}
+          fileDrop={item => this.fileDropHandler(item)}
+          wallOver={this.state.wallOver}
+        />
+        )}
       </div>
     );
   }
@@ -486,4 +493,4 @@ const MainCanvas = props => {
   );
 };
 
-export default Builder;
+export default withFirebase(Builder);

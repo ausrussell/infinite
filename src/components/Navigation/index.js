@@ -6,7 +6,7 @@ import * as ROUTES from "../../constants/routes";
 import { AuthUserContext } from "../Session";
 
 const Navigation = () => (
-  <div>
+  <div className="navigation-holder">
     <AuthUserContext.Consumer>
       {authUser => (authUser ? <NavigationAuth /> : <NavigationNonAuth />)}
     </AuthUserContext.Consumer>
@@ -23,6 +23,12 @@ const NavigationAuth = () => (
     </li>
     <li>
       <Link to={ROUTES.ACCOUNT}>Account</Link>
+    </li>
+    <li>
+      <Link to={ROUTES.ADMIN}>Admin</Link>
+    </li>
+    <li>
+      <Link to={ROUTES.APP}>App</Link>
     </li>
     <li>
       <SignOutButton />
