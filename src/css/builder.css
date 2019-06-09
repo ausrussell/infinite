@@ -3,3 +3,30 @@ body {
   padding: 0;
   overflow: hidden;
 }
+
+.tile-holder {
+  display: flex;
+  overflow: auto;
+  background: #8094a1;
+}
+
+.tile {
+  width: 9em;
+  height: 9em;
+  background-color: #fff;
+  border-radius: 4px;
+  margin: 1em;
+}
+.tile-center-content {
+  display: flex;
+  position: relative;
+}
+.tile-center-content canvas {
+  margin: auto auto;
+}
+
+.remove-plan-button {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+}

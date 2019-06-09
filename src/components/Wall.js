@@ -15,9 +15,9 @@ class Wall {
     //console.log(pos, ctx, row, col);
   }
   styleMap = {
-    0: "#37474f",
-    1: "#99aacc",
-    2: "#ccddff"
+    0: "#37474f", //not built
+    1: "#99aacc", //onMouseOver
+    2: "#ccddff" //built
   };
   onMouseOver() {
     if (this.built) return;
@@ -81,6 +81,8 @@ class Wall {
     );
   }
   removeWall() {
+    console.log("removeWall", this.col, this.row);
+    this.style = 0;
     this.built = 0;
   }
 }

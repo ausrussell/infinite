@@ -19,6 +19,11 @@ class Firebase {
     this.auth = app.auth();
     this.storage = app.storage();
     this.database = app.database();
+
+    this.auth.onAuthStateChanged(user => {
+      this.currentUID = user.uid;
+    });
+    this.floorplansRef = this.database.ref("floorplans");
   }
 
   // *** Auth API ***
@@ -26,8 +31,9 @@ class Firebase {
   doCreateUserWithEmailAndPassword = (email, password) =>
     this.auth.createUserWithEmailAndPassword(email, password);
 
-  doSignInWithEmailAndPassword = (email, password) =>
+  doSignInWithEmailAndPassword = (email, password) => {
     this.auth.signInWithEmailAndPassword(email, password);
+  };
 
   doSignOut = () => this.auth.signOut();
 
@@ -37,9 +43,56 @@ class Firebase {
 
   // *** User API ***
 
-  user = uid => this.database.ref(`users/${uid}`);
+  user = uid => {
+    this.database.ref(`users/${uid}`);
+  };
 
   users = () => this.database.ref("users");
+
+  storeFloorplan = data => {
+    const newPostRef = this.database.ref("floorplans").push();
+    newPostRef.set({
+      uid: this.currentUID,
+      data: data
+    });
+  };
+
+  removePlan = key => {
+    this.database
+      .ref("floorplans")
+      .child(key)
+      .remove();
+  };
+
+  getUsersFloorplans = () => {
+    // debugger;
+    this.currentUID = this.currentUID || "Smj8Dswyd7eJTZ2gigjJhXtfDDZ2";
+    if (this.currentUID) {
+      return this.floorplansRef
+        .orderByChild("uid")
+        .equalTo(this.currentUID)
+        .once("value")
+        .then(data => {
+          // debugger;
+          console.log("floorplan promised", data.val().data);
+          const list = [];
+          data.forEach(function(childSnapshot) {
+            // key will be "ada" the first time and "alan" the second time
+            var key = childSnapshot.key;
+            // childData will be the actual contents of the child
+            var childData = childSnapshot.val();
+            list.push(childSnapshot);
+            console.log("childData", key, childData);
+          });
+          return list;
+        });
+    }
+
+    // return new Promise(function(resolve, reject) {
+    //   throw "User not logged in";
+    // });
+    // }
+  };
 
   storeArt = file => {
     const storageRef = this.storage.ref();

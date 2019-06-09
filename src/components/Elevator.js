@@ -11,27 +11,16 @@ import { FirebaseContext } from "./Firebase";
 // import configf from "../api/firebase-config";
 // firebase.initializeApp(configf);
 
-const Floors = {
-  0: {
-    name: "Frames",
-    y: 0
-  },
-  1: {
-    name: "Floors",
-    y: 235
-  }
-};
-
-const COLORS = [
-  "crimson",
-  "teal",
-  "coral",
-  "hotpink",
-  "skyblue",
-  "salmon",
-  "seagreen",
-  "peachpuff"
-];
+// const Floors = {
+//   0: {
+//     name: "Frames",
+//     y: 0
+//   },
+//   1: {
+//     name: "Floors",
+//     y: 235
+//   }
+// };
 
 const framesData = [
   { key: 0, type: "color", color: "#543499" },
@@ -48,7 +37,7 @@ class FloorWrapper extends Component {
     const { title, children } = this.props;
 
     return (
-      <div className="floor-container">
+      <div className="floor-container" key="title">
         <h4 className="floor-title">{title}</h4>
         <div className="floor-wrapper">{children}</div>
       </div>
@@ -141,6 +130,7 @@ class Elevator extends PureComponent {
   };
   constructor(props) {
     super(props);
+    this.floors = props.floors;
   }
   vaultButtonHandler() {
     this.setState({ vaultOpen: !this.state.vaultOpen });
@@ -151,7 +141,7 @@ class Elevator extends PureComponent {
   handleFloorClick = floorNo => {
     console.log("set y", floorNo);
 
-    this.setState({ y: Floors[floorNo].y, currentFloor: floorNo });
+    this.setState({ y: this.floors[floorNo].y, currentFloor: floorNo });
   };
   // User interaction should stop animation in order to prevent scroll-hijacking
   // Doing this on onWheel isn't enough, but just to illustrate ...
@@ -191,23 +181,13 @@ class Elevator extends PureComponent {
                   onWheel={this.stop}
                   scrollTop={props.y}
                 >
-                  <FloorWrapper title="Frames">
-                    <TilesFloor
-                      tilesData={framesData}
-                      tileCallback={this.props.tileCallback}
-                    />
-                  </FloorWrapper>
-                  <FloorWrapper title="Floors">
-                    <TilesFloor
-                      tilesData={floorData}
-                      tileCallback={this.props.floorTileCallback}
-                    />
-                  </FloorWrapper>
-                  <FloorWrapper title="Artworks">
-                    <FirebaseContext.Consumer>
-                      {firebase => <ArtFloor firebase={firebase} />}
-                    </FirebaseContext.Consumer>
-                  </FloorWrapper>
+                  {Object.values(this.props.floors).map(floor => {
+                    return (
+                      <FloorWrapper title={floor.name} key={floor.level}>
+                        {floor.floorComponent(floor)}
+                      </FloorWrapper>
+                    );
+                  })}
                 </animated.div>
               )}
             </Spring>
@@ -217,13 +197,21 @@ class Elevator extends PureComponent {
               <div className="elevator-current-floor">
                 {this.state.currentFloor +
                   " " +
-                  Floors[this.state.currentFloor].name}
+                  this.floors[this.state.currentFloor].name}
               </div>
             </div>
             <div className="elevator-floors-list">
               <ul>
-                <li onClick={() => this.handleFloorClick(0)}>Frames</li>
-                <li onClick={() => this.handleFloorClick(1)}>Floors</li>
+                {Object.values(this.props.floors).map(floor => {
+                  return (
+                    <li
+                      key={floor.level}
+                      onClick={() => this.handleFloorClick(floor.level)}
+                    >
+                      {floor.name}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           </div>
@@ -236,12 +224,30 @@ class Elevator extends PureComponent {
           >
             {vaultOpen ? "Close" : "Open"}
             <br />
-            Vault
+            {this.props.name}
           </div>
         </div>
       </div>
     );
   }
 }
+
+// <FloorWrapper title="Frames">
+//   <TilesFloor
+//     tilesData={framesData}
+//     tileCallback={this.props.tileCallback}
+//   />
+// </FloorWrapper>
+// <FloorWrapper title="Floors">
+//   <TilesFloor
+//     tilesData={floorData}
+//     tileCallback={this.props.floorTileCallback}
+//   />
+// </FloorWrapper>
+// <FloorWrapper title="Artworks">
+//   <FirebaseContext.Consumer>
+//     {firebase => <ArtFloor firebase={firebase} />}
+//   </FirebaseContext.Consumer>
+// </FloorWrapper>
 
 export default Elevator;

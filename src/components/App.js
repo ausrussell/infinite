@@ -1,7 +1,9 @@
 import React, { Component } from "react";
 import Maker from "./Maker";
-import * as firebase from "firebase";
+// import * as firebase from "firebase";
 import Builder from "./Builder";
+import { withFirebase } from "./Firebase";
+
 class App extends Component {
   constructor() {
     super();
@@ -17,7 +19,6 @@ class App extends Component {
   render() {
     const view = this.state.view;
     let viewComponent;
-    console.log("state", this.state, view === "Maker");
     if (view === "Maker") {
       viewComponent = (
         <Maker buildHandler={walls => this.buildHandler(walls)} />
@@ -25,7 +26,6 @@ class App extends Component {
     } else {
       viewComponent = <Builder walls={this.state.walls} />;
     }
-    console.log("viewComponent", viewComponent);
     return <div>{viewComponent}</div>;
   }
 }
