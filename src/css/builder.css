@@ -20,7 +20,10 @@ body {
 .tile-center-content {
   display: flex;
   position: relative;
+<<<<<<< HEAD
   flex-direction: column;
+=======
+>>>>>>> c8bad0b60d8806c539e78dd9454028cd387eb640
 }
 .tile-center-content canvas {
   margin: auto auto;
@@ -31,7 +34,10 @@ body {
   right: 4px;
   top: 4px;
 }
+<<<<<<< HEAD
 
 .tile-title {
   padding: 4px;
 }
+=======
+>>>>>>> c8bad0b60d8806c539e78dd9454028cd387eb640

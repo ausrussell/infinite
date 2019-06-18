@@ -6,11 +6,7 @@ import { withFirebase } from "../Firebase";
 
 class Builder extends Component {
   state = {
-    walls: {},
-    wallOver: {},
-    wallSideOver: "",
-    selectedTile: null,
-    vaultOpen: false
+    walls: {}
   };
   constructor(props) {
     super(props);

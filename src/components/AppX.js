@@ -1,7 +1,11 @@
 import React, { Component } from "react";
 import Maker from "./Maker";
 // import * as firebase from "firebase";
+<<<<<<< HEAD:src/components/AppX.js
 // import Builder from "./Builder";
+=======
+import Builder from "./Builder";
+>>>>>>> c8bad0b60d8806c539e78dd9454028cd387eb640:src/components/App.js
 import { withFirebase } from "./Firebase";
 
 class App extends Component {

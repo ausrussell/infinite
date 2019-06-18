@@ -10,6 +10,7 @@ import PasswordForgetPage from "../PasswordForget";
 import HomePage from "../Home";
 import AccountPage from "../Account";
 import AdminPage from "../Admin";
+<<<<<<< HEAD
 // import App from "../App";
 import Planner from "../Planner";
 import Gallery from "../Gallery";
@@ -26,15 +27,33 @@ const AppAuth = () => (
       <div className="desk-container">
         <Navigation />
         {ROUTES.BUILDER}
+=======
+import App from "../App";
+import * as ROUTES from "../../constants/routes";
+import { withAuthentication } from "../Session";
+// <Route exact path={ROUTES.LANDING} component={LandingPage} />
+const AppAuth = () => (
+  <div>
+    <Router>
+      <div>
+        <Navigation />
+
+        <hr />
+
+>>>>>>> c8bad0b60d8806c539e78dd9454028cd387eb640
         <Route path={ROUTES.SIGN_UP} component={SignUpPage} />
         <Route path={ROUTES.SIGN_IN} component={SignInPage} />
         <Route path={ROUTES.PASSWORD_FORGET} component={PasswordForgetPage} />
         <Route path={ROUTES.HOME} component={HomePage} />
         <Route path={ROUTES.ACCOUNT} component={AccountPage} />
         <Route path={ROUTES.ADMIN} component={AdminPage} />
+<<<<<<< HEAD
         <Route path={ROUTES.PLANNER} component={Planner} />
         <Route path={ROUTES.GALLERY} component={Gallery} />
         <Route path={ROUTES.BUILDER} component={Builder} />
+=======
+        <Route path={ROUTES.APP} component={App} />
+>>>>>>> c8bad0b60d8806c539e78dd9454028cd387eb640
       </div>
     </Router>
   </div>

@@ -49,6 +49,7 @@ class Firebase {
 
   users = () => this.database.ref("users");
 
+<<<<<<< HEAD
   storeFloorplan = ({ data, title, timestamp }) => {
     const newPostRef = this.database.ref("floorplans").push();
     newPostRef.set({
@@ -57,6 +58,14 @@ class Firebase {
       title: title
     });
     return newPostRef.getKey();
+=======
+  storeFloorplan = data => {
+    const newPostRef = this.database.ref("floorplans").push();
+    newPostRef.set({
+      uid: this.currentUID,
+      data: data
+    });
+>>>>>>> c8bad0b60d8806c539e78dd9454028cd387eb640
   };
 
   removePlan = key => {
@@ -65,6 +74,7 @@ class Firebase {
       .child(key)
       .remove();
   };
+<<<<<<< HEAD
   getPlanByKey = (key, callback) => {
     this.floorplansRef.child(key).on("value", snapshot => {
       callback(snapshot);
@@ -72,12 +82,17 @@ class Firebase {
   };
 
   getUsersFloorplans = callback => {
+=======
+
+  getUsersFloorplans = () => {
+>>>>>>> c8bad0b60d8806c539e78dd9454028cd387eb640
     // debugger;
     this.currentUID = this.currentUID || "Smj8Dswyd7eJTZ2gigjJhXtfDDZ2";
     if (this.currentUID) {
       return this.floorplansRef
         .orderByChild("uid")
         .equalTo(this.currentUID)
+<<<<<<< HEAD
         .on("value", snapshot => callback(snapshot));
       // .then(data => {
       //   // debugger;
@@ -96,6 +111,23 @@ class Firebase {
       //
       //   return list;
       // });
+=======
+        .once("value")
+        .then(data => {
+          // debugger;
+          console.log("floorplan promised", data.val().data);
+          const list = [];
+          data.forEach(function(childSnapshot) {
+            // key will be "ada" the first time and "alan" the second time
+            var key = childSnapshot.key;
+            // childData will be the actual contents of the child
+            var childData = childSnapshot.val();
+            list.push(childSnapshot);
+            console.log("childData", key, childData);
+          });
+          return list;
+        });
+>>>>>>> c8bad0b60d8806c539e78dd9454028cd387eb640
     }
 
     // return new Promise(function(resolve, reject) {
