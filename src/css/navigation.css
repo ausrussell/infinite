@@ -1,6 +1,5 @@
 .navigation-holder {
   position: absolute;
-<<<<<<< HEAD
   bottom: 0;
   left: 0;
   z-index: 1;
@@ -36,8 +35,6 @@
   /* border: none; */
   font-size: 1.1em;
   outline: none;
-=======
   top: 0;
   left: 0;
->>>>>>> c8bad0b60d8806c539e78dd9454028cd387eb640
 }

@@ -162,6 +162,7 @@ class Planner extends Component {
       data: voxels,
       timestamp: Date.now()
     };
+    debugger;
     this.setLocalStorage(plan);
     this.pushToDatabase(plan);
     this.setState({ nowBuild: true });

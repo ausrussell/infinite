@@ -7,38 +7,22 @@ class PreFab extends Component {
   };
   constructor(props) {
     super(props);
-    console.log("prefab props", props);
   }
 
   componentDidMount() {
-<<<<<<< HEAD
     this.props.firebase.getUsersFloorplans(this.plansCallback);
   }
 
   plansCallback = data => {
-    // debugger;
     const list = [];
     if (data) {
       data.forEach(function(childSnapshot) {
-        // key will be "ada" the first time and "alan" the second time
         var key = childSnapshot.key;
-        // childData will be the actual contents of the child
         var childData = childSnapshot.val();
         list.push(childSnapshot);
-        console.log("childData", key, childData);
       });
     }
     this.setState({ userFloorplans: list });
-=======
-    this.updateState();
-    // console.log(userFloorplans);
-  }
-
-  updateState = () => {
-    this.props.firebase
-      .getUsersFloorplans()
-      .then(list => this.setState({ userFloorplans: list }));
->>>>>>> c8bad0b60d8806c539e78dd9454028cd387eb640
   };
 
   useLocalStorage = () => {
@@ -52,13 +36,13 @@ class PreFab extends Component {
     for (let i in plan) {
       for (let j in plan[i]) {
         const walls = this.getWallsFromState(i, j);
-
         if (plan[i][j].walls[0]) walls[0].setBuilt();
         if (plan[i][j].walls[1]) walls[1].setBuilt();
       }
     }
     this.renderWalls();
   }
+
   renderWalls() {
     this.ctx.fillStyle = "rgba(38,50,56)";
     this.ctx.fillRect(0, 0, this.state.width, this.state.height);
@@ -72,23 +56,12 @@ class PreFab extends Component {
     }
   }
   removePlan(key) {
-    console.log("remove", key);
     this.props.firebase.removePlan(key);
-<<<<<<< HEAD
-    // this.updateState();
-=======
-    this.updateState();
->>>>>>> c8bad0b60d8806c539e78dd9454028cd387eb640
   }
-  //{item.data[0][0].walls[0])})
+
   renderFloorplanTile(snapshot) {
-    console.log(snapshot.key, snapshot.val());
-<<<<<<< HEAD
     const planData = snapshot.val();
     const { title, data } = planData;
-=======
-    const planData = JSON.parse(snapshot.val().data);
->>>>>>> c8bad0b60d8806c539e78dd9454028cd387eb640
     const { key } = snapshot;
     return (
       <div key={snapshot.key} className="tile tile-center-content">
@@ -98,18 +71,14 @@ class PreFab extends Component {
         >
           x
         </button>
-<<<<<<< HEAD
         <div className="tile-title">{title}</div>
         <div onClick={() => this.props.tileCallback(planData)}>
           <CanvasTile plan={data} />
-=======
-        <div onClick={() => this.props.tileCallback(planData)}>
-          <CanvasTile data={JSON.parse(snapshot.val().data)} />
->>>>>>> c8bad0b60d8806c539e78dd9454028cd387eb640
         </div>
       </div>
     );
   }
+
   render() {
     const { userFloorplans } = this.state;
     return (
@@ -131,18 +100,14 @@ class CanvasTile extends Component {
     super(props);
     this.tileEdgeSize = 140;
     this.canvas = React.createRef();
-<<<<<<< HEAD
     this.planData = this.props.plan;
-
-=======
-    this.planData = this.props.data;
->>>>>>> c8bad0b60d8806c539e78dd9454028cd387eb640
+    debugger;
     this.voxelsX = this.planData.length;
     this.voxelsY = this.planData[0].length;
     this.voxelSize = this.tileEdgeSize / this.voxelsX;
     this.voxelWidth = 2;
-    console.log("this.voxelsY", this.voxelsY, "this.voxelsX", this.voxelsX);
   }
+
   componentDidMount() {
     const canvas = this.canvas.current;
     this.ctx = canvas.getContext("2d");
@@ -152,6 +117,7 @@ class CanvasTile extends Component {
     this.ctx.fillStyle = "#ccddff";
     this.renderWalls();
   }
+
   drawWall(row, col, pos) {
     this.ctx.fillRect(
       col * this.voxelSize, // + delta.horiz
@@ -160,6 +126,7 @@ class CanvasTile extends Component {
       pos === "top" ? this.voxelWidth : this.voxelSize // - delta.vert
     );
   }
+
   renderWalls() {
     for (let i in this.planData) {
       for (let j in this.planData[i]) {

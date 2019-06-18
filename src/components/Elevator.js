@@ -4,12 +4,7 @@ import "../css/elevator.css";
 import { Transition, Spring, animated, config } from "react-spring/renderprops";
 import * as THREE from "three";
 import { floorData } from "./Floor";
-
-<<<<<<< HEAD
-// import { FirebaseContext } from "./Firebase";
-=======
 import { FirebaseContext } from "./Firebase";
->>>>>>> c8bad0b60d8806c539e78dd9454028cd387eb640
 
 // import firebase from "firebase";
 // import configf from "../api/firebase-config";
@@ -141,11 +136,7 @@ class Elevator extends PureComponent {
   el = React.createRef();
   spring = React.createRef();
   handleFloorClick = floorNo => {
-<<<<<<< HEAD
-=======
     console.log("set y", floorNo);
-
->>>>>>> c8bad0b60d8806c539e78dd9454028cd387eb640
     this.setState({ y: this.floors[floorNo].y, currentFloor: floorNo });
   };
   // User interaction should stop animation in order to prevent scroll-hijacking
