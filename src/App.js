@@ -1,8 +1,15 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { Component } from "react";
+import logo from "./logo.svg";
+import "./App.css";
+import * as dat from "dat.gui";
+import * as Stats from "stats-js";
 
 class App extends Component {
+  componentDidMount() {
+    this.stats = new Stats();
+    this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+  }
+
   render() {
     return (
       <div className="App">

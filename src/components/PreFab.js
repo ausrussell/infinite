@@ -11,14 +11,23 @@ class PreFab extends Component {
   }
 
   componentDidMount() {
-    this.updateState();
-    // console.log(userFloorplans);
+    this.props.firebase.getUsersFloorplans(this.plansCallback);
   }
 
-  updateState = () => {
-    this.props.firebase
-      .getUsersFloorplans()
-      .then(list => this.setState({ userFloorplans: list }));
+  plansCallback = data => {
+    // debugger;
+    const list = [];
+    if (data) {
+      data.forEach(function(childSnapshot) {
+        // key will be "ada" the first time and "alan" the second time
+        var key = childSnapshot.key;
+        // childData will be the actual contents of the child
+        var childData = childSnapshot.val();
+        list.push(childSnapshot);
+        console.log("childData", key, childData);
+      });
+    }
+    this.setState({ userFloorplans: list });
   };
 
   useLocalStorage = () => {
@@ -54,12 +63,13 @@ class PreFab extends Component {
   removePlan(key) {
     console.log("remove", key);
     this.props.firebase.removePlan(key);
-    this.updateState();
+    // this.updateState();
   }
   //{item.data[0][0].walls[0])})
   renderFloorplanTile(snapshot) {
     console.log(snapshot.key, snapshot.val());
-    const planData = JSON.parse(snapshot.val().data);
+    const planData = snapshot.val();
+    const { title, data } = planData;
     const { key } = snapshot;
     return (
       <div key={snapshot.key} className="tile tile-center-content">
@@ -69,8 +79,9 @@ class PreFab extends Component {
         >
           x
         </button>
+        <div className="tile-title">{title}</div>
         <div onClick={() => this.props.tileCallback(planData)}>
-          <CanvasTile data={JSON.parse(snapshot.val().data)} />
+          <CanvasTile plan={data} />
         </div>
       </div>
     );
@@ -96,7 +107,8 @@ class CanvasTile extends Component {
     super(props);
     this.tileEdgeSize = 140;
     this.canvas = React.createRef();
-    this.planData = this.props.data;
+    this.planData = this.props.plan;
+
     this.voxelsX = this.planData.length;
     this.voxelsY = this.planData[0].length;
     this.voxelSize = this.tileEdgeSize / this.voxelsX;

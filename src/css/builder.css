@@ -20,6 +20,7 @@ body {
 .tile-center-content {
   display: flex;
   position: relative;
+  flex-direction: column;
 }
 .tile-center-content canvas {
   margin: auto auto;
@@ -29,4 +30,8 @@ body {
   position: absolute;
   right: 4px;
   top: 4px;
+}
+
+.tile-title {
+  padding: 4px;
 }

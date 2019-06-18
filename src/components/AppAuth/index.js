@@ -10,25 +10,31 @@ import PasswordForgetPage from "../PasswordForget";
 import HomePage from "../Home";
 import AccountPage from "../Account";
 import AdminPage from "../Admin";
-import App from "../App";
+// import App from "../App";
+import Planner from "../Planner";
+import Gallery from "../Gallery";
+import Builder from "../PlanBuilder";
+
 import * as ROUTES from "../../constants/routes";
 import { withAuthentication } from "../Session";
+
 // <Route exact path={ROUTES.LANDING} component={LandingPage} />
+// <Route path={ROUTES.APP} component={App} />
 const AppAuth = () => (
   <div>
     <Router>
-      <div>
+      <div className="desk-container">
         <Navigation />
-
-        <hr />
-
+        {ROUTES.BUILDER}
         <Route path={ROUTES.SIGN_UP} component={SignUpPage} />
         <Route path={ROUTES.SIGN_IN} component={SignInPage} />
         <Route path={ROUTES.PASSWORD_FORGET} component={PasswordForgetPage} />
         <Route path={ROUTES.HOME} component={HomePage} />
         <Route path={ROUTES.ACCOUNT} component={AccountPage} />
         <Route path={ROUTES.ADMIN} component={AdminPage} />
-        <Route path={ROUTES.APP} component={App} />
+        <Route path={ROUTES.PLANNER} component={Planner} />
+        <Route path={ROUTES.GALLERY} component={Gallery} />
+        <Route path={ROUTES.BUILDER} component={Builder} />
       </div>
     </Router>
   </div>

@@ -6,3 +6,6 @@ export const ACCOUNT = "/account";
 export const ADMIN = "/admin";
 export const PASSWORD_FORGET = "/pw-forget";
 export const APP = "/landing";
+export const PLANNER = "/planner";
+export const GALLERY = "/gallery";
+export const BUILDER = "/builder";

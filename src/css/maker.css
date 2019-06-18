@@ -1,7 +1,7 @@
 body {
   font-family: Roboto;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  background-color: #101f27;
+  background-color: #263238;
   padding: 0;
   margin: 0;
 }
@@ -75,4 +75,19 @@ h1 {
 }
 canvas {
   cursor: crosshair;
+}
+
+.floorplan-title-field {
+  padding: 0.4em;
+  font-size: 1.3em;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid #37474f;
+  color: #eceff1;
+  outline: none;
+  width: calc(100% - 8em);
+}
+.floorplan-title-field:focus {
+  background: transparent;
+  color: #fff;
 }

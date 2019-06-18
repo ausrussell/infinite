@@ -49,12 +49,14 @@ class Firebase {
 
   users = () => this.database.ref("users");
 
-  storeFloorplan = data => {
+  storeFloorplan = ({ data, title, timestamp }) => {
     const newPostRef = this.database.ref("floorplans").push();
     newPostRef.set({
       uid: this.currentUID,
-      data: data
+      data: data,
+      title: title
     });
+    return newPostRef.getKey();
   };
 
   removePlan = key => {
@@ -63,29 +65,37 @@ class Firebase {
       .child(key)
       .remove();
   };
+  getPlanByKey = (key, callback) => {
+    this.floorplansRef.child(key).on("value", snapshot => {
+      callback(snapshot);
+    });
+  };
 
-  getUsersFloorplans = () => {
+  getUsersFloorplans = callback => {
     // debugger;
     this.currentUID = this.currentUID || "Smj8Dswyd7eJTZ2gigjJhXtfDDZ2";
     if (this.currentUID) {
       return this.floorplansRef
         .orderByChild("uid")
         .equalTo(this.currentUID)
-        .once("value")
-        .then(data => {
-          // debugger;
-          console.log("floorplan promised", data.val().data);
-          const list = [];
-          data.forEach(function(childSnapshot) {
-            // key will be "ada" the first time and "alan" the second time
-            var key = childSnapshot.key;
-            // childData will be the actual contents of the child
-            var childData = childSnapshot.val();
-            list.push(childSnapshot);
-            console.log("childData", key, childData);
-          });
-          return list;
-        });
+        .on("value", snapshot => callback(snapshot));
+      // .then(data => {
+      //   // debugger;
+      //   // console.log("floorplan promised", data.val().data);
+      //   const list = [];
+      //   if (data) {
+      //     data.forEach(function(childSnapshot) {
+      //       // key will be "ada" the first time and "alan" the second time
+      //       var key = childSnapshot.key;
+      //       // childData will be the actual contents of the child
+      //       var childData = childSnapshot.val();
+      //       list.push(childSnapshot);
+      //       console.log("childData", key, childData);
+      //     });
+      //   }
+      //
+      //   return list;
+      // });
     }
 
     // return new Promise(function(resolve, reject) {

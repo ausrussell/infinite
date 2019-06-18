@@ -5,7 +5,7 @@ import { Transition, Spring, animated, config } from "react-spring/renderprops";
 import * as THREE from "three";
 import { floorData } from "./Floor";
 
-import { FirebaseContext } from "./Firebase";
+// import { FirebaseContext } from "./Firebase";
 
 // import firebase from "firebase";
 // import configf from "../api/firebase-config";
@@ -47,7 +47,6 @@ class FloorWrapper extends Component {
 
 const Tile = props => {
   const { color, url, type } = props.item;
-  console.log("tile", props, type, url, color);
 
   const style = {
     backgroundColor: color,
@@ -71,7 +70,6 @@ class TilesFloor extends Component {
     return (
       <div className="tile-holder">
         {tilesData.map(item => {
-          console.log("item", item);
           return (
             <div key={item.key} onClick={e => this.tileClickHandler(item)}>
               <Tile item={item} />
@@ -139,8 +137,6 @@ class Elevator extends PureComponent {
   el = React.createRef();
   spring = React.createRef();
   handleFloorClick = floorNo => {
-    console.log("set y", floorNo);
-
     this.setState({ y: this.floors[floorNo].y, currentFloor: floorNo });
   };
   // User interaction should stop animation in order to prevent scroll-hijacking

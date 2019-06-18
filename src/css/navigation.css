@@ -1,5 +1,38 @@
 .navigation-holder {
   position: absolute;
-  top: 0;
+  bottom: 0;
   left: 0;
+  z-index: 1;
+}
+
+.navigation-list {
+  background-color: #efebe9;
+}
+
+.navigation-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navigation-list li {
+  padding: 8px;
+  border-bottom: 2px solid #fff8e1;
+  margin: 0;
+}
+.navigation-list a {
+  text-decoration: none;
+  color: #263238;
+}
+.desk-button {
+  width: 140px;
+  background-color: #efebe9;
+  border-top: 12px solid #a1887f;
+  border-left: 6px solid #3e2723;
+  border-right: 6px solid #3e2723;
+  border-bottom: 4px solid #fff8e1;
+  padding: 0.6em 0;
+  /* border: none; */
+  font-size: 1.1em;
+  outline: none;
 }

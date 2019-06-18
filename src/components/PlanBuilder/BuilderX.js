@@ -17,7 +17,6 @@ import GeneralLight from "./GeneralLight";
 // import params from "../data/light-data";
 // import hemiLuminousIrradiances from "../data/light-data";
 import * as dat from "dat.gui";
-import * as Stats from "stats-js";
 
 import FirstPersonControls from "./FirstPersonControls";
 import { withFirebase } from "./Firebase";
@@ -128,8 +127,8 @@ class Builder extends Component {
     this.setupControls();
   }
   setupControls() {
-    this.stats = new Stats();
-    this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+    // this.stats = new Stats();
+    // this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
     document.body.appendChild(this.stats.dom);
 
     this.gui.add(
@@ -464,7 +463,7 @@ class Builder extends Component {
     //   : null;
     return (
       <div>
-        <div> Builder</div>
+        <div>Builder</div>
         <MainCanvas refer={mount => (this.mount = mount)} />
         <Elevator
           name="Vault"

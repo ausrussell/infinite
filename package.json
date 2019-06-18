@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@craco/craco": "^5.2.1",
     "dat.gui": "^0.7.6",
     "firebase": "^5.10.1",
     "firebase-admin": "^8.0.0",
