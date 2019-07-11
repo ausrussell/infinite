@@ -1,6 +1,10 @@
 import React, { Component } from "react";
 
 import { withFirebase } from "../Firebase";
+import { withAuthorization } from "../Session";
+
+import { Form, Icon, Input, Button } from "antd";
+import "antd/dist/antd.css";
 
 const INITIAL_STATE = {
   passwordOne: "",
@@ -40,27 +44,33 @@ class PasswordChangeForm extends Component {
     const isInvalid = passwordOne !== passwordTwo || passwordOne === "";
 
     return (
-      <form onSubmit={this.onSubmit}>
-        <input
-          name="passwordOne"
-          value={passwordOne}
-          onChange={this.onChange}
-          type="password"
-          placeholder="New Password"
-        />
-        <input
-          name="passwordTwo"
-          value={passwordTwo}
-          onChange={this.onChange}
-          type="password"
-          placeholder="Confirm New Password"
-        />
-        <button disabled={isInvalid} type="submit">
-          Reset My Password
-        </button>
+      <Form layout="inline" onSubmit={this.onSubmit}>
+        <Form.Item>
+          <Input
+            name="passwordOne"
+            value={passwordOne}
+            onChange={this.onChange}
+            type="password"
+            placeholder="New Password"
+          />
+        </Form.Item>
+        <Form.Item>
+          <Input
+            name="passwordTwo"
+            value={passwordTwo}
+            onChange={this.onChange}
+            type="password"
+            placeholder="Confirm New Password"
+          />
+        </Form.Item>
+        <Form.Item>
+          <Button disabled={isInvalid} type="submit">
+            Change My Password
+          </Button>
 
-        {error && <p>{error.message}</p>}
-      </form>
+          {error && <p>{error.message}</p>}
+        </Form.Item>
+      </Form>
     );
   }
 }

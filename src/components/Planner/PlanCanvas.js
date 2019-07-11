@@ -22,12 +22,12 @@ class PlanCanvas extends Component {
     overCanvas: false,
     counter: 0
   };
-  constructor(props) {
-    super(props);
-  }
+  // constructor(props) {
+  //   super(props);
+  // }
 
   componentDidMount() {
-    const { width, height } = this.props;
+    // const { width, height } = this.props;
     this.canvas = this.refs.canvas;
     this.ctx = this.canvas.getContext("2d");
     this.setupListeners();
@@ -182,6 +182,7 @@ class PlanCanvas extends Component {
         if (walls[0].built + walls[1].built > 0) walls[0].drawPost();
       }
     }
+    // debugger;
     this.props.stats.update();
     // requestAnimationFrame(() =>this.updateAnimationState());
   }

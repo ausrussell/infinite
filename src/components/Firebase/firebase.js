@@ -21,7 +21,7 @@ class Firebase {
     this.database = app.database();
 
     this.auth.onAuthStateChanged(user => {
-      this.currentUID = user.uid;
+      if (user) this.currentUID = user.uid;
     });
     this.floorplansRef = this.database.ref("floorplans");
   }
@@ -77,9 +77,7 @@ class Firebase {
   };
 
   getPlanByKey = (key, callback) => {
-    this.floorplansRef.child(key).on("value", snapshot => {
-      callback(snapshot);
-    });
+    this.floorplansRef.child(key).on("value", callback);
   };
 
   storeArt = file => {

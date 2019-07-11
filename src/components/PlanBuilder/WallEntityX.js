@@ -15,7 +15,6 @@ class WallEntity extends Component {
     this.wallWidth = this.builder.gridWidth / this.builder.voxelsX;
     this.wallDepth = 5;
     this.wallHeight = 60;
-
     this.defaultFrameWidth = this.wallWidth * 0.8;
     this.defaultFrameHeight = 20;
     this.builderWidth = this.builder.width;
@@ -90,8 +89,6 @@ class WallEntity extends Component {
     // this.group.add(this.wallSpotlight);
   }
   dragOutHandler(side) {
-    const currentSide = this.sides[side];
-
     if (!this.hasArt) {
       // this.frameGroup.children[0].material.opacity = 0;
 

@@ -94,14 +94,6 @@ class Uploader extends Component {
     //   .then(url => this.setState({ imageURL: url }));
   };
 
-  // <FileUploader
-  //   accept="image/*"
-  //   name="image"
-  //   storageRef={firebase.storage().ref("art")}
-  //   onUploadStart={this.handleUploadStart}
-  //   onUploadSuccess={this.handleUploadSuccess}
-  // />
-
   render() {
     console.log(this.state);
     return <div />;

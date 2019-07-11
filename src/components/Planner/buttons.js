@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Route } from "react-router-dom";
+import { Route } from "react-router-dom";
 
 export const SaveButton = props => {
   return (
@@ -13,7 +13,7 @@ export const PlannerButtonRoute = props => (
   <Route
     path="/"
     render={routeProps => {
-      const buttonProps = Object.assign(routeProps, props);
+      Object.assign(routeProps, props);
       return <ButtonToNavigate {...routeProps} />;
     }}
   />

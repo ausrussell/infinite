@@ -106,7 +106,6 @@ class Frame {
 
   fitToFrame(w, h) {
     let imageDimensions = w / h;
-    const maxFramDimensions = this.totalWidth / this.maxFrameHeight;
     const returnDimensions = [];
 
     let checkW = this.totalWidth / w;
@@ -114,7 +113,6 @@ class Frame {
       //usae Width
       returnDimensions.push(this.holeWidth, this.holeWidth / imageDimensions);
     } else {
-      let hChange = this.maxFrameHeight / h;
       returnDimensions.push(
         this.maxFrameHeight * imageDimensions,
         this.maxFrameHeight

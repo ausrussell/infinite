@@ -1,9 +1,10 @@
 import React, { Component } from "react";
 import "../../css/maker.css";
 import Wall from "./Wall";
-import PreFab from "../PreFab";
-import * as Stats from "stats-js";
-import * as dat from "dat.gui";
+import PreFab from "./PreFab";
+// import * as Stats from "stats-js";
+// import * as dat from "dat.gui";
+import { withAuthentication } from "../Session";
 
 import { withFirebase } from "../Firebase";
 import Elevator from "../Elevator";
@@ -50,22 +51,21 @@ class Planner extends Component {
     title: "",
     nowBuild: false,
     buildFloorKey: null
-    // stats: new Stats()
   };
   constructor(props) {
     super(props);
-    // console.log("props", props);
+    console.log("Planner props", props);
     this.voxelsX = 700 / voxelSizePlus;
     this.voxelsY = 500 / voxelSizePlus;
 
-    this.stats = new Stats();
+    // this.stats = new Stats();
   }
 
   componentDidMount() {
     this.setState({ walls: this.setWalls() }); //, this.renderCanvas
     // this.stats = new Stats();
-    this.stats.showPanel(1); // 0: fps, 1: ms, 2: mb, 3+: custom
-    document.body.appendChild(this.stats.dom);
+    // this.stats.showPanel(1); // 0: fps, 1: ms, 2: mb, 3+: custom
+    // document.body.appendChild(this.stats.dom);
   }
   componentWillUnmount() {}
 
@@ -162,7 +162,6 @@ class Planner extends Component {
       data: voxels,
       timestamp: Date.now()
     };
-    debugger;
     this.setLocalStorage(plan);
     this.pushToDatabase(plan);
     this.setState({ nowBuild: true });
@@ -208,7 +207,7 @@ class Planner extends Component {
       level: 0,
       name: "Help",
       y: 0,
-      floorComponent: HelpFloor
+      floorComponent: Instructions
     },
     1: {
       level: 1,
@@ -252,7 +251,7 @@ class Planner extends Component {
                 width={this.state.width}
                 height={this.state.height}
                 walls={this.state.walls}
-                stats={this.stats}
+                stats={this.props.stats}
               />
             </div>
 
@@ -264,12 +263,4 @@ class Planner extends Component {
   }
 }
 
-const HelpFloor = () => {
-  return <Instructions />;
-};
-
-const PlansFloor = floor => {
-  return <PreFab floor={floor} />;
-};
-
-export default withFirebase(Planner);
+export default withAuthentication(Planner);

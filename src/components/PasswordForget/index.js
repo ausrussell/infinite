@@ -1,8 +1,10 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
 
-import { withFirebase } from "../Firebase";
+import Firebase, { withFirebase } from "../Firebase";
 import * as ROUTES from "../../constants/routes";
+import { Form, Icon, Input, Button } from "antd";
+import "antd/dist/antd.css";
 
 const PasswordForgetPage = () => (
   <div>
@@ -19,19 +21,28 @@ const INITIAL_STATE = {
 class PasswordForgetFormBase extends Component {
   constructor(props) {
     super(props);
-
     this.state = { ...INITIAL_STATE };
+  }
+
+  componentDidMount() {
+    // To disabled submit button at the beginning.
+    // this.props.form.validateFields();
+    // debugger;
+    this.props.firebase.auth.currentUser &&
+      this.setState({ email: this.props.firebase.auth.currentUser.email });
   }
 
   onSubmit = event => {
     const { email } = this.state;
-
+    debugger;
     this.props.firebase
       .doPasswordReset(email)
       .then(() => {
+        debugger;
         this.setState({ ...INITIAL_STATE });
       })
       .catch(error => {
+        debugger;
         this.setState({ error });
       });
 
@@ -44,24 +55,37 @@ class PasswordForgetFormBase extends Component {
 
   render() {
     const { email, error } = this.state;
-
+    //
     const isInvalid = email === "";
+    //    <form onSubmit={this.onSubmit}>
+    //
+    // <input
+    //   name="email"
+    //   value={this.state.email}
+    //   onChange={this.onChange}
+    //   type="text"
+    //   placeholder="Email Address"
+    // />
 
+    // Only show error after a field is touched.
     return (
-      <form onSubmit={this.onSubmit}>
-        <input
-          name="email"
-          value={this.state.email}
-          onChange={this.onChange}
-          type="text"
-          placeholder="Email Address"
-        />
-        <button disabled={isInvalid} type="submit">
-          Reset My Password
-        </button>
-
+      <Form layout="inline" onSubmit={this.onSubmit}>
+        <Form.Item>
+          <Input
+            prefix={<Icon type="mail" style={{ color: "rgba(0,0,0,.25)" }} />}
+            placeholder="Email Address"
+            value={email}
+            name="email"
+            onChange={this.onChange}
+          />
+        </Form.Item>
+        <Form.Item>
+          <Button disabled={isInvalid} type="primary" htmlType="submit">
+            Reset My Password
+          </Button>
+        </Form.Item>
         {error && <p>{error.message}</p>}
-      </form>
+      </Form>
     );
   }
 }
@@ -74,6 +98,11 @@ const PasswordForgetLink = () => (
 
 export default PasswordForgetPage;
 
-const PasswordForgetForm = withFirebase(PasswordForgetFormBase);
+// const WrappedHorizontalLoginForm = Form.create({ name: 'horizontal_login' })(HorizontalLoginForm);
+const PasswordForgetForm = withFirebase(
+  Form.create({ name: "horizontal_login" })(PasswordForgetFormBase)
+);
+
+// const PasswordForgetForm = withFirebase(PasswordForgetFormBase);
 
 export { PasswordForgetForm, PasswordForgetLink };

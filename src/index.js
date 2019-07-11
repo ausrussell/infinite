@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import "./index.css";
+// import "./index.less";
 // import App from "./components/App";//this is the working gallery
 
 import App from "./components/AppAuth";

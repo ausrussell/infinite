@@ -1,13 +1,11 @@
 import React, { Component } from "react";
-import { withFirebase } from "./Firebase";
+import { withFirebase } from "../Firebase";
+import * as BUTTONS from "./buttons";
 
 class PreFab extends Component {
   state = {
     userFloorplans: []
   };
-  constructor(props) {
-    super(props);
-  }
 
   componentDidMount() {
     this.props.firebase.getUsersFloorplans(this.plansCallback);
@@ -17,8 +15,6 @@ class PreFab extends Component {
     const list = [];
     if (data) {
       data.forEach(function(childSnapshot) {
-        var key = childSnapshot.key;
-        var childData = childSnapshot.val();
         list.push(childSnapshot);
       });
     }
@@ -59,18 +55,23 @@ class PreFab extends Component {
     this.props.firebase.removePlan(key);
   }
 
+  buildPlan(key) {
+    this.props.firebase.removePlan(key);
+  }
+
   renderFloorplanTile(snapshot) {
     const planData = snapshot.val();
     const { title, data } = planData;
     const { key } = snapshot;
     return (
-      <div key={snapshot.key} className="tile tile-center-content">
+      <div key={key} className="tile tile-center-content">
         <button
           onClick={() => this.removePlan(key)}
           className="remove-plan-button"
         >
           x
         </button>
+        <BUTTONS.PlannerButtonRoute plan={key} title={title} />
         <div className="tile-title">{title}</div>
         <div onClick={() => this.props.tileCallback(planData)}>
           <CanvasTile plan={data} />
@@ -101,7 +102,6 @@ class CanvasTile extends Component {
     this.tileEdgeSize = 140;
     this.canvas = React.createRef();
     this.planData = this.props.plan;
-    debugger;
     this.voxelsX = this.planData.length;
     this.voxelsY = this.planData[0].length;
     this.voxelSize = this.tileEdgeSize / this.voxelsX;

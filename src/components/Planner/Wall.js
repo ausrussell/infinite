@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+// import React, { Component } from "react";
 
 const paddedWall = 15;
 const voxelSizePlus = 30 + paddedWall;

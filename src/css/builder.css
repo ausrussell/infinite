@@ -11,8 +11,8 @@ body {
 }
 
 .tile {
-  width: 9em;
-  height: 9em;
+  width: 140px;
+  height: 140px;
   background-color: #fff;
   border-radius: 4px;
   margin: 1em;

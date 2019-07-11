@@ -3,33 +3,7 @@ import "../css/elevator.css";
 // import { Button, Icon } from "semantic-ui-react";
 import { Transition, Spring, animated, config } from "react-spring/renderprops";
 import * as THREE from "three";
-import { floorData } from "./Floor";
 import { FirebaseContext } from "./Firebase";
-
-// import firebase from "firebase";
-// import configf from "../api/firebase-config";
-// firebase.initializeApp(configf);
-
-// const Floors = {
-//   0: {
-//     name: "Frames",
-//     y: 0
-//   },
-//   1: {
-//     name: "Floors",
-//     y: 235
-//   }
-// };
-
-const framesData = [
-  { key: 0, type: "color", color: "#543499" },
-  { key: 1, color: "#240099", type: "color" },
-  { key: 2, type: "color", color: "#111111" },
-  { key: 3, type: "color", color: "#FFFFFF" },
-  { key: 4, type: "texture", url: "../textures/wood/wood1.png" },
-  { key: 5, type: "texture", url: "../textures/wood/wood2.png" },
-  { key: 6, type: "texture", url: "../textures/wood/wood3.png" }
-];
 
 class FloorWrapper extends Component {
   render() {
@@ -39,42 +13,6 @@ class FloorWrapper extends Component {
       <div className="floor-container" key="title">
         <h4 className="floor-title">{title}</h4>
         <div className="floor-wrapper">{children}</div>
-      </div>
-    );
-  }
-}
-
-const Tile = props => {
-  const { color, url, type } = props.item;
-
-  const style = {
-    backgroundColor: color,
-    backgroundImage: "url(" + url + ")"
-    // fontSize: "55px"
-  };
-  return <div className="tile" style={style} />;
-};
-
-class TilesFloor extends Component {
-  constructor(props) {
-    super(props);
-  }
-
-  tileClickHandler = item => {
-    console.log("item", item);
-    this.props.tileCallback(item);
-  };
-  render() {
-    const { tilesData } = this.props;
-    return (
-      <div className="tile-holder">
-        {tilesData.map(item => {
-          return (
-            <div key={item.key} onClick={e => this.tileClickHandler(item)}>
-              <Tile item={item} />
-            </div>
-          );
-        })}
       </div>
     );
   }
@@ -227,23 +165,5 @@ class Elevator extends PureComponent {
     );
   }
 }
-
-// <FloorWrapper title="Frames">
-//   <TilesFloor
-//     tilesData={framesData}
-//     tileCallback={this.props.tileCallback}
-//   />
-// </FloorWrapper>
-// <FloorWrapper title="Floors">
-//   <TilesFloor
-//     tilesData={floorData}
-//     tileCallback={this.props.floorTileCallback}
-//   />
-// </FloorWrapper>
-// <FloorWrapper title="Artworks">
-//   <FirebaseContext.Consumer>
-//     {firebase => <ArtFloor firebase={firebase} />}
-//   </FirebaseContext.Consumer>
-// </FloorWrapper>
 
 export default Elevator;
