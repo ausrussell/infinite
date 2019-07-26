@@ -15,9 +15,9 @@ export default class Floor {
   addFloorMesh() {
     this.floorPlane = new THREE.PlaneBufferGeometry(
       this.builder.gridWidth,
-      this.builder.gridWidth,
-      10
+      this.builder.gridDepth
     );
+    // debugger;
     // this.floorMaterial = new THREE.MeshLambertMaterial({
     //   //MeshStandardMaterial
     //   color: "#ffffff",

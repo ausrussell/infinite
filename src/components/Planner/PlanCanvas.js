@@ -91,7 +91,6 @@ class PlanCanvas extends Component {
       y = e.clientY - this.canvas.offsetTop + 1;
     if (y < 0) debugger;
     let newAr;
-    const oldAr = this.state.mouseoverWall;
     const walls = this.getWallsFromPos(x, y);
     let pos = null;
     if ((x - 5) % voxelSizePlus < paddedWall) {
@@ -117,7 +116,7 @@ class PlanCanvas extends Component {
     if (!sameWall) {
       //set new wall
       this.setState({ mouseoverWall: newAr });
-      this.setState({ x: x, y: y, counter: ++this.state.counter });
+      this.setState({ x: x, y: y, counter: this.state.counter + 1 });
     }
   };
 
@@ -140,6 +139,8 @@ class PlanCanvas extends Component {
       case 16:
         this.setState({ shiftDown: true });
         break;
+      default:
+        break;
     }
   };
 
@@ -147,6 +148,8 @@ class PlanCanvas extends Component {
     switch (e.keyCode) {
       case 16:
         this.setState({ shiftDown: false });
+        break;
+      default:
         break;
     }
   };

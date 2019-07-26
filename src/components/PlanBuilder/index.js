@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import * as THREE from "three";
 import Uploader from "../Uploader";
 import "../../css/builder.css";
-import { withFirebase } from "../Firebase";
+// import { withFirebase } from "../Firebase";
 import WallObject from "./WallObject";
 import FlaneurControls from "./FlaneurControls";
 import GeneralLight from "./GeneralLight";
@@ -12,11 +12,9 @@ import Floor from "./Floor";
 
 import Elevator from "../Elevator";
 
-import animate from "../../Helpers/animate";
-
 const wallWidth = 20;
-const wallHeight = 60;
-const wallDepth = 5;
+// const wallHeight = 60;
+// const wallDepth = 5;
 
 const framesData = [
   { key: 0, type: "color", color: "#543499" },
@@ -28,19 +26,6 @@ const framesData = [
   { key: 6, type: "texture", url: "../textures/wood/wood3.png" }
 ];
 
-// const floors = {
-//   0: {
-//     name: "Frames",
-//     y: 0,
-//     floorComponent: TilesFloor
-//   },
-//   1: {
-//     name: "Floor surfaces",
-//     y: 235,
-//     floorComponent: TilesFloor
-//   }
-// };
-
 class Builder extends Component {
   state = {
     floorplanTitle: "",
@@ -50,83 +35,103 @@ class Builder extends Component {
   };
   constructor(props) {
     super(props);
-    console.log(props);
     this.initialCameraHeight = 245;
     this.cameraZAfterInitialAnimation = 300;
+    this.initialAnimationTime = 2000;
     this.mouse = new THREE.Vector2();
     this.raycaster = new THREE.Raycaster();
-
     this.clock = new THREE.Clock();
+    this.wallMeshes = [];
+    this.floorMesh = null;
   }
   componentDidMount() {
-    // debugger;
     this.setUpScene();
+
     this.processFloorplan();
-    // this.animate();
   }
 
   componentDidUpdate(props) {
+    // this.flaneurControls.dispose();
     // debugger;
   }
   //listeners
   setupListeners() {
-    this.mount.addEventListener("mousemove", e => this.onMouseMove(e), false);
-    this.mount.addEventListener("mousedown", e => this.onMouseDown(e), false);
+    // debugger;
+    // this.mount.addEventListener("mousemove", e => this.onMouseMove(e), false);
+    // this.mount.addEventListener("mousedown", e => this.onMouseDown(e), false);
     window.addEventListener("resize", () => this.onWindowResize(), false);
     // this.setupRaycaster();
+    this.setupFlaneurControls();
   }
 
   onMouseMove(e) {
     this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
     this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    console.log("mouse index move", this.mouse);
   }
 
   dragOverHandler = e => {
-    console.log("builder dragOverHandler", e);
     this.onMouseMove(e);
     const intersectedData = this.checkForIntersecting();
     const { wallOver, wallSideOver } = intersectedData;
 
     if (this.currentWallOver && this.currentWallOver !== wallOver) {
       this.currentWallOver.dragOutHandler(this.currentSide);
-    } // // }
+    }
 
-    if (wallOver && wallSideOver) {
-      wallOver.dragOverHandler(wallSideOver);
+    if (wallOver !== this.currentWallOver && wallSideOver) {
+      wallOver.dragEnterHandler(wallSideOver);
       this.currentWallOver = wallOver;
       this.currentSide = wallSideOver;
     }
-    // this.setState(intersectedData);
+    if (!wallOver) this.currentWallOver = wallOver;
+  };
+
+  fileDragLeaveHandler = () => {
+    if (this.currentWallOver) {
+      this.currentWallOver.dragOutHandler(this.currentSide);
+    }
+  };
+
+  fileDropHandler = file => {
+    if (this.currentWallOver)
+      this.currentWallOver.addImageFile(file, this.currentSide);
   };
 
   floorTileCallback(item) {
     this.floor.floorTileCallback(item);
   }
+
   setupRaycaster() {
     this.raycaster = new THREE.Raycaster();
   }
 
   checkForIntersecting() {
-    // update the picking ray with the camera and mouse position
     this.camera.updateMatrixWorld();
-    console.log("this.mouse, this.camera", this.mouse, this.camera);
     this.raycaster.setFromCamera(this.mouse, this.camera);
-    // calculate objects intersecting the picking ray
-    // debugger;
-    ///**** fix
-    let groups = this.wallEntities.map(item => item.getMesh()); //used for raycaster
+    // this.raycaster.setFromCamera(this.flaneurControls.getMouse(), this.camera);
 
-    const intersects = this.raycaster.intersectObjects(groups);
-    console.log("intersects", intersects.length, intersects);
+    const intersects = this.raycaster.intersectObjects(this.wallMeshes);
+    const intersectedFloor = this.raycaster.intersectObjects([
+      this.floor.floorMesh
+    ]);
+    // this.floor.floorMesh.indexOf(intersects[0
+    console.log("index mouse", this.mouse);
+    console.log("intersectedFloor", intersectedFloor);
+    console.log("this.camera", this.camera);
+    console.log("this.floor.floorMesh", this.floor.floorMesh);
+    console.log("this.raycaster", this.raycaster);
+    console.log("intersectedFloor", intersectedFloor);
+    console.log("this.mouse", this.mouse);
+    console.log("this.scene", this.scene);
+    debugger;
     if (intersects.length === 0) {
       return false;
     }
-    const intersectedWallIndex = this.meshes.indexOf(intersects[0].object);
-    // this.setState({
-    //   intersectedWall: intersectedWallIndex
-    //     ? this.wallEntities[intersectedWallIndex]
-    //     : null
-    // });
+    //check if it intersects floors
+
+    const intersectedWallIndex = this.wallMeshes.indexOf(intersects[0].object);
+
     let side = null;
     const faceIndex = intersects[0].faceIndex;
     switch (faceIndex) {
@@ -140,38 +145,34 @@ class Builder extends Component {
         side = null;
     }
 
-    console.log("side", side);
     if (side) {
-      // debugger;
       if (this.state.selectedTile) {
         this.wallEntities[intersectedWallIndex].setFrameColor(
           this.state.selectedTile,
           side
         );
-        // this.wallEntities[intersectedWallIndex].renderWall();
       }
     }
 
     const intersectedData = {
       wallOver: this.wallEntities[intersectedWallIndex] || null,
       wallSideOver: side
+      // voxelClicked: voxelClicked
     };
-
     return intersectedData;
-    // this.animate();
   }
+
   //scene setup and animation
   setUpScene() {
     const width = this.mount.clientWidth;
     const height = this.mount.clientHeight;
     this.setState({ width: width, height: height });
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
+    this.camera = new THREE.PerspectiveCamera(90, width / height, 1, 1000);
     this.renderer = new THREE.WebGLRenderer({
       antialias: true
     });
 
-    this.initialCameraAnimation();
     this.renderer.setSize(width, height);
     this.mount.appendChild(this.renderer.domElement);
     this.addLight();
@@ -179,43 +180,14 @@ class Builder extends Component {
     this.renderer.render(this.scene, this.camera);
   }
 
+  setupFlaneurControls() {
+    this.flaneurControls = new FlaneurControls(this.camera, this);
+  }
+
   initialCameraAnimation() {
-    let cameraPosition = [0, this.initialCameraHeight, 0];
-    this.setCameraPosition(cameraPosition);
-    this.camera.lookAt(new THREE.Vector3(0, 0, 0));
-    this.cameraFlightHyp = Math.hypot(
-      this.initialCameraHeight,
-      this.cameraZAfterInitialAnimation
-    );
-    const cameraAni = new animate({
-      duration: 10000,
-      timing: "circ",
-      draw: progress => this.cameraFlight(progress)
-    });
-    cameraAni.animate(performance.now());
+    this.flaneurControls.initialCameraAnimation();
   }
 
-  cameraFlight = progress => {
-    //45, 300
-    const x = Math.sin(Math.PI * progress) * this.cameraFlightHyp;
-    const cameraPosition = [
-      x,
-      this.initialCameraHeight - 200 * progress,
-      this.cameraZAfterInitialAnimation * progress
-    ];
-    this.setCameraPosition(cameraPosition);
-    this.camera.lookAt(new THREE.Vector3(0, 0, 0));
-  };
-
-  setCameraPosition(cameraPosition) {
-    this.camera.position.set(...cameraPosition);
-  }
-
-  animate() {
-    this.renderer.render(this.scene, this.camera);
-    requestAnimationFrame(() => this.animate());
-    this.props.stats.update();
-  }
   renderRenderer() {
     this.renderer.render(this.scene, this.camera);
   }
@@ -269,7 +241,11 @@ class Builder extends Component {
     // this.renderRenderer();
     this.animate();
     this.initialWallBuild();
+    this.setupListeners();
+    this.initialCameraAnimation();
   };
+
+  //set objects
 
   setWalls() {
     this.voxelsX = this.floorPlan.length;
@@ -278,17 +254,9 @@ class Builder extends Component {
     for (let i = 0; i < this.voxelsX; i++) {
       for (let j = 0; j < this.voxelsY; j++) {
         this.floorPlan[i][j].walls.forEach((item, index) => {
-          console.log("index", index);
-
           if (item) {
             const options = { x: i, y: j, pos: index, builder: this };
             this.wallEntities = [...this.wallEntities, new WallObject(options)];
-            // this.setState({
-            //   wallEntities: [
-            //     ...this.state.wallEntities,
-            //     new WallObject(options)
-            //   ]
-            // });
           }
         });
       }
@@ -296,30 +264,27 @@ class Builder extends Component {
   }
 
   setFloor() {
-    this.floorPlane = new THREE.PlaneBufferGeometry(
-      this.voxelsX * wallWidth,
-      this.voxelsY * wallWidth,
-      10
-    );
-
-    this.floorMaterial = new THREE.MeshStandardMaterial({
-      roughness: 0.8,
-      color: 0xffffff,
-      metalness: 0.2,
-      bumpScale: 0.0005
-      // side: THREE.DoubleSide
-    });
-
-    this.floorMesh = new THREE.Mesh(this.floorPlane, this.floorMaterial);
-    this.floorMesh.receiveShadow = true;
-    this.floorMesh.rotateX(-Math.PI / 2);
-    console.log("this.floorMesh", this.floorMesh);
-    this.scene.add(this.floorMesh);
+    this.gridWidth = this.voxelsX * wallWidth;
+    this.gridDepth = this.voxelsY * wallWidth;
     this.floor = new Floor(this);
   }
 
   initialWallBuild() {
     this.wallEntities.forEach((item, index) => item.initialAnimateBuild(index));
+    this.wallMeshes = this.wallEntities.map(item => item.getMesh()); //used for raycaster, needs to occur after rendering
+  }
+
+  rayIntersect(ray, distance) {
+    let collidableObjects = this.wallEntities.map(item => item.getMesh()); //used for raycaster
+    var intersects = ray.intersectObjects(collidableObjects);
+    for (var i = 0; i < intersects.length; i++) {
+      // Check if there's a collision
+      if (intersects[i].distance < distance) {
+        console.log("collide");
+        return true;
+      }
+    }
+    return false;
   }
 
   floors = {
@@ -340,6 +305,16 @@ class Builder extends Component {
       tileCallback: this.floorTileCallback.bind(this)
     }
   };
+  animate() {
+    if (this.flaneurControls) {
+      var delta = this.clock.getDelta();
+      this.flaneurControls.update(delta);
+    }
+
+    this.renderer.render(this.scene, this.camera);
+    requestAnimationFrame(() => this.animate());
+    this.props.stats.update();
+  }
 
   render() {
     return (
@@ -354,6 +329,7 @@ class Builder extends Component {
         />
         <Uploader
           fileDragover={this.dragOverHandler}
+          fileDragLeaveHandler={this.fileDragLeaveHandler}
           fileDrop={item => this.fileDropHandler(item)}
           wallOver={this.state.wallOver}
         />

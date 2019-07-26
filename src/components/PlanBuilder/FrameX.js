@@ -10,19 +10,18 @@ class Frame {
     this.wallHeight = wallHeight;
     this.maxFrameWidth = this.wallWidth * 0.8;
     this.maxFrameHeight = wallHeight * 0.8;
-    this.hasArt = this.wall.sides[side].hasArt;
+    this.hasArt = false;
     this.loader = new THREE.TextureLoader();
     this.side = side;
   }
-  setFrameMesh(options) {
-    const { totalWidth, totalHeight, defaultFrame } = options;
-    console.log(
-      "setFrameMesh",
-      totalWidth,
-      totalHeight,
-      "this.mesh",
-      this.mesh
-    );
+  setFrameMesh(totalWidth, totalHeight) {
+    // let totalWidth = this.wallWidth * 0.8;
+    //
+    // let totalHeight = 20;
+    // , color = 0x567866
+    if (this.mesh) this.group.remove(this.mesh);
+
+    console.log("setFrameMesh", totalWidth, totalHeight);
     const shape = new THREE.Shape();
     shape.moveTo(0, 0);
     shape.lineTo(0, totalHeight);
@@ -48,6 +47,7 @@ class Frame {
       bevelOffset: 0,
       bevelSegments: 8
     };
+    // shape.extrude(extrudeSettings);
 
     const texture1 = this.loader.load("../textures/wood/wood3.png");
     this.fgeometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
@@ -55,52 +55,44 @@ class Frame {
       color: 0x666666,
       side: THREE.DoubleSide,
       transparent: true,
+      opacity: 0,
       map: texture1
     });
 
-    const mesh = new THREE.Mesh(this.fgeometry, this.fmaterial);
+    // this.fmaterial = new THREE.MeshStandardMaterial({
+    //   color: 0x666666,
+    //   side: THREE.DoubleSide,
+    //   // transparent: true,
+    //   opacity: 0
+    //   // map: texture1
+    // });
 
-    const wallMatrix = this.wall.wallMesh.matrixWorld;
+    this.mesh = new THREE.Mesh(this.fgeometry, this.fmaterial);
+
+    const wallMatrix = this.wall.mesh.matrixWorld;
 
     const shiftedLeft = wallMatrix.makeTranslation(
       -(totalWidth / 2),
       -(totalHeight / 2),
       this.side === "back" ? -(this.wallDepth * 1.5) : this.wallDepth * 0.5
     );
-    mesh.position.setFromMatrixPosition(shiftedLeft);
-    mesh.updateMatrix();
-    mesh.castShadow = true;
+    // debugger;
+    this.mesh.position.setFromMatrixPosition(shiftedLeft);
+    this.mesh.updateMatrix();
+    this.mesh.castShadow = true;
     this.totalWidth = totalWidth;
     this.totalHeight = totalHeight;
     this.holeWidth = totalWidth - frameWidth * 2;
     this.holeHeight = totalHeight - frameWidth * 2;
 
+    //   this.artPlane = new THREE.PlaneGeometry()
+    // this.iMaterial = new THREE.MeshBasicMaterial();
+    // this.mesh = mesh;
     if (!this.group) {
       this.group = new THREE.Group();
+      // this.group.add(this.addArt());
     }
-
-    if (defaultFrame) {
-      this.defaultMesh = mesh;
-    } else {
-      this.group.remove(this.artFrame);
-      this.artFrame = mesh;
-    }
-  }
-  addDefault() {
-    this.group.add(this.defaultMesh);
-  }
-  removeDefault() {
-    this.group.remove(this.defaultMesh);
-  }
-  showDefaultFrame() {
-    // debugger;
-    this.defaultMesh.material.opacity = 1;
-  }
-  hideDefaultFrame() {
-    this.defaultMesh.material.opacity = 0;
-  }
-  removeMesh() {
-    this.group.remove(this.defaultMesh);
+    this.group.add(this.mesh);
   }
   getFrameGroup() {
     return this.group;
@@ -135,7 +127,9 @@ class Frame {
     var texture = loader.load(file);
     let imageWidth = image.target.width;
     let imageHeight = image.target.height;
+
     const artDimensions = this.fitToFrame(imageWidth, imageHeight);
+
     console.log("dimensions", artDimensions);
     const artPlane = new THREE.PlaneGeometry(
       artDimensions[0],
@@ -151,26 +145,22 @@ class Frame {
     } else {
       this.iMaterial.map = texture;
     }
-    if (this.frameMesh) this.group.remove(this.frameMesh);
     if (this.artMesh) this.group.remove(this.artMesh);
     this.artMesh = new THREE.Mesh(artPlane, this.iMaterial);
-
-    this.defaultMesh.updateMatrixWorld();
-    const frameMatrix = this.defaultMesh.matrixWorld;
+    this.mesh.updateMatrixWorld();
+    const frameMatrix = this.mesh.matrixWorld;
     const shifted = frameMatrix.makeTranslation(
       0,
       0,
       this.side === "back" ? -this.wallDepth : this.wallDepth
     );
     this.artMesh.position.setFromMatrixPosition(shifted);
-    let options = {
-      totalWidth: artDimensions[0],
-      totalHeight: artDimensions[1]
-    };
-    this.setFrameMesh(options);
-    this.group.add(this.artFrame);
-    this.removeDefault();
+    this.setFrameMesh(artDimensions[0], artDimensions[1]);
+    // if (!this.hasArt) {
     this.group.add(this.artMesh);
+    // }
+    this.hasArt = true;
+    this.mesh.material.opacity = 1;
   }
   loadHandler = texture => {
     this.fmaterial.color.set("#fff");
@@ -179,7 +169,6 @@ class Frame {
     this.fmaterial.map = texture;
     this.fmaterial.needsUpdate = true;
   };
-
   setFrameColor(item) {
     if (item.color) {
       this.fmaterial.map = null;

@@ -2,15 +2,10 @@ import React, { Component } from "react";
 import "../../css/maker.css";
 import Wall from "./Wall";
 import PreFab from "./PreFab";
-// import * as Stats from "stats-js";
-// import * as dat from "dat.gui";
 import { withAuthentication } from "../Session";
-
-import { withFirebase } from "../Firebase";
+// import { withFirebase } from "../Firebase";
 import Elevator from "../Elevator";
-import { Button, Icon } from "semantic-ui-react";
 import PlanCanvas from "./PlanCanvas";
-import * as ROUTES from "../../constants/routes";
 import * as BUTTONS from "./buttons";
 
 const paddedWall = 15;

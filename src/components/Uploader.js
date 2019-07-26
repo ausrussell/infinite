@@ -1,8 +1,9 @@
 import React, { Component } from "react";
 // import FileUploader from "react-firebase-file-uploader";
-import firebase from "./Firebase";
+// import firebase from "./Firebase";
 // import config from "../api/firebase-config";
 // firebase.initializeApp(config);
+import { withFirebase } from "./Firebase";
 
 class Uploader extends Component {
   state = {
@@ -22,6 +23,7 @@ class Uploader extends Component {
   initListeners() {
     console.log("initListeners");
     window.addEventListener("dragenter", this.dragEnterHandler);
+    document.body.addEventListener("dragleave", () => this.dragLeaveHandler());
     document.body.addEventListener("dragover", e => this.dragOverHandler(e));
 
     window.addEventListener("dragend", e => this.dragendHandler(e));
@@ -43,18 +45,12 @@ class Uploader extends Component {
       reader = new FileReader();
 
     reader.onload = e => this.fileLoadedHandler(e, file);
-    // function(event) {
-
-    // holder.style.background = 'url(' + event.target.result + ') no-repeat center';
-    // var image = document.createElement('img');
-    // image.src = event.target.result;
-    // var texture = new THREE.Texture(image);
-    // texture.needsUpdate = true;
-    // scene.getObjectByName('cube').material.map = texture;
-    // };
     reader.readAsDataURL(file);
 
     return false;
+  }
+  dragLeaveHandler() {
+    this.props.fileDragLeaveHandler();
   }
 
   fileLoadedHandler(e, file) {
@@ -100,4 +96,4 @@ class Uploader extends Component {
   }
 }
 
-export default Uploader;
+export default withFirebase(Uploader);
