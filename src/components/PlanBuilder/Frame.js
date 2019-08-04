@@ -65,6 +65,7 @@ class Frame {
     const shiftedLeft = wallMatrix.makeTranslation(
       -(totalWidth / 2),
       -(totalHeight / 2),
+      // 20,
       this.side === "back" ? -(this.wallDepth * 1.5) : this.wallDepth * 0.5
     );
     mesh.position.setFromMatrixPosition(shiftedLeft);
@@ -99,9 +100,7 @@ class Frame {
   hideDefaultFrame() {
     this.defaultMesh.material.opacity = 0;
   }
-  removeMesh() {
-    this.group.remove(this.defaultMesh);
-  }
+
   getFrameGroup() {
     return this.group;
   }
@@ -163,6 +162,11 @@ class Frame {
       this.side === "back" ? -this.wallDepth : this.wallDepth
     );
     this.artMesh.position.setFromMatrixPosition(shifted);
+    // this.artMesh.position.set(
+    //   20,
+    //   20,
+    //   this.side === "back" ? -this.wallDepth : this.wallDepth
+    // );
     let options = {
       totalWidth: artDimensions[0],
       totalHeight: artDimensions[1]
@@ -171,6 +175,18 @@ class Frame {
     this.group.add(this.artFrame);
     this.removeDefault();
     this.group.add(this.artMesh);
+    // this.artMesh.translateX();
+    // this.artFrame.add(this.artMesh);
+    // this.artMesh.position.set(
+    //   0,
+    //   0,
+    //   this.side === "back" ? -this.wallDepth : this.wallDepth
+    // );
+    // debugger;
+
+    this.group.translateY(15);
+    // const scale = new THREE.Vector3(2, 2, 2);
+    // this.group.scale.set(5, 25, 42); //) = scale;
   }
   loadHandler = texture => {
     this.fmaterial.color.set("#fff");

@@ -37,12 +37,13 @@ class Builder extends Component {
     super(props);
     this.initialCameraHeight = 245;
     this.cameraZAfterInitialAnimation = 300;
-    this.initialAnimationTime = 2000;
+    this.initialAnimationTime = 1000;
     this.mouse = new THREE.Vector2();
     this.raycaster = new THREE.Raycaster();
     this.clock = new THREE.Clock();
     this.wallMeshes = [];
     this.floorMesh = null;
+    this.setUpGui();
   }
   componentDidMount() {
     this.setUpScene();
@@ -54,12 +55,23 @@ class Builder extends Component {
     // this.flaneurControls.dispose();
     // debugger;
   }
+
+  setUpGui() {
+    var controls = new function() {
+      this.fov = 45;
+    }();
+
+    this.props.gui.add(controls, "fov", 25, 180).onChange(e => {
+      this.fov = e;
+      this.flaneurControls.setFov(e);
+    });
+  }
   //listeners
   setupListeners() {
     // debugger;
     // this.mount.addEventListener("mousemove", e => this.onMouseMove(e), false);
-    // this.mount.addEventListener("mousedown", e => this.onMouseDown(e), false);
-    window.addEventListener("resize", () => this.onWindowResize(), false);
+    this.mount.addEventListener("mousedown", e => this.onMouseDown(e), false);
+    // window.addEventListener("resize", () => this.onWindowResize(), false);
     // this.setupRaycaster();
     this.setupFlaneurControls();
   }
@@ -68,6 +80,13 @@ class Builder extends Component {
     this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
     this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
     console.log("mouse index move", this.mouse);
+  }
+
+  onMouseDown(e) {
+    console.log("fire");
+    // this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+    // this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    this.checkForIntersecting();
   }
 
   dragOverHandler = e => {
@@ -102,6 +121,11 @@ class Builder extends Component {
     this.floor.floorTileCallback(item);
   }
 
+  frameClickHandler(item) {
+    console.log("type", item.type, item.color);
+    this.setState({ selectedTile: item });
+  }
+
   setupRaycaster() {
     this.raycaster = new THREE.Raycaster();
   }
@@ -111,40 +135,31 @@ class Builder extends Component {
     this.raycaster.setFromCamera(this.mouse, this.camera);
     // this.raycaster.setFromCamera(this.flaneurControls.getMouse(), this.camera);
 
-    const intersects = this.raycaster.intersectObjects(this.wallMeshes);
-    const intersectedFloor = this.raycaster.intersectObjects([
-      this.floor.floorMesh
-    ]);
-    // this.floor.floorMesh.indexOf(intersects[0
-    console.log("index mouse", this.mouse);
-    console.log("intersectedFloor", intersectedFloor);
-    console.log("this.camera", this.camera);
-    console.log("this.floor.floorMesh", this.floor.floorMesh);
-    console.log("this.raycaster", this.raycaster);
-    console.log("intersectedFloor", intersectedFloor);
-    console.log("this.mouse", this.mouse);
-    console.log("this.scene", this.scene);
-    debugger;
+    let collidableObjects = this.wallEntities.map(item => item.getMesh());
+    let all = collidableObjects.concat(this.scene.children);
+
+    const intersects = this.raycaster.intersectObjects(all);
+
     if (intersects.length === 0) {
       return false;
     }
     //check if it intersects floors
-
     const intersectedWallIndex = this.wallMeshes.indexOf(intersects[0].object);
 
     let side = null;
     const faceIndex = intersects[0].faceIndex;
     switch (faceIndex) {
-      case (8, 9):
+      case 8:
+      case 9:
         side = "front";
         break;
-      case (10, 11):
+      case 10:
+      case 11:
         side = "back";
         break;
       default:
         side = null;
     }
-
     if (side) {
       if (this.state.selectedTile) {
         this.wallEntities[intersectedWallIndex].setFrameColor(
@@ -159,6 +174,7 @@ class Builder extends Component {
       wallSideOver: side
       // voxelClicked: voxelClicked
     };
+    console.log("intersectedData", intersectedData);
     return intersectedData;
   }
 
@@ -168,7 +184,7 @@ class Builder extends Component {
     const height = this.mount.clientHeight;
     this.setState({ width: width, height: height });
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(90, width / height, 1, 1000);
+    this.camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
     this.renderer = new THREE.WebGLRenderer({
       antialias: true
     });
@@ -294,7 +310,7 @@ class Builder extends Component {
       floorComponent: TilesFloor,
       tilesData: framesData,
       level: 0,
-      tileCallback: this.tileClickHandler //to do
+      tileCallback: this.frameClickHandler.bind(this) //to do
     },
     1: {
       name: "Floor surfaces",
@@ -321,12 +337,7 @@ class Builder extends Component {
       <div>
         <h3>Floorplan: __{this.state.floorplanTitle}__</h3>
         <MainCanvas refer={mount => (this.mount = mount)} />
-        <Elevator
-          name="Vault"
-          floors={this.floors}
-          tileCallback={this.tileCallback}
-          floorTileCallback={this.floorTileCallback.bind(this)}
-        />
+        <Elevator name="Vault" floors={this.floors} />
         <Uploader
           fileDragover={this.dragOverHandler}
           fileDragLeaveHandler={this.fileDragLeaveHandler}

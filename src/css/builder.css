@@ -35,3 +35,7 @@ body {
 .tile-title {
   padding: 4px;
 }
+
+#root .ant-layout {
+  position: relative;
+}

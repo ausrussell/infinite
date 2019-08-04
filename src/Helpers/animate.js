@@ -1,5 +1,5 @@
 class Animate {
-  constructor({ timing, draw, duration, repeat, easeInOut, bounce }) {
+  constructor({ timing, draw, duration, repeat, easeInOut, bounce, done }) {
     this.timing = timing;
     // this.timingFn = easeInOut ? this.easeInOut : this[timing];
     this.timingFn = bounce ? this.bounce : this[timing];
@@ -9,6 +9,8 @@ class Animate {
     this.duration = duration;
     this.repeat = repeat;
     this.bounce = bounce;
+    this.done = done;
+    this.stop = false;
     // this.animator(props);
   }
 
@@ -16,6 +18,7 @@ class Animate {
     this.animate(this.start);
   }
   animate = time => {
+    if (this.stop) return;
     if (!time) time = performance.now();
     // this.timeFraction goes from 0 to 1
     this.timeFraction = (time - this.start) / this.duration;
@@ -30,8 +33,21 @@ class Animate {
     } else if (this.repeat) {
       this.start = performance.now();
       this.requestFrame = requestAnimationFrame(() => this.animate());
+    } else if (this.done) {
+      this.done();
     }
   };
+
+  begin() {
+    this.stop = false;
+    this.start = performance.now();
+
+    this.animate();
+  }
+
+  stop() {
+    this.stop = true;
+  }
 
   bounce() {
     if (this.timeFraction <= 0.5) {
@@ -57,6 +73,8 @@ class Animate {
   end() {
     // debugger;
     // this.draw(1);
+    this.stop = true;
+
     this.repeat = false;
     let x = this.requestFrame;
     cancelAnimationFrame(x);

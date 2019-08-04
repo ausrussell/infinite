@@ -4,14 +4,12 @@ import Animate from "../../Helpers/animate";
 const degreesToRadians = degrees => {
   return (degrees * Math.PI) / 180;
 };
-// THREE.FirstPersonControls = function(object, domElement) {
+
 class FlaneurControls {
   constructor(object, builder) {
     this.object = object;
     this.builder = builder;
-    // debugger;
-    // this.domElement = domElement !== undefined ? domElement : document;
-    // this.domElement = document;
+
     this.domElement = this.builder.mount;
 
     this.enabled = true;
@@ -22,7 +20,7 @@ class FlaneurControls {
     this.lookVertical = true;
     this.autoForward = false;
 
-    this.activeLook = true;
+    this.activeLook = false; //true;
 
     this.heightSpeed = false;
     this.heightCoef = 1.0;
@@ -60,15 +58,22 @@ class FlaneurControls {
     if (this.domElement !== document) {
       this.domElement.setAttribute("tabindex", -1);
     }
-    //
-    // //
-    //
+
     this.mouse = new THREE.Vector2();
     this.raycaster = new THREE.Raycaster();
     this.bindEvents();
     this.handleResize();
     this.createClickFloor();
     this.loadImagery();
+    this.currentDestination = null;
+    this.defaultObjectY = 50;
+    this.collisionDistance = 5;
+    this.moveToDestinationAni = new Animate({
+      duration: 10000,
+      timing: "circ",
+      draw: progress => this.moveToDestinationLoop(progress),
+      done: this.doneMoveToDestination
+    });
   }
 
   loadImagery() {
@@ -99,7 +104,7 @@ class FlaneurControls {
     if (this.domElement !== document) {
       this.domElement.focus();
     }
-    // debugger;
+
     // event.preventDefault();
     // event.stopPropagation();
 
@@ -117,8 +122,13 @@ class FlaneurControls {
     }
 
     this.mouseDragOn = true;
+    const hoverIntersect = this.checkForIntersecting();
+    console.log("hoverIntersect", hoverIntersect);
+    if (hoverIntersect.footstepsHover) {
+      this.moveToDestination();
+    }
   };
-  //
+
   onMouseUp = event => {
     event.preventDefault();
     event.stopPropagation();
@@ -135,22 +145,15 @@ class FlaneurControls {
           break;
       }
     }
-
     this.mouseDragOn = false;
   };
-  //
-  onMouseMove = event => {
-    // this.enabled = true;
-    // clearTimeout(this.cameraTimeout);
-    // this.cameraTimeout = setTimeout(this.cameraTimer, 1009);
-    console.log("flaneur mousemove");
 
-    this.mouseX = event.pageX - this.domElement.offsetLeft - this.viewHalfX;
-    this.mouseY = event.pageY - this.domElement.offsetTop - this.viewHalfY;
-    console.log("this.mouseX", this.mouseX, this.builder.mouse.x);
+  onMouseMove = event => {
+    // this.mouseX = event.pageX - this.domElement.offsetLeft - this.viewHalfX;
+    // this.mouseY = event.pageY - this.domElement.offsetTop - this.viewHalfY;
     this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    this.checkForIntersecting();
+    this.checkForFloorHover();
   };
 
   onKeyDown = event => {
@@ -164,7 +167,8 @@ class FlaneurControls {
 
       case 37: /*left*/
       case 65:
-        /*A*/ this.moveLeft = true;
+        this.moveCameraLeft = true;
+        // /*A*/ this.moveLeft = true;
         break;
 
       case 40: /*down*/
@@ -174,7 +178,8 @@ class FlaneurControls {
 
       case 39: /*right*/
       case 68:
-        /*D*/ this.moveRight = true;
+        // /*D*/ this.moveRight = true;
+        this.moveCameraRight = true;
         break;
 
       case 82:
@@ -197,7 +202,8 @@ class FlaneurControls {
 
       case 37: /*left*/
       case 65:
-        /*A*/ this.moveLeft = false;
+        // /*A*/ this.moveLeft = false;
+        this.moveCameraLeft = false;
         break;
 
       case 40: /*down*/
@@ -207,7 +213,8 @@ class FlaneurControls {
 
       case 39: /*right*/
       case 68:
-        /*D*/ this.moveRight = false;
+        // /*D*/ this.moveRight = false;
+        this.moveCameraRight = false;
         break;
 
       case 82:
@@ -217,7 +224,6 @@ class FlaneurControls {
         /*F*/ this.moveDown = false;
         break;
       case 27:
-        // debugger;
         /*Esc*/ this.enabled = !this.enabled;
         break;
       default:
@@ -246,7 +252,6 @@ class FlaneurControls {
   //   return function
 
   detectPlayerCollision() {
-    let PLAYERCOLLISIONDISTANCE = 45;
     // The rotation matrix to apply to our direction vector
     // Undefined by default to indicate ray should coming from front
     var rotationMatrix;
@@ -281,7 +286,7 @@ class FlaneurControls {
     var rayCaster = new THREE.Raycaster(this.object.position, cameraDirection);
 
     // If our ray hit a collidable object, return true
-    if (this.builder.rayIntersect(rayCaster, PLAYERCOLLISIONDISTANCE)) {
+    if (this.builder.rayIntersect(rayCaster, this.collisionDistance)) {
       return true;
     } else {
       return false;
@@ -289,7 +294,6 @@ class FlaneurControls {
   }
 
   update(delta) {
-    // console.log("update delta", delta);
     if (this.enabled === false) {
       return;
     }
@@ -314,6 +318,8 @@ class FlaneurControls {
       this.object.translateZ(-(actualMoveSpeed + this.autoSpeedFactor));
     }
     if (this.moveBackward) {
+      console.log("moveBackward");
+      // debugger;
       this.object.translateZ(actualMoveSpeed);
     }
 
@@ -330,6 +336,18 @@ class FlaneurControls {
     if (this.moveDown) {
       this.object.translateY(-actualMoveSpeed);
     }
+
+    if (this.moveCameraRight) {
+      this.object.rotation.y -= 0.01;
+    }
+
+    if (this.moveCameraLeft) {
+      this.object.rotation.y += 0.01;
+    }
+
+    // if (this.startToDestination) {
+    //   this.moveToDestination();
+    // }
 
     // console.log("this.object.position", this.object.position);
     /*
@@ -385,7 +403,7 @@ class FlaneurControls {
     // console.log("this.object.quaternion", this.object.quaternion);
     // console.log("targetPosition", targetPosition);
     this.object.lookAt(targetPosition);
-    */
+     */
   }
   cameraTimer = () => {
     console.log("cameraTimer");
@@ -447,7 +465,7 @@ class FlaneurControls {
   initialCameraAnimation() {
     let cameraPosition = [0, this.builder.initialCameraHeight, 0];
     this.setCameraPosition(cameraPosition);
-    this.zeroVector = new THREE.Vector3(0, 45, 0);
+    this.zeroVector = new THREE.Vector3(0, this.defaultObjectY, 0);
     // this.lookAt(this.zeroVector);
     this.cameraFlightHyp = Math.hypot(
       this.builder.initialCameraHeight,
@@ -473,14 +491,7 @@ class FlaneurControls {
     // this.camera.lookAt(new THREE.Vector3(0, 0, 0));
     if (progress < 1) {
       this.lookAt(this.zeroVector);
-      // this.setTarget([0, 0, 0]);
-      // this.update();
-      // this.lon = 0;
-      // this.lat = 0;
     } else {
-      // this.moveForward = true;
-      // this.lon = 0;
-      // this.lat = 0;
       this.lookAt(this.zeroVector);
       this.setOrientation();
       this.unsetTarget();
@@ -490,7 +501,6 @@ class FlaneurControls {
     this.object.position.set(...cameraPosition);
   }
   createClickFloor() {
-    // debugger;
     const clickFloorPlaneGeo = new THREE.PlaneBufferGeometry(
       this.builder.gridWidth,
       this.builder.gridDepth
@@ -503,6 +513,8 @@ class FlaneurControls {
         // color: 0xf1f2ff
       })
     );
+    this.clickFloorPlane.translateY(0.1);
+    this.clickFloorPlane.name = "clickFloorPlane";
     this.builder.scene.add(this.clickFloorPlane);
     this.setUpFootsteps();
   }
@@ -510,26 +522,98 @@ class FlaneurControls {
     this.footTexture = imagery;
     const footGeo = new THREE.PlaneBufferGeometry(20, 20);
     footGeo.rotateX(-Math.PI / 2);
-    const footMaterial = new THREE.MeshBasicMaterial({
+    const footHoverMaterial = new THREE.MeshBasicMaterial({
       // color: 0xfefaf1,
+
       opacity: 0.5,
+      transparent: true,
+      repeat: 1
+    });
+    const footDestinationMaterial = new THREE.MeshBasicMaterial({
+      color: 0xfefaf1,
+      opacity: 1,
       transparent: true
     });
-    footMaterial.map = this.footTexture;
-    footMaterial.needsUpdate = true;
-    this.footstepsHoverMesh = new THREE.Mesh(footGeo, footMaterial);
-    this.builder.scene.add(this.footstepsHoverMesh);
+
+    footHoverMaterial.map = footDestinationMaterial.map = this.footTexture;
+    footHoverMaterial.needsUpdate = footDestinationMaterial.needsUpdate = true;
+    this.footstepsHoverMesh = new THREE.Mesh(footGeo, footHoverMaterial);
+    this.footstepsHoverMesh.name = "footHover";
+    this.footstepsDestinationMesh = new THREE.Mesh(
+      footGeo,
+      footDestinationMaterial
+    );
+    this.footstepsDestinationMesh.name = "footDestination";
   }
+
+  moveToDestination() {
+    this.moveToDestinationAni.end();
+    if (!this.builder.scene.getObjectByName("footDestination")) {
+      this.builder.scene.add(this.footstepsDestinationMesh);
+    }
+    this.footstepsDestinationMesh.position.copy(
+      this.footstepsHoverMesh.position
+    );
+    const destinationVector = new THREE.Vector3(0, 1, 0);
+    destinationVector.copy(this.footstepsHoverMesh.position);
+    this.currentDestination = destinationVector;
+    this.moveFrom = this.object.position;
+    this.moveToDestinationAni.begin();
+  }
+  lerp(a, b, t) {
+    return a + (b - a) * t;
+  }
+  moveToDestinationLoop(progress) {
+    var newX = this.lerp(this.moveFrom.x, this.currentDestination.x, progress); // interpolate between a and b where
+    var newZ = this.lerp(this.moveFrom.z, this.currentDestination.z, progress);
+    this.object.position.set(newX, this.defaultObjectY, newZ);
+  }
+  doneMoveToDestination = () => {
+    this.builder.scene.remove(this.footstepsDestinationMesh);
+    this.currentDestination = null;
+  };
 
   checkForIntersecting() {
     this.object.updateMatrixWorld();
     this.raycaster.setFromCamera(this.mouse, this.object);
-    const intersectedFloor = this.raycaster.intersectObjects([
-      this.clickFloorPlane
-    ]);
-    if (intersectedFloor.length === 0) return;
-    const intersect = intersectedFloor[0];
+    const intersect = {};
+    let collidableObjects = this.builder.wallEntities.map(item =>
+      item.getMesh()
+    );
+    let all = collidableObjects.concat(this.builder.scene.children);
+    const intersectedAll = this.raycaster.intersectObjects(all);
+    const intersected0 = intersectedAll[0];
+    if (!intersected0) return intersect;
 
+    switch (intersected0.object.name) {
+      case "footHover":
+        intersect.footstepsHover = intersectedAll[0];
+        break;
+      case "clickFloorPlane":
+        intersect.clickFloorPlane = intersectedAll[0];
+        break;
+      case "mainFloor":
+        intersect.clickFloorPlane = intersectedAll[0];
+        break;
+      default:
+        // return intersect;
+        break;
+    }
+    return intersect;
+  }
+
+  checkForFloorHover() {
+    this.builder.scene.remove(this.footstepsHoverMesh);
+    const intersect = this.checkForIntersecting();
+    if (intersect.clickFloorPlane) {
+      if (!this.builder.scene.getObjectByName("footHover")) {
+        this.builder.scene.add(this.footstepsHoverMesh);
+      }
+      this.addFootstepsHover(intersect.clickFloorPlane);
+    }
+  }
+
+  addFootstepsHover(intersect) {
     this.footstepsHoverMesh.position
       .copy(intersect.point)
       .add(intersect.face.normal);
@@ -538,15 +622,42 @@ class FlaneurControls {
       .floor()
       .multiplyScalar(20)
       .addScalar(10);
+    // this.footstepsHoverMesh.translateY(0.2);
     this.footstepsHoverMesh.position.set(
       this.footstepsHoverMesh.position.x,
-      0.3,
+      0.2,
       this.footstepsHoverMesh.position.z
     );
+    this.getFootAngle(this.footstepsHoverMesh.position);
+    return this.footstepsHoverMesh.position;
+  }
+
+  getFootAngle(destination) {
+    const cameraVector = this.object.position;
+    var dirToCamera = this.object.position.clone().sub(destination);
+    var dir = new THREE.Vector3(); // create once an reuse it
+
+    dir.subVectors(this.object.position, destination).normalize();
+
+    const texture = this.footstepsHoverMesh.material.map;
+
+    var angle = Math.atan2(
+      cameraVector.x - destination.x,
+      cameraVector.z - destination.z
+    );
+    texture.center.set(0.5, 0.5);
+    texture.repeat.set(1.3, 1.3);
+    texture.rotation = angle;
+    texture.matrix.scale(0.5, 0.5);
   }
 
   getMouse() {
     return this.mouse;
+  }
+
+  setFov(e) {
+    this.object.fov = e;
+    this.object.updateProjectionMatrix();
   }
 }
 

@@ -74,11 +74,12 @@ const Tile = props => {
 class TilesFloor extends Component {
   constructor(props) {
     super(props);
+    this.tileCallback = props.tileCallback;
   }
 
   tileClickHandler = item => {
     console.log("item", item);
-    this.props.tileCallback(item);
+    this.tileCallback(item);
   };
   render() {
     const { tilesData } = this.props;

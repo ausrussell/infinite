@@ -33,6 +33,7 @@ export default class Floor {
     });
 
     this.floorMesh = new THREE.Mesh(this.floorPlane, this.floorMaterial);
+    this.floorMesh.name = "mainFloor";
     // this.floorMesh.receiveShadow = true;
     this.floorMesh.rotateX(-Math.PI / 2);
     console.log("this.floorMesh", this.floorMesh);

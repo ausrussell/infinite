@@ -51,10 +51,11 @@ class WallObject {
     this.wallMaterial = new THREE.MeshStandardMaterial({
       // wireframe: true
       color: 0xe1f5fe,
-      opacity: this.opacity,
-      transparent: true
+      opacity: this.opacity
+      // transparent: true
     });
     this.wallMesh = new THREE.Mesh(geometry, this.wallMaterial);
+    this.wallMesh.name = "wallMesh";
     this.wallGroup = new THREE.Group();
     // this.group.receiveShadow = true;
     // this.group.castShadow = true;
@@ -139,6 +140,10 @@ class WallObject {
     this.sides[side].frame.addArt(file);
     this.sides[side].wallLight.switchOn();
     this.sides[side].wallLight.hoverOff();
+  }
+
+  setFrameColor(item, side) {
+    this.sides[side].frame.setFrameColor(item);
   }
 }
 
