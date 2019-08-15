@@ -1,5 +1,7 @@
 import * as THREE from "three";
 
+import { TransformControls } from "./TransformControls";
+
 class Frame {
   constructor(props, side = "front") {
     // super(props);
@@ -78,6 +80,8 @@ class Frame {
 
     if (!this.group) {
       this.group = new THREE.Group();
+      this.group.side = this.side;
+      this.group.wallPos = this.wall.pos;
     }
 
     if (defaultFrame) {
@@ -85,7 +89,81 @@ class Frame {
     } else {
       this.group.remove(this.artFrame);
       this.artFrame = mesh;
+      this.artFrame.name = "this.artFrame";
     }
+  }
+  //
+  // addRemoveTransformControls() {}
+  // clickOffListener(event) {
+  //   const intersectedData = this.wall.builder.checkForIntersecting();
+  //   // debugger;
+  // }
+  // addRemoveTransformControlsListener() {
+  //   console.log("addRemoveTransformControlsListener");
+  //   if (this.transformControlsOn) {
+  //     window.addEventListener("mousedown", this.clickOffListener.bind(this));
+  //   } else {
+  //     window.removeEventListener("mousedown", this.clickOffListener);
+  //   }
+  // }
+
+  addListeners() {
+    window.addEventListener("keydown", event => {
+      switch (event.keyCode) {
+        case 81: // Q
+          this.transformControls.setSpace(
+            this.transformControls.space === "local" ? "world" : "local"
+          );
+          break;
+
+        case 17: // Ctrl
+          this.transformControls.setTranslationSnap(100);
+          this.transformControls.setRotationSnap(Math.degToRad(15));
+          break;
+
+        case 87: // W
+          this.transformControls.setMode("translate");
+          break;
+
+        case 69: // E
+          this.transformControls.setMode("rotate");
+          break;
+
+        case 82: // R
+          this.transformControls.setMode("scale");
+          break;
+
+        case 187:
+        case 107: // +, =, num+
+          this.transformControls.setSize(this.transformControls.size + 0.1);
+          break;
+
+        case 189:
+        case 109: // -, _, num-
+          this.transformControls.setSize(
+            Math.max(this.transformControls.size - 0.1, 0.1)
+          );
+          break;
+
+        case 88: // X
+          this.transformControls.showX = !this.transformControls.showX;
+          break;
+
+        case 89: // Y
+          this.transformControls.showY = !this.transformControls.showY;
+          break;
+
+        case 90: // Z
+          this.transformControls.showZ = !this.transformControls.showZ;
+          break;
+
+        case 32: // Spacebar
+          this.transformControls.enabled = !this.transformControls.enabled;
+          break;
+        default:
+          break;
+      }
+    });
   }
   addDefault() {
     this.group.add(this.defaultMesh);
@@ -94,7 +172,6 @@ class Frame {
     this.group.remove(this.defaultMesh);
   }
   showDefaultFrame() {
-    // debugger;
     this.defaultMesh.material.opacity = 1;
   }
   hideDefaultFrame() {
@@ -150,7 +227,7 @@ class Frame {
     } else {
       this.iMaterial.map = texture;
     }
-    if (this.frameMesh) this.group.remove(this.frameMesh);
+    // if (this.frameMesh) this.group.remove(this.frameMesh);
     if (this.artMesh) this.group.remove(this.artMesh);
     this.artMesh = new THREE.Mesh(artPlane, this.iMaterial);
 
@@ -162,6 +239,7 @@ class Frame {
       this.side === "back" ? -this.wallDepth : this.wallDepth
     );
     this.artMesh.position.setFromMatrixPosition(shifted);
+    this.artMesh.name = "artMesh";
     // this.artMesh.position.set(
     //   20,
     //   20,
@@ -175,6 +253,8 @@ class Frame {
     this.group.add(this.artFrame);
     this.removeDefault();
     this.group.add(this.artMesh);
+    this.wall.builder.setSceneMeshes(); //maybe update method in builder
+    // this.addTransformControls();
     // this.artMesh.translateX();
     // this.artFrame.add(this.artMesh);
     // this.artMesh.position.set(
@@ -182,12 +262,86 @@ class Frame {
     //   0,
     //   this.side === "back" ? -this.wallDepth : this.wallDepth
     // );
-    // debugger;
 
-    this.group.translateY(15);
+    // this.group.translateY(15);
     // const scale = new THREE.Vector3(2, 2, 2);
     // this.group.scale.set(5, 25, 42); //) = scale;
   }
+  addTransformControls() {
+    this.transformControls = new TransformControls(
+      this.wall.builder.camera,
+      this.wall.builder.mount,
+      this
+    );
+
+    this.transformControls.attach(this.artMesh);
+    this.transformControls.showZ = this.wall.pos === 0;
+    this.transformControls.showX = this.wall.pos === 1;
+    // this.transformControls.updateMatrixWorld();
+    this.addListeners();
+
+    this.wall.builder.scene.add(this.transformControls);
+    // this.transformControls2 = new TransformControls(
+    //   this.wall.builder.camera,
+    //   this.wall.builder.mount,
+    //   this
+    // );
+    // this.transformControls2.attach(this.artMesh);
+    // this.transformControls2.setMode("scale");
+    // this.transformControls2.showZ = this.wall.pos === 0;
+    // this.transformControls2.showX = this.wall.pos === 1;
+    // this.wall.builder.scene.add(this.transformControls2);
+    // this.transformControlsOn = !this.transformControlsOn;
+    // this.addRemoveTransformControlsListener();
+  }
+
+  checkTransformBounds = transformedObject => {
+    // console.log("checkTransformBounds", transformedObject);
+
+    // Apply ray to player camera
+    // var vector = new THREE.Vector3(); // create once and reuse it!
+
+    let directionVector = new THREE.Vector3(); //this.wall.builder.camera.getWorldDirection(vector);
+
+    directionVector.set(0, 0, -1);
+    // console.log("directionVector", directionVector);
+
+    // let originVector = new THREE.Vector3();
+    // originVector
+    //   .copy(transformedObject.parent.parent.position)
+    //   .add(this.artMesh.position)
+    //   .add(transformedObject.position);
+    // console.log(
+    //   "transformedObject.parent.parent, this.artMesh",
+    //   transformedObject.parent.parent.position,
+    //   this.artMesh.position,
+    //   transformedObject.position
+    // );
+    this.wall.builder.scene.updateMatrixWorld();
+    let originVector = this.artMesh.getWorldPosition();
+    originVector.z += 5;
+    console.log("originVector", originVector);
+    // originVector.z -= .1;
+    var rayCaster = new THREE.Raycaster(
+      // this.wall.builder.camera.position,
+      originVector,
+      directionVector,
+      0,
+      15
+    );
+    // console.log("transformedObject originVector", originVector);
+
+    // If our ray hit a collidable object, return true
+    if (this.wall.builder.rayIntersectObject(rayCaster, 15)) {
+      // console.log("yes collided frame");
+      return true;
+    } else {
+      // console.log("not collided frame");
+
+      return false;
+    }
+  };
+
   loadHandler = texture => {
     this.fmaterial.color.set("#fff");
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;

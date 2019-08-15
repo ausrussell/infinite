@@ -123,7 +123,6 @@ class FlaneurControls {
 
     this.mouseDragOn = true;
     const hoverIntersect = this.checkForIntersecting();
-    console.log("hoverIntersect", hoverIntersect);
     if (hoverIntersect.footstepsHover) {
       this.moveToDestination();
     }
@@ -237,11 +236,9 @@ class FlaneurControls {
     } else {
       this.target.set(x, y, z);
     }
-    // console.log("x,y,z", x, y, z);
     this.object.lookAt(this.target);
 
     this.setOrientation();
-    // console.log("this.lon, this.lat", this.lon, this.lat);
 
     return this;
   }
@@ -319,7 +316,6 @@ class FlaneurControls {
     }
     if (this.moveBackward) {
       console.log("moveBackward");
-      // debugger;
       this.object.translateZ(actualMoveSpeed);
     }
 
@@ -574,6 +570,7 @@ class FlaneurControls {
   };
 
   checkForIntersecting() {
+    // handle this in index ??
     this.object.updateMatrixWorld();
     this.raycaster.setFromCamera(this.mouse, this.object);
     const intersect = {};

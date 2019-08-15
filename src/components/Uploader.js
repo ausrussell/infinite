@@ -60,9 +60,9 @@ class Uploader extends Component {
     // Create a root reference
 
     //uncomment these to save image
-    // debugger;
 
-    this.props.firebase.storeArt(file);
+    // this.props.firebase.storeArt(file);
+
     // const storageRef = this.props.firebase.storage().ref();
     // const imageRef = storageRef.child("art2/" + file.name);
     // imageRef.put(file).then(function(snapshot) {
