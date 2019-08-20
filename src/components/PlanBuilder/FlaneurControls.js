@@ -61,7 +61,7 @@ class FlaneurControls {
 
     this.mouse = new THREE.Vector2();
     this.raycaster = new THREE.Raycaster();
-    this.bindEvents();
+    // this.bindEvents();
     this.handleResize();
     this.createClickFloor();
     this.loadImagery();
@@ -512,7 +512,7 @@ class FlaneurControls {
     this.clickFloorPlane.translateY(0.1);
     this.clickFloorPlane.name = "clickFloorPlane";
     this.builder.scene.add(this.clickFloorPlane);
-    this.setUpFootsteps();
+    // this.setUpFootsteps();
   }
   setUpFootsteps(imagery) {
     this.footTexture = imagery;
@@ -540,6 +540,7 @@ class FlaneurControls {
       footDestinationMaterial
     );
     this.footstepsDestinationMesh.name = "footDestination";
+    this.bindEvents();
   }
 
   moveToDestination() {
@@ -642,10 +643,12 @@ class FlaneurControls {
       cameraVector.x - destination.x,
       cameraVector.z - destination.z
     );
-    texture.center.set(0.5, 0.5);
-    texture.repeat.set(1.3, 1.3);
-    texture.rotation = angle;
-    texture.matrix.scale(0.5, 0.5);
+    if (texture) {
+      texture.center.set(0.5, 0.5);
+      texture.repeat.set(1.3, 1.3);
+      texture.rotation = angle;
+      texture.matrix.scale(0.5, 0.5);
+    }
   }
 
   getMouse() {

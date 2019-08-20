@@ -27,7 +27,9 @@ const framesData = [
   { key: 5, type: "texture", url: "../textures/wood/wood2.png" },
   { key: 6, type: "texture", url: "../textures/wood/wood3.png" }
 ];
-
+const degreesToRadians = degrees => {
+  return (degrees * Math.PI) / 180;
+};
 class Builder extends Component {
   state = {
     floorplanTitle: "",
@@ -82,10 +84,8 @@ class Builder extends Component {
   onMouseMove(e) {
     this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
     this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-    // console.log("mouse index move", this.mouse);
 
     this.currentHover = this.checkForIntersecting();
-    // console.log("this.currentHover", this.currentHover);
     if (this.currentHover.artMesh && !this.activeArtMesh) {
       this.hoverArtMesh(this.currentHover.artMesh);
     }
@@ -99,7 +99,6 @@ class Builder extends Component {
   }
 
   dragOverHandler = e => {
-    console.log("dragOverHandler");
     this.onMouseMove(e);
     let intersectedData = this.checkForIntersecting();
     const { wallOver, wallSideOver } = intersectedData;
@@ -132,22 +131,50 @@ class Builder extends Component {
   }
 
   frameClickHandler(item) {
-    console.log("type", item.type, item.color);
+    // console.log("type", item.type, item.color);
     this.setState({ selectedTile: item });
   }
 
   hoverArtMesh(artMesh) {
-    console.log("hoverArtMesh");
+    // console.log("hoverArtMesh");
     this.setSceneMeshes();
     this.transformControls.showZ = artMesh.parent.wallPos === 0;
     this.transformControls.showX = artMesh.parent.wallPos === 1;
     this.transformControls.attach(artMesh);
     this.activeArtMesh = artMesh;
+
+    this.transformControls2.showZ = artMesh.parent.wallPos === 0;
+    this.transformControls2.showX = artMesh.parent.wallPos === 1;
+    this.transformControls2.attach(artMesh);
   }
 
   unhoverArtMesh(artMesh) {
-    // this.transformControls.detach();
-    // this.activeArtMesh = null;
+    if (!this.transformControls.dragging && !this.transformControls2.dragging) {
+      this.transformControls.detach();
+      this.transformControls2.detach();
+
+      this.activeArtMesh = null;
+    }
+  }
+
+  transformMouseUpHandler(event) {
+    console.log("transformMouseUpHandler", event);
+    // debugger;
+    const intersect = this.checkForIntersecting();
+    if (!intersect) this.unhoverArtMesh();
+    console.log("this.objectChanged", this.objectChanged);
+    if (this.objectChanged) {
+      this.objectChanged = false;
+    }
+  }
+
+  transformObjectChangeHandler() {
+    if (!this.objectChanged) {
+      this.objectChanged = !this.objectChanged;
+      debugger;
+
+      //remove frame
+    }
   }
 
   addTransformControls() {
@@ -157,6 +184,15 @@ class Builder extends Component {
       this
     );
 
+    this.transformControls2 = new TransformControls(
+      this.camera,
+      this.mount,
+      this
+    );
+
+    this.transformControls2.setMode("scale");
+    this.scene.add(this.transformControls2);
+
     // this.transformControls.attach(this.artMesh);
     // this.transformControls.showZ = this.wall.pos === 0;
     // this.transformControls.showX = this.wall.pos === 1;
@@ -164,26 +200,69 @@ class Builder extends Component {
     // this.addListeners();
 
     this.scene.add(this.transformControls);
+    // this.scene.add(this.transformControls2);
+
+    this.transformControls.addEventListener("mouseUp", event => {
+      this.transformMouseUpHandler(event);
+    });
+    this.transformControls2.addEventListener("mouseUp", event => {
+      this.transformMouseUpHandler(event);
+    });
+
+    this.transformControls.addEventListener("objectChange", event => {
+      this.transformObjectChangeHandler(event);
+    });
+    this.transformControls2.addEventListener("objectChange", event => {
+      this.transformObjectChangeHandler(event);
+    });
   }
 
-  checkTransformBounds = (transformingObject, newPos) => {
+  checkTransformBounds = (transformingObject, newPos, testScale) => {
+    let tempScalar = testScale || transformingObject.scale;
     this.transformOriginVector.copy(newPos);
+    var rotationMatrix = new THREE.Matrix4();
     this.transformDirectionVector.set(0, 0, -1);
-    const { height, width } = transformingObject.geometry.parameters;
     let buffer = 0;
-    let halfWidth = width / 2 + buffer;
-    let halfHeight = width / 2 + buffer;
+    const { height, width } = transformingObject.geometry.parameters;
+
+    let halfWidth = (width * tempScalar.x) / 2 + buffer;
+    let halfHeight = (height * tempScalar.y) / 2 + buffer;
+    // let topLeftCnr = { x: -halfWidth, y: halfHeight, z: 5 };
+    // let topRightCnr = { x: halfWidth, y: halfHeight, z: 5 };
+    // let bottomLeftCnr = { x: -halfWidth, y: -halfHeight, z: 5 };
+    // let bottomRightCnr = { x: halfWidth, y: -halfHeight, z: 5 };
+
+    let topLeftCnr = new THREE.Vector3(-halfWidth, halfHeight, 5);
+    let topRightCnr = new THREE.Vector3(halfWidth, halfHeight, 5);
+    let bottomLeftCnr = new THREE.Vector3(-halfWidth, -halfHeight, 5);
+    let bottomRightCnr = new THREE.Vector3(halfWidth, -halfHeight, 5);
+
+    if (transformingObject.parent.wallPos === 0) {
+      if (transformingObject.parent.side === "back") {
+        rotationMatrix.makeRotationY(degreesToRadians(270));
+      } else {
+        rotationMatrix.makeRotationY(degreesToRadians(90));
+      }
+
+      // this.transformDirectionVector.set(1, 0, 0);
+    } else if (transformingObject.parent.side === "back") {
+      rotationMatrix.makeRotationY(degreesToRadians(180));
+    }
+    this.transformDirectionVector.applyMatrix4(rotationMatrix);
+    topLeftCnr.applyMatrix4(rotationMatrix);
+    topRightCnr.applyMatrix4(rotationMatrix);
+    bottomLeftCnr.applyMatrix4(rotationMatrix);
+    bottomRightCnr.applyMatrix4(rotationMatrix);
+    // debugger;
+
+    //
+    // let halfWidth = width / 2 + buffer;
+    // let halfHeight = width / 2 + buffer;
 
     let buffers = [0];
 
     let fourCornersAr = [];
     buffers.forEach(buffer => {
-      let halfWidth = width / 2 + buffer;
-      let halfHeight = width / 2 + buffer;
-      let topLeftCnr = { x: -halfWidth, y: halfHeight, z: 5 };
-      let topRightCnr = { x: halfWidth, y: halfHeight, z: 5 };
-      let bottomLeftCnr = { x: -halfWidth, y: -halfHeight, z: 5 };
-      let bottomRightCnr = { x: halfWidth, y: -halfHeight, z: 5 };
       fourCornersAr.push(
         topLeftCnr,
         topRightCnr,
@@ -191,74 +270,36 @@ class Builder extends Component {
         bottomRightCnr
       );
     });
-    console.log("fourCornersAr", fourCornersAr);
-    // let fourCorners = [
-    //   { x: -halfWidth, y: halfHeight, z: 5 },
-    //   { x: halfWidth, y: halfHeight, z: 5 },
-    //   { x: -halfWidth, y: -halfHeight, z: 5 },
-    //   { x: halfWidth, y: -halfHeight, z: 5 }
-    // ];
 
     let canMove = 0;
     fourCornersAr.forEach(cnr => {
       this.transformOriginVector_temp.copy(this.transformOriginVector).add(cnr);
       this.transformDirectionRay.set(
-        // this.wall.builder.camera.position,
         this.transformOriginVector_temp,
         this.transformDirectionVector
       );
+
+      let transformDirectionArrow = new THREE.ArrowHelper(
+        this.transformDirectionVector,
+        this.transformOriginVector_temp,
+        10,
+        Math.random() * 0xffffff
+      );
+      // this.scene.add(transformDirectionArrow);
 
       let intersect = this.rayIntersectObject(
         this.transformDirectionRay,
         10,
         true
       );
-      console.log(
-        "this.transformOriginVector_temp",
-        this.transformOriginVector_temp
-      );
       intersect &&
         intersect.object.name === "wallMesh" &&
         intersect.object.name !== "artMesh" &&
         canMove++;
-      intersect && console.log("intersect.object.name", intersect.object.name);
+      // intersect &&
+      //   console.log("intersect.object.name", intersect, intersect.object.name);
     });
-    console.log("_____________");
     return canMove === fourCornersAr.length;
-
-    // this.transformOriginVector.add(leftCnr);
-    // // this.transformOriginVector.z = -95;
-    // //
-    // this.scene.add(
-    //   new THREE.ArrowHelper(
-    //     this.transformDirectionVector,
-    //     this.transformOriginVector,
-    //     300,
-    //     0xff0000
-    //   )
-    // );
-    // console.log("this.transformOriginVector", this.transformOriginVector);
-    // let ray = new THREE.Raycaster(
-    //   // this.wall.builder.camera.position,
-    //   this.transformOriginVector,
-    //   this.transformDirectionVector,
-    //   0,
-    //   10
-    // );
-    //
-    // let intersect = this.rayIntersectObject(ray, 150, true);
-    //
-    // let onWall =
-    //   intersect &&
-    //   intersect.object.name === "wallMesh" &&
-    //   intersect.object.name !== "artMesh";
-    // console.log("intersect", intersect);
-    // if (onWall) {
-    //   console.log("onWall");
-    // } else {
-    //   console.log("notOnWall", intersect);
-    //   // debugger;
-    // }
   };
 
   setupRaycaster() {
@@ -278,25 +319,12 @@ class Builder extends Component {
     if (this.activeArtMesh && intersects.object !== this.activeArtMesh) {
       this.unhoverArtMesh();
     }
-    // let collidableObjects = this.wallEntities.map(item => item.getMesh());
-    // let all = collidableObjects.concat(this.scene.children);
-    // this.setSceneMeshes();
-    // const intersects = this.raycaster.intersectObjects(this.meshesInScene);
-
-    // if (intersects.length === 0) {
-    //   return false;
-    // }
 
     let intersectedData = {};
 
-    // console.log("checkForIntersecting all ", intersects);
-    // console.log("this.meshesInScene", this.meshesInScene);
-
-    // let intersect0 = intersects[0].object;
     let intersect0 = intersects.object;
     if (intersect0.name === "artMesh") {
       this.hoverOverObject = intersect0;
-      // console.log("intersect0.name === artMesh");
       intersectedData.artMesh = intersect0;
     }
     //check if it intersects floors
@@ -330,7 +358,6 @@ class Builder extends Component {
       };
     }
 
-    // console.log("intersectedData", intersectedData);
     return intersectedData;
   }
 
@@ -470,7 +497,6 @@ class Builder extends Component {
         this.meshesInScene.push(node);
       }
     });
-    // debugger;
 
     // console.log("this.meshesInScene", this.meshesInScene);
   }
@@ -482,29 +508,21 @@ class Builder extends Component {
     if (excludeCurrent) {
       intersects = all.filter(
         node =>
-          (node.object.name === "artMesh" &&
+          node.distance < distance &&
+          ((node.object.name === "artMesh" &&
             node.object !== this.activeArtMesh) ||
-          node.object.name === "wallMesh"
+            node.object.name === "wallMesh")
       );
     } else {
       intersects = all.filter(
         node =>
-          node.object.name === "artMesh" || node.object.name === "wallMesh"
+          node.distance < distance &&
+          (node.object.name === "artMesh" || node.object.name === "wallMesh")
       );
     }
+    // debugger;
 
     return intersects[0] || null;
-    // for (var i = 0; i < intersects.length; i++) {
-    //   // Check if there's a collision
-    //   if (intersects[i].distance < distance) {
-    //     console.log(
-    //       "rayIntersectObject collide in index",
-    //       intersects[i].object.name
-    //     );
-    //     return true;
-    //   }
-    // }
-    // return false;
   }
 
   floors = {
