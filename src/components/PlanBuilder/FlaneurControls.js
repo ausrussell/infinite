@@ -124,6 +124,10 @@ class FlaneurControls {
     this.mouseDragOn = true;
     const hoverIntersect = this.checkForIntersecting();
     if (hoverIntersect.footstepsHover) {
+      console.log(
+        "hoverIntersect.footstepsHover",
+        hoverIntersect.footstepsHover
+      );
       this.moveToDestination();
     }
   };
@@ -157,10 +161,12 @@ class FlaneurControls {
 
   onKeyDown = event => {
     //event.preventDefault();
-    console.log("onKeyDown", event.keyCode);
+
     switch (event.keyCode) {
       case 38: /*up*/
       case 87:
+        if (!this.moveToDestinationAni.stop) this.moveToDestinationAni.end();
+
         /*W*/ this.moveForward = true;
         break;
 
@@ -172,6 +178,7 @@ class FlaneurControls {
 
       case 40: /*down*/
       case 83:
+        if (!this.moveToDestinationAni.stop) this.moveToDestinationAni.end();
         /*S*/ this.moveBackward = true;
         break;
 
@@ -242,11 +249,6 @@ class FlaneurControls {
 
     return this;
   }
-  //
-  // update() {
-  //   var targetPosition = new THREE.Vector3();
-  //
-  //   return function
 
   detectPlayerCollision() {
     // The rotation matrix to apply to our direction vector
@@ -284,6 +286,8 @@ class FlaneurControls {
 
     // If our ray hit a collidable object, return true
     if (this.builder.rayIntersect(rayCaster, this.collisionDistance)) {
+      // debugger;
+      console.log("flaneur collide");
       return true;
     } else {
       return false;
@@ -315,7 +319,6 @@ class FlaneurControls {
       this.object.translateZ(-(actualMoveSpeed + this.autoSpeedFactor));
     }
     if (this.moveBackward) {
-      console.log("moveBackward");
       this.object.translateZ(actualMoveSpeed);
     }
 
@@ -340,7 +343,6 @@ class FlaneurControls {
     if (this.moveCameraLeft) {
       this.object.rotation.y += 0.01;
     }
-
     // if (this.startToDestination) {
     //   this.moveToDestination();
     // }
@@ -566,8 +568,10 @@ class FlaneurControls {
     this.object.position.set(newX, this.defaultObjectY, newZ);
   }
   doneMoveToDestination = () => {
+    this.moveToDestinationAni.end();
     this.builder.scene.remove(this.footstepsDestinationMesh);
     this.currentDestination = null;
+    console.log("doneMoveToDestination", this.object.position);
   };
 
   checkForIntersecting() {

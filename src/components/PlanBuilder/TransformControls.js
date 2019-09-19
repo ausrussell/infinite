@@ -324,7 +324,7 @@ var TransformControls = function(camera, domElement, callingClass) {
 
       this.dragging = true;
       mouseDownEvent.mode = this.mode;
-
+      console.log("mouseDownEvent", mouseDownEvent);
       this.dispatchEvent(mouseDownEvent);
     }
   };

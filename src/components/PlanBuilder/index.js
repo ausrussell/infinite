@@ -88,6 +88,8 @@ class Builder extends Component {
     this.currentHover = this.checkForIntersecting();
     if (this.currentHover.artMesh && !this.activeArtMesh) {
       this.hoverArtMesh(this.currentHover.artMesh);
+    } else if (!this.currentHover.artMesh && this.activeArtMesh) {
+      this.unhoverArtMesh(this.currentHover.artMesh);
     }
   }
 
@@ -122,8 +124,17 @@ class Builder extends Component {
   };
 
   fileDropHandler = file => {
-    if (this.currentWallOver)
-      this.currentWallOver.addImageFile(file, this.currentSide);
+    this.setSceneMeshes();
+    let intersect = this.checkForIntersecting();
+    console.log("fileDropHandler intersect", intersect);
+    this.holderOver = intersect;
+    if (this.currentWallOver) {
+      this.currentWallOver.addImageFile(
+        file,
+        this.currentSide,
+        this.holderOver
+      );
+    }
   };
 
   floorTileCallback(item) {
@@ -136,7 +147,7 @@ class Builder extends Component {
   }
 
   hoverArtMesh(artMesh) {
-    // console.log("hoverArtMesh");
+    console.log("hoverArtMesh", artMesh);
     this.setSceneMeshes();
     this.transformControls.showZ = artMesh.parent.wallPos === 0;
     this.transformControls.showX = artMesh.parent.wallPos === 1;
@@ -152,28 +163,85 @@ class Builder extends Component {
     if (!this.transformControls.dragging && !this.transformControls2.dragging) {
       this.transformControls.detach();
       this.transformControls2.detach();
-
       this.activeArtMesh = null;
     }
   }
 
+  resetTranslatedArt() {
+    this.transformOriginVector.copy(this.activeArtMesh.getWorldPosition());
+    var rotationMatrix = new THREE.Matrix4();
+    this.transformDirectionVector.set(0, 0, -1);
+    let options = {
+      origin: this.transformOriginVector,
+      direction: this.transformDirectionVector,
+      includes: ["wallMesh"],
+      distance: 10
+    };
+
+    let intersect0 = this.rayIntersectOptions(options);
+    let onWall = this.getWallFromIntersect(intersect0);
+    console.log(
+      "resetTranslatedArt this.activeArtMesh.parent.holderClass.wall",
+      this.activeArtMesh.parent.holderClass.wall
+    );
+    this.activeArtMesh.parent.holderClass.wall.removeFrame(
+      this.activeArtMesh.parent.holderClass,
+      onWall.wallSideOver
+    );
+    onWall.wallOver.positionMovedHolder(
+      this.activeArtMesh,
+      onWall.wallSideOver
+    );
+
+    this.objectChanged = false;
+  }
+
+  resetScaledArt() {
+    this.activeArtMesh.rescale();
+    this.objectChanged = false;
+  }
+
   transformMouseUpHandler(event) {
-    console.log("transformMouseUpHandler", event);
-    // debugger;
     const intersect = this.checkForIntersecting();
     if (!intersect) this.unhoverArtMesh();
-    console.log("this.objectChanged", this.objectChanged);
-    if (this.objectChanged) {
-      this.objectChanged = false;
+    if (event.mode === "translate" && this.objectChanged) {
+      this.resetTranslatedArt();
     }
+    if (event.mode === "scale" && this.objectChanged) {
+      this.resetScaledArt();
+    }
+  }
+
+  getWallFromIntersect(intersect) {
+    const intersectedWallIndex = this.wallMeshes.indexOf(intersect.object);
+
+    let side = null;
+    const faceIndex = intersect.faceIndex;
+    switch (faceIndex) {
+      case 8:
+      case 9:
+        side = "front";
+        break;
+      case 10:
+      case 11:
+        side = "back";
+        break;
+      default:
+        side = null;
+    }
+    let intersectedData = {
+      wallOver: this.wallEntities[intersectedWallIndex] || null,
+      wallSideOver: side
+      // voxelClicked: voxelClicked
+    };
+
+    return intersectedData;
   }
 
   transformObjectChangeHandler() {
     if (!this.objectChanged) {
-      this.objectChanged = !this.objectChanged;
-      debugger;
-
-      //remove frame
+      this.objectChanged = true;
+      this.activeArtMesh.parent.holderClass.removeArtFrame();
     }
   }
 
@@ -227,10 +295,6 @@ class Builder extends Component {
 
     let halfWidth = (width * tempScalar.x) / 2 + buffer;
     let halfHeight = (height * tempScalar.y) / 2 + buffer;
-    // let topLeftCnr = { x: -halfWidth, y: halfHeight, z: 5 };
-    // let topRightCnr = { x: halfWidth, y: halfHeight, z: 5 };
-    // let bottomLeftCnr = { x: -halfWidth, y: -halfHeight, z: 5 };
-    // let bottomRightCnr = { x: halfWidth, y: -halfHeight, z: 5 };
 
     let topLeftCnr = new THREE.Vector3(-halfWidth, halfHeight, 5);
     let topRightCnr = new THREE.Vector3(halfWidth, halfHeight, 5);
@@ -243,8 +307,6 @@ class Builder extends Component {
       } else {
         rotationMatrix.makeRotationY(degreesToRadians(90));
       }
-
-      // this.transformDirectionVector.set(1, 0, 0);
     } else if (transformingObject.parent.side === "back") {
       rotationMatrix.makeRotationY(degreesToRadians(180));
     }
@@ -253,11 +315,6 @@ class Builder extends Component {
     topRightCnr.applyMatrix4(rotationMatrix);
     bottomLeftCnr.applyMatrix4(rotationMatrix);
     bottomRightCnr.applyMatrix4(rotationMatrix);
-    // debugger;
-
-    //
-    // let halfWidth = width / 2 + buffer;
-    // let halfHeight = width / 2 + buffer;
 
     let buffers = [0];
 
@@ -296,9 +353,11 @@ class Builder extends Component {
         intersect.object.name === "wallMesh" &&
         intersect.object.name !== "artMesh" &&
         canMove++;
+      // console.log("intersect in check ", intersect);
       // intersect &&
       //   console.log("intersect.object.name", intersect, intersect.object.name);
     });
+    // if (canMove !== fourCornersAr.length) debugger;
     return canMove === fourCornersAr.length;
   };
 
@@ -306,26 +365,24 @@ class Builder extends Component {
     this.raycaster = new THREE.Raycaster();
   }
 
-  checkForIntersecting() {
+  checkForIntersecting(options) {
     this.camera.updateMatrixWorld();
     this.scene.updateMatrixWorld();
     this.raycaster.setFromCamera(this.mouse, this.camera);
-    // this.raycaster.setFromCamera(this.flaneurControls.getMouse(), this.camera);
 
     const intersects = this.rayIntersectObject(this.raycaster, 1000);
+    // console.log("checkForIntersecting intersects", intersects);
     if (!intersects) {
+      // console.log("no intersects");
       return false;
-    }
-    if (this.activeArtMesh && intersects.object !== this.activeArtMesh) {
-      this.unhoverArtMesh();
     }
 
     let intersectedData = {};
 
     let intersect0 = intersects.object;
-    if (intersect0.name === "artMesh") {
+    if (intersect0.name === "artMesh" || intersect0.name === "defaultArtMesh") {
       this.hoverOverObject = intersect0;
-      intersectedData.artMesh = intersect0;
+      intersectedData[intersect0.name] = intersect0;
     }
     //check if it intersects floors
     const intersectedWallIndex = this.wallMeshes.indexOf(intersect0);
@@ -345,12 +402,12 @@ class Builder extends Component {
         side = null;
     }
     if (side) {
-      if (this.state.selectedTile) {
-        this.wallEntities[intersectedWallIndex].setFrameColor(
-          this.state.selectedTile,
-          side
-        );
-      }
+      // if (this.state.selectedTile) {
+      //   this.wallEntities[intersectedWallIndex].setFrameColor(
+      //     this.state.selectedTile,
+      //     side
+      //   );
+      // }
       intersectedData = {
         wallOver: this.wallEntities[intersectedWallIndex] || null,
         wallSideOver: side
@@ -474,19 +531,19 @@ class Builder extends Component {
     this.wallEntities.forEach((item, index) => item.initialAnimateBuild(index));
     this.wallMeshes = this.wallEntities.map(item => item.getMesh()); //used for raycaster, needs to occur after rendering
   }
-
-  rayIntersect(ray, distance) {
-    let collidableObjects = this.wallEntities.map(item => item.getMesh()); //used for raycaster
-    var intersects = ray.intersectObjects(collidableObjects);
-    for (var i = 0; i < intersects.length; i++) {
-      // Check if there's a collision
-      if (intersects[i].distance < distance) {
-        console.log("collide");
-        return true;
-      }
-    }
-    return false;
-  }
+  //
+  // rayIntersect(ray, distance) {
+  //   let collidableObjects = this.wallEntities.map(item => item.getMesh()); //used for raycaster
+  //   var intersects = ray.intersectObjects(collidableObjects);
+  //   for (var i = 0; i < intersects.length; i++) {
+  //     // Check if there's a collision
+  //     if (intersects[i].distance < distance) {
+  //       console.log("collide");
+  //       return true;
+  //     }
+  //   }
+  //   return false;
+  // }
 
   setSceneMeshes() {
     this.meshesInScene = [];
@@ -501,9 +558,39 @@ class Builder extends Component {
     // console.log("this.meshesInScene", this.meshesInScene);
   }
 
+  rayIntersect(ray, distance) {
+    //used by flaneur controls
+    let collidableObjects = this.wallEntities.map(item => item.getMesh()); //used for raycaster
+    var intersects = ray.intersectObjects(collidableObjects);
+    for (var i = 0; i < intersects.length; i++) {
+      // Check if there's a collision
+      if (intersects[i].distance < distance) {
+        console.log("collide");
+        return true;
+      }
+    }
+    return false;
+  }
+
+  rayIntersectOptions({ origin, direction, includes, distance }) {
+    this.scene.updateMatrixWorld();
+    this.raycaster.set(origin, direction);
+
+    let all = this.raycaster.intersectObjects(this.meshesInScene);
+    // console.log("all intersects", all);
+    let intersects = all.filter(
+      node =>
+        node.distance < distance && includes.indexOf(node.object.name) !== -1
+    );
+
+    return intersects[0] || null;
+  }
+
   rayIntersectObject(ray, distance, excludeCurrent) {
     this.scene.updateMatrixWorld();
+    // console.log("this.meshesInScene", this.meshesInScene);
     let all = ray.intersectObjects(this.meshesInScene);
+    // console.log("all", all);
     let intersects;
     if (excludeCurrent) {
       intersects = all.filter(
@@ -517,7 +604,9 @@ class Builder extends Component {
       intersects = all.filter(
         node =>
           node.distance < distance &&
-          (node.object.name === "artMesh" || node.object.name === "wallMesh")
+          (node.object.name === "artMesh" ||
+            node.object.name === "wallMesh" ||
+            node.object.name === "defaultArtMesh")
       );
     }
     // debugger;

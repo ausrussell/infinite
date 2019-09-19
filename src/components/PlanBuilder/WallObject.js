@@ -22,8 +22,8 @@ class WallObject {
     this.wallWidth = 20;
     this.wallHeight = 60;
     this.wallDepth = 5;
-    this.defaultFrameWidth = this.wallWidth * 0.8;
-    this.defaultFrameHeight = 20;
+    this.defaultImageWidth = this.wallWidth * 0.6;
+    this.defaultImageHeight = 15;
     this.setXZPos();
     this.renderWall();
     this.addLights();
@@ -51,16 +51,16 @@ class WallObject {
     this.wallMaterial = new THREE.MeshStandardMaterial({
       // wireframe: true
       color: 0xe1f5fe,
-      opacity: this.opacity
-      // transparent: true
+      opacity: this.opacity,
+      transparent: true
     });
     this.wallMesh = new THREE.Mesh(geometry, this.wallMaterial);
     this.wallMesh.name = "wallMesh";
     this.wallGroup = new THREE.Group();
-    // this.group.receiveShadow = true;
+    this.wallGroup.receiveShadow = true;
     // this.group.castShadow = true;
     this.wallGroup.add(this.wallMesh);
-
+    this.wallGroup.name = "wallGroup";
     this.builder.scene.add(this.wallGroup);
     this.builder.scene.updateMatrixWorld(true);
     this.wallGroup.position.set(this.posX, this.height / 2, this.posZ);
@@ -78,9 +78,10 @@ class WallObject {
       timing: "circ",
       draw: progress => this.drawing(progress)
     });
+
+    wallAni.animate(performance.now());
     this.opacity = 1;
     this.wallMaterial.opacity = this.opacity;
-    wallAni.animate(performance.now());
   }
   drawing = progress => {
     progress += 0.01;
@@ -101,15 +102,17 @@ class WallObject {
     this.currentSideOver.wallLight.hoverOn();
     this.wallGroup.add(this.currentSideOver.wallLight.spotLight);
     if (!this.sides[side].hasArt) {
-      this.currentSideOver.frame.addDefault();
+      // this.currentSideOver.defaultFrame.addDefault();
+      this.wallGroup.add(this.currentSideOver.defaultFrame.group);
+      // this.builder.setSceneMeshes(); //maybe update method in builder
     }
   }
 
   dragOutHandler(side) {
     this.currentSideOver.wallLight.hoverOff();
     if (!this.sides[side].hasArt) {
-      this.wallGroup.remove(this.currentSideOver.wallLight.spotLight);
-      this.currentSideOver.frame.removeDefault();
+      this.wallGroup.remove(this.currentSideOver.wallLight.spotLight); //???
+      this.wallGroup.remove(this.currentSideOver.defaultFrame.group);
     }
   }
 
@@ -121,24 +124,100 @@ class WallObject {
     this.sides[side].wallLight.setWallLight();
   }
   addFrames() {
-    Object.keys(this.sides).forEach(side => this.framesForSide(side));
+    Object.keys(this.sides).forEach(side =>
+      this.createDefaultFramesForSide(side)
+    );
   }
-  framesForSide(side) {
-    this.sides[side].frame = new Frame(this, side);
+  createDefaultFramesForSide(side) {
+    // console.log(
+    //   "framesForSide this.sides[side]",
+    //   side,
+    //   this.col,
+    //   this.sides[side]
+    // );
+
+    this.sides[side].defaultFrame = new Frame(this, side);
     let options = {
-      totalWidth: this.defaultFrameWidth,
-      totalHeight: this.defaultFrameHeight,
-      defaultFrame: true
+      imageWidth: this.defaultImageWidth,
+      imageHeight: this.defaultImageHeight,
+      defaultFrame: true,
+      index: 0
     };
-    this.sides[side].frame.setFrameMesh(options);
-    this.wallGroup.add(this.sides[side].frame.group);
+    this.sides[side].defaultFrame.setDefaultFrameGroup(options);
+    this.sides[side].frames = [];
   }
-  addImageFile(file, side) {
-    console.log("addImageFile", file);
+
+  positionMovedHolder(artMesh, side) {
+    this.builder.scene.updateMatrixWorld(true);
+    let index = this.sides[side].frames.push(new Frame(this, side));
+    this.sides[side].frames[index - 1].setArtMesh(artMesh);
+    this.wallGroup.add(this.sides[side].frames[index - 1].group);
+    this.sides[side].hasArt = true;
+    this.currentSideOver = this.sides[side];
+    this.updateWallLight(side);
+  }
+
+  updateWallLight(side) {
+    if (this.sides[side].hasArt) {
+      this.wallGroup.add(this.sides[side].wallLight.spotLight);
+      this.sides[side].wallLight.switchOn();
+    } else {
+      this.wallGroup.remove(this.sides[side].wallLight.spotLight);
+    }
+  }
+
+  removeFrame(frame, side) {
+    console.log("removing frame from ", this.col);
+    console.log("light off ", side, this.sides[side].wallLight.spotLight);
+
+    let index = this.sides[side].frames.indexOf(frame);
+    console.log(
+      "removeFrame",
+      this.col,
+      this.sides[side].frames.indexOf(frame)
+    );
+    this.sides[side].frames.splice(index, 1);
+    console.log(
+      "removeFrame after splice",
+      this.sides[side].frames.indexOf(frame)
+    );
+    this.switchLightOffIfNoArt(side);
+  }
+  switchLightOffIfNoArt(side) {
+    console.log(
+      "switchLightOffIfNoArt this.sides[side].frames",
+      this.sides[side].frames
+    );
+    if (this.sides[side].frames.length === 0) {
+      this.sides[side].hasArt = false;
+    }
+    this.updateWallLight(side);
+  }
+  addImageFile(file, side, holderOver) {
+    //need to fix holderOver for when dropped on art
+    console.log("addImageFile", this.col, side);
     this.builder.scene.updateMatrixWorld(true);
     this.sides[side].hasArt = true;
-    this.sides[side].frame.addArt(file);
-    this.sides[side].wallLight.switchOn();
+    console.log("addImageFile", this.sides[side].frames);
+    if (holderOver.defaultArtMesh || holderOver.wallOver) {
+      this.sides[side].wallLight.hoverOff();
+      let index = this.sides[side].frames.push(new Frame(this, side));
+
+      // this.sides[side].frames[index - 1].setArtMesh(artMesh);
+      // this.wallGroup.add(this.sides[side].frames[index - 1].group);
+
+      this.currentSideOver.frames[index - 1].addArt(
+        file,
+        this.currentSideOver.defaultFrame
+      );
+      this.wallGroup.remove(this.currentSideOver.defaultFrame.group);
+
+      // this.currentSideOver.defaultFrame.addArt(file);
+      // this.currentSideOver.defaultFrame.removeDefault();
+      this.updateWallLight(side);
+      return;
+    }
+
     this.sides[side].wallLight.hoverOff();
   }
 

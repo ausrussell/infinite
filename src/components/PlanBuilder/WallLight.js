@@ -56,16 +56,23 @@ class WallLight {
     );
   };
   hoverOff(intensity = 0) {
+    console.log("hoverOff");
     this.spotLight.intensity = intensity;
     this.spotLight.color.setHex(0xffffff);
-    this.hoverAni.end();
+    this.hoverAni && this.hoverAni.end();
 
     if (this.wall.currentSideOver.hasArt) this.switchOn();
     // this.switchedOn = false;
   }
   switchOn(intensity = 0.8) {
+    console.log("switchOn", this.wall.col);
     this.spotLight.intensity = intensity;
     this.spotLight.color.setHex(0xffffff);
+  }
+  switchOff() {
+    console.log("switchOff", this.wall.col);
+
+    this.spotLight.intensity = 0;
   }
 }
 

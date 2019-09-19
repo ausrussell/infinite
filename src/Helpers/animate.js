@@ -71,10 +71,7 @@ class Animate {
   }
 
   end() {
-    // debugger;
-    // this.draw(1);
     this.stop = true;
-
     this.repeat = false;
     let x = this.requestFrame;
     cancelAnimationFrame(x);
