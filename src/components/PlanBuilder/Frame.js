@@ -41,7 +41,7 @@ class Frame {
   }
 
   setDefaultFrameGroup(options) {
-    this.group = new THREE.Group();
+    // this.group = new THREE.Group();
     const { imageWidth, imageHeight } = options;
     // this.defaultMesh = mesh;
     const defaultPlane = new THREE.PlaneGeometry(imageWidth, imageHeight, 0);
@@ -61,31 +61,34 @@ class Frame {
     this.setDefaultFrameMaterial();
     this.setFrameMesh(defaultPlane);
     this.group.add(this.frameMesh);
-    console.log("default group position", this.group.position);
+    console.log("setDefaultFrameGroup");
+    console.log("this.group.position", this.group.position);
+    console.log("this.artMesh.position", this.artMesh.position);
+    console.log("this.frameMesh.position", this.frameMesh.position);
     if (this.side === "back") this.group.rotateY(Math.PI);
   }
 
   setFrameMesh(plane) {
-    const imageWidth = plane.parameters.width;
-    const imageHeight = plane.parameters.height;
-
+    const imageWidth = plane.parameters.width * this.artMesh.scale.x;
+    const imageHeight = plane.parameters.height * this.artMesh.scale.y;
+    console.log("imageWidth", imageWidth, this.artMesh.scale.x);
     this.setFrameGeometry(imageWidth, imageHeight);
     if (!this.fmaterial) this.setDefaultFrameMaterial();
     const mesh = new THREE.Mesh(this.fgeometry, this.fmaterial);
     this.totalWidth = imageWidth + 2 * this.frameWidth;
     this.totalHeight = imageHeight + 2 * this.frameWidth;
-    const wallMatrix = this.wall.wallMesh.matrixWorld;
-    const shiftedLeft = wallMatrix.makeTranslation(
-      -imageWidth / 2, //-(this.totalWidth / 2),
-      -imageHeight / 2,
-      0 // this.side === "back" ? -(this.wallDepth * 1.5) : this.wallDepth * 0.5
-    );
-
-    mesh.position.setFromMatrixPosition(shiftedLeft);
-
-    mesh.updateMatrix();
-
-    mesh.castShadow = true;
+    // const wallMatrix = this.wall.wallMesh.matrixWorld;
+    // const shiftedLeft = wallMatrix.makeTranslation(
+    //   (-imageWidth / 2) * this.artMesh.scale.x, //-(this.totalWidth / 2),
+    //   (-imageHeight / 2) * this.artMesh.scale.y,
+    //   0 // this.side === "back" ? -(this.wallDepth * 1.5) : this.wallDepth * 0.5
+    // );
+    //
+    // mesh.position.setFromMatrixPosition(shiftedLeft);
+    //
+    // mesh.updateMatrix();
+    //
+    // mesh.castShadow = true;
 
     if (!this.group) {
       // this.group.side = this.side;
@@ -101,6 +104,20 @@ class Frame {
     // this.group.remove(this.frameMesh);
     this.frameMesh = mesh;
     this.frameMesh.name = "frameMesh";
+    this.setFramePosition();
+    return mesh;
+  }
+
+  setFramePosition() {
+    const artMatrix = this.artMesh.matrixWorld;
+    const wallMatrix = this.wall.wallMesh.matrixWorld;
+
+    const shiftedLeft = wallMatrix.makeTranslation(
+      (-this.artMesh.geometry.parameters.width * this.artMesh.scale.x) / 2, //-(this.totalWidth / 2),
+      (-this.artMesh.geometry.parameters.height * this.artMesh.scale.y) / 2,
+      0 // this.side === "back" ? -(this.wallDepth * 1.5) : this.wallDepth * 0.5
+    );
+    this.frameMesh.position.setFromMatrixPosition(shiftedLeft);
   }
 
   removeFromWall() {
@@ -127,16 +144,13 @@ class Frame {
       totalHeight:
         this.artMesh.geometry.parameters.height * this.artMesh.scale.y
     };
+    console.log("rescale options", options);
     this.setFrameMeshRescaled(options);
-    this.group.add(this.frameMesh);
-    const wallMatrix = this.wall.wallMesh.matrixWorld;
-    const shiftedLeft = wallMatrix.makeTranslation(
-      -(options.totalWidth / 2),
-      -(options.totalHeight / 2),
-      0
-    );
-    this.frameMesh.position.setFromMatrixPosition(shiftedLeft);
+    this.setFramePosition();
+
     this.frameMesh.material.opacity = 1;
+    this.group.add(this.frameMesh);
+    console.log("this.fmaterial", this.fmaterial);
   };
 
   setFrameGeometry(imageWidth, imageHeight) {
@@ -185,66 +199,83 @@ class Frame {
     );
   }
   setArtMesh(artMesh) {
-    // console.log(
-    //   "artMesh.position",
-    //   artMesh.position,
-    //   artMesh.parent.position,
-    //   artMesh.getWorldPosition()
-    // );
     console.log("setArtMesh", this.wall.col);
-
     this.artMesh = artMesh;
-    this.group = artMesh.parent;
-    // this.wall = wall;
-
-    this.group.holderClass = this;
-
-    this.frameMesh = this.group.children.find(
+    this.oldGroup = artMesh.parent;
+    // this.group.holderClass = this;//??
+    this.fmaterial = this.oldGroup.holderClass.fmaterial;
+    this.frameMesh = this.oldGroup.children.find(
       item => item.name === "frameMesh"
     );
-    this.fmaterial = this.frameMesh.material; //reset
-    let options = {
-      imageWidth: artMesh.geometry.parameters.width * artMesh.scale.x,
-      totalHeight: artMesh.geometry.parameters.height * artMesh.scale.y
-    };
-    this.setFrameGeometry(options);
-    this.frameMesh.material.opacity = 1;
     const wallMatrix = this.wall.wallMesh.matrixWorld;
+    console.log("this.wallPos", this.group.wallPos, this.side);
+    console.log("artMesh.getWorldPosition()", artMesh.getWorldPosition());
+    console.log(
+      "this.wall.wallGroup.getWorldPosition()",
+      this.wall.wallGroup.getWorldPosition()
+    );
 
     this.offset
       .copy(artMesh.getWorldPosition())
       .sub(this.wall.wallGroup.getWorldPosition());
-    const shiftedLeft = wallMatrix.makeTranslation(
-      this.offset.x,
-      this.offset.y,
-      0 //  this.side === "back" ? -(this.wallDepth * 1.5) : this.wallDepth * 0.5
-    );
-    this.group.position.setFromMatrixPosition(shiftedLeft);
-    const frameMatrix = this.frameMesh.matrixWorld;
-    const shifted = frameMatrix.makeTranslation(
-      0,
-      0,
-      this.side === "back" ? -this.wallDepth : this.wallDepth
-    );
-    this.artMesh.position.setFromMatrixPosition(shifted);
+    let groupShifted;
+    if (this.group.wallPos === 1) {
+      groupShifted = wallMatrix.makeTranslation(
+        this.offset.x,
+        this.offset.y,
+        0 //          this.group.wallPos === 1 ? 0 : this.offset.z
+        // 0 //this.side === "back" ? -(this.wallDepth * 1.5) : this.wallDepth * 0.5
+      );
+    } else {
+      groupShifted = wallMatrix.makeTranslation(
+        -this.offset.z,
+        this.offset.y,
+        0 //this.offset.z
+        // 0 //this.side === "back" ? -(this.wallDepth * 1.5) : this.wallDepth * 0.5
+      );
+    }
+
+    console.log("this.offset", this.offset);
+    this.artMesh.position.set(0, 0, this.wallDepth);
+
+    // this.artMesh.translateZ(this.wallDepth);
     this.artMesh.getWallData = this.getWallData;
-    this.artMesh.rescale = this.rescale;
-    this.frameMesh.updateMatrix();
+    this.showFrameMesh();
     console.log(
       "Frame setArtMesh this.activeArtMesh.parent.holderClass.wall",
       this.artMesh.parent.holderClass.wall
     );
+    this.group.add(this.artMesh);
+    this.group.add(this.frameMesh);
+    // this.group.position.set(this.offset);
 
-    // this.group.add(this.frameMesh);
+    this.group.position.setFromMatrixPosition(groupShifted);
+    if (this.side === "back") {
+      debugger;
+      this.group.rotateY(Math.PI);
+    }
+    //this.group.wallPos
+    //
+
+    this.wall.wallGroup.add(this.group);
+    this.wall.builder.setSceneMeshes();
+    // this.setFramePosition();
+
+    console.log("setArtMesh");
+    console.log("this.group.position", this.group.position);
+    console.log("this.artMesh.position", this.artMesh.position);
+    console.log("this.frameMesh.position", this.frameMesh.position);
   }
-
+  showFrameMesh() {
+    // this.frameMesh.material.transparent = false;
+    this.frameMesh.material.opacity = 1;
+  }
   addDefault() {
     this.group.add(this.defaultMesh);
     return;
   }
   removeDefault() {
     this.group.remove(this.defaultMesh);
-    debugger;
   }
   showDefaultFrame() {
     this.defaultMesh.material.opacity = 1;
@@ -257,7 +288,7 @@ class Frame {
     return this.group;
   }
   addArt(file, holder) {
-    console.log("addART", file);
+    console.log("addART");
     const image = new Image();
     image.src = file;
     const options = {
@@ -327,6 +358,10 @@ class Frame {
 
     this.wall.wallGroup.add(this.group);
     this.wall.builder.setSceneMeshes(); //maybe update method in builder
+
+    console.log("this.group.position", this.group.position);
+    console.log("this.artMesh.position", this.artMesh.position);
+    console.log("this.frameMesh.position", this.frameMesh.position);
   }
 
   loadHandler = texture => {

@@ -870,7 +870,9 @@ var TransformControlsGizmo = function() {
     ],
     YZ: [
       [
-        new Mesh(new PlaneBufferGeometry(0.295, 0.295), matCyanTransparent),
+        // new Mesh(new PlaneBufferGeometry(0.295, 0.295), matCyanTransparent),
+        new Mesh(new PlaneBufferGeometry(0.295, 0.295), matYellowTransparent),
+
         [0, 0.15, 0.15],
         [0, Math.PI / 2, 0]
       ],

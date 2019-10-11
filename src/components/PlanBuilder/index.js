@@ -98,6 +98,7 @@ class Builder extends Component {
     // this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
     // this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
     // this.onMouseMove(e);
+    console.log(this.checkForIntersecting());
   }
 
   dragOverHandler = e => {
@@ -148,7 +149,7 @@ class Builder extends Component {
 
   hoverArtMesh(artMesh) {
     console.log("hoverArtMesh", artMesh);
-    this.setSceneMeshes();
+    // this.setSceneMeshes();
     this.transformControls.showZ = artMesh.parent.wallPos === 0;
     this.transformControls.showX = artMesh.parent.wallPos === 1;
     this.transformControls.attach(artMesh);
@@ -169,16 +170,15 @@ class Builder extends Component {
 
   resetTranslatedArt() {
     this.transformOriginVector.copy(this.activeArtMesh.getWorldPosition());
-    var rotationMatrix = new THREE.Matrix4();
-    this.transformDirectionVector.set(0, 0, -1);
     let options = {
       origin: this.transformOriginVector,
-      direction: this.transformDirectionVector,
+      direction: this.getTransformDirectionVector(this.activeArtMesh),
       includes: ["wallMesh"],
       distance: 10
     };
-
     let intersect0 = this.rayIntersectOptions(options);
+    console.log("intersect0", intersect0);
+    if (!intersect0) return;
     let onWall = this.getWallFromIntersect(intersect0);
     console.log(
       "resetTranslatedArt this.activeArtMesh.parent.holderClass.wall",
@@ -197,7 +197,7 @@ class Builder extends Component {
   }
 
   resetScaledArt() {
-    this.activeArtMesh.rescale();
+    this.activeArtMesh.parent.holderClass.rescale();
     this.objectChanged = false;
   }
 
@@ -214,7 +214,6 @@ class Builder extends Component {
 
   getWallFromIntersect(intersect) {
     const intersectedWallIndex = this.wallMeshes.indexOf(intersect.object);
-
     let side = null;
     const faceIndex = intersect.faceIndex;
     switch (faceIndex) {
@@ -285,10 +284,28 @@ class Builder extends Component {
     });
   }
 
+  getTransformDirectionVector(transformingObject) {
+    let rotationMatrix = new THREE.Matrix4();
+
+    this.transformDirectionVector.set(0, 0, -1);
+
+    if (transformingObject.parent.wallPos === 0) {
+      if (transformingObject.parent.side === "back") {
+        rotationMatrix.makeRotationY(degreesToRadians(270));
+      } else {
+        rotationMatrix.makeRotationY(degreesToRadians(90));
+      }
+    } else if (transformingObject.parent.side === "back") {
+      rotationMatrix.makeRotationY(degreesToRadians(180));
+    }
+    this.transformDirectionVector.applyMatrix4(rotationMatrix);
+    return this.transformDirectionVector;
+  }
+
   checkTransformBounds = (transformingObject, newPos, testScale) => {
     let tempScalar = testScale || transformingObject.scale;
     this.transformOriginVector.copy(newPos);
-    var rotationMatrix = new THREE.Matrix4();
+    let rotationMatrix = new THREE.Matrix4();
     this.transformDirectionVector.set(0, 0, -1);
     let buffer = 0;
     const { height, width } = transformingObject.geometry.parameters;
@@ -575,6 +592,14 @@ class Builder extends Component {
   rayIntersectOptions({ origin, direction, includes, distance }) {
     this.scene.updateMatrixWorld();
     this.raycaster.set(origin, direction);
+
+    let transformDirectionArrow = new THREE.ArrowHelper(
+      direction,
+      origin,
+      10,
+      Math.random() * 0xffffff
+    );
+    this.scene.add(transformDirectionArrow);
 
     let all = this.raycaster.intersectObjects(this.meshesInScene);
     // console.log("all intersects", all);

@@ -129,13 +129,6 @@ class WallObject {
     );
   }
   createDefaultFramesForSide(side) {
-    // console.log(
-    //   "framesForSide this.sides[side]",
-    //   side,
-    //   this.col,
-    //   this.sides[side]
-    // );
-
     this.sides[side].defaultFrame = new Frame(this, side);
     let options = {
       imageWidth: this.defaultImageWidth,
@@ -151,10 +144,14 @@ class WallObject {
     this.builder.scene.updateMatrixWorld(true);
     let index = this.sides[side].frames.push(new Frame(this, side));
     this.sides[side].frames[index - 1].setArtMesh(artMesh);
-    this.wallGroup.add(this.sides[side].frames[index - 1].group);
     this.sides[side].hasArt = true;
     this.currentSideOver = this.sides[side];
     this.updateWallLight(side);
+    console.log("positionMovedHolder this.wallGroup", this.wallGroup);
+    console.log(
+      "positionMovedHolder this.currentSideOver",
+      this.currentSideOver
+    );
   }
 
   updateWallLight(side) {
@@ -202,10 +199,6 @@ class WallObject {
     if (holderOver.defaultArtMesh || holderOver.wallOver) {
       this.sides[side].wallLight.hoverOff();
       let index = this.sides[side].frames.push(new Frame(this, side));
-
-      // this.sides[side].frames[index - 1].setArtMesh(artMesh);
-      // this.wallGroup.add(this.sides[side].frames[index - 1].group);
-
       this.currentSideOver.frames[index - 1].addArt(
         file,
         this.currentSideOver.defaultFrame
