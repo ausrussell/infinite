@@ -223,22 +223,19 @@ class Frame {
       groupShifted = wallMatrix.makeTranslation(
         this.offset.x,
         this.offset.y,
-        0 //          this.group.wallPos === 1 ? 0 : this.offset.z
-        // 0 //this.side === "back" ? -(this.wallDepth * 1.5) : this.wallDepth * 0.5
+        0
       );
     } else {
       groupShifted = wallMatrix.makeTranslation(
         -this.offset.z,
         this.offset.y,
-        0 //this.offset.z
-        // 0 //this.side === "back" ? -(this.wallDepth * 1.5) : this.wallDepth * 0.5
+        0
       );
     }
 
     console.log("this.offset", this.offset);
     this.artMesh.position.set(0, 0, this.wallDepth);
 
-    // this.artMesh.translateZ(this.wallDepth);
     this.artMesh.getWallData = this.getWallData;
     this.showFrameMesh();
     console.log(
@@ -247,20 +244,14 @@ class Frame {
     );
     this.group.add(this.artMesh);
     this.group.add(this.frameMesh);
-    // this.group.position.set(this.offset);
 
     this.group.position.setFromMatrixPosition(groupShifted);
     if (this.side === "back") {
-      debugger;
       this.group.rotateY(Math.PI);
     }
-    //this.group.wallPos
-    //
 
     this.wall.wallGroup.add(this.group);
     this.wall.builder.setSceneMeshes();
-    // this.setFramePosition();
-
     console.log("setArtMesh");
     console.log("this.group.position", this.group.position);
     console.log("this.artMesh.position", this.artMesh.position);

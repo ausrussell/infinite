@@ -446,14 +446,7 @@ var TransformControls = function(camera, domElement, callingClass) {
       } else {
         // debugger;
         if (object.parent.wallPos) {
-          console.log("XY");
-          if (object.parent.side === "back") {
-            console.log("what's back", object.parent);
-            // pointStart.negate();
-          }
-
           pointStart.y = pointStart.x / object.ratio; //added to keep ratio
-          console.log("pointStart.y", pointStart.y);
           if (pointEnd.x < 0.1) pointEnd.x = 0.1;
           if (pointEnd.y < 0.1) pointEnd.y = 0.1;
         } else {
@@ -469,11 +462,6 @@ var TransformControls = function(camera, domElement, callingClass) {
 
         if (object.parent.wallPos) {
           pointEnd.y = pointEnd.x / object.ratio;
-          console.log("pointEnd.y", pointEnd.y);
-          if (object.parent.side === "back") {
-            console.log("what's back", object.parent);
-            // pointEnd.negate();
-          }
           _tempVector2.copy(pointEnd);
           console.log("_tempVector", _tempVector);
           console.log("_tempVector2", _tempVector2);
@@ -497,7 +485,7 @@ var TransformControls = function(camera, domElement, callingClass) {
           console.log("_tempVector2", _tempVector2);
 
           // _tempVector.x = _tempVector.z;
-          console.log("worldQuaternionInv");
+
           _tempVector.applyQuaternion(worldQuaternionInv);
           console.log("_tempVector after worldQuaternionInv", _tempVector);
 
@@ -1283,7 +1271,7 @@ var TransformControlsGizmo = function() {
       [
         new Mesh(scaleHandleGeometry, matScaleIcon), //scale icon
         // [0.85, 0.85, 0],//original
-        [0.15, -0.15, 0],
+        [0.15, 0.15, 0],
 
         null
         // [2, 2, 0.2]
@@ -1450,7 +1438,7 @@ var TransformControlsGizmo = function() {
       [
         new Mesh(scaleHandleGeometry, matInvisible),
         // [0.85, 0.85, 0]
-        [0.2, -0.2, 0],
+        [0.2, 0.2, 0],
 
         null
         // [3, 3, 0.2]

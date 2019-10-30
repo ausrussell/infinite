@@ -157,6 +157,8 @@ class Builder extends Component {
 
     this.transformControls2.showZ = artMesh.parent.wallPos === 0;
     this.transformControls2.showX = artMesh.parent.wallPos === 1;
+    // this.transformControls2.showY = true;
+
     this.transformControls2.attach(artMesh);
   }
 
@@ -599,7 +601,7 @@ class Builder extends Component {
       10,
       Math.random() * 0xffffff
     );
-    this.scene.add(transformDirectionArrow);
+    // this.scene.add(transformDirectionArrow);
 
     let all = this.raycaster.intersectObjects(this.meshesInScene);
     // console.log("all intersects", all);
