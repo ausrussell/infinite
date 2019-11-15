@@ -190,32 +190,29 @@ class WallObject {
     }
     this.updateWallLight(side);
   }
-  addImageFile(file, side, holderOver) {
-    //need to fix holderOver for when dropped on art
+  addImageFile({ file, side, holderOver }) {
+    // debugger;
+
     console.log("addImageFile", this.col, side);
     this.builder.scene.updateMatrixWorld(true);
     this.sides[side].hasArt = true;
     console.log("addImageFile", this.sides[side].frames);
-    if (holderOver.defaultArtMesh || holderOver.wallOver) {
-      this.sides[side].wallLight.hoverOff();
-      let index = this.sides[side].frames.push(new Frame(this, side));
-      this.currentSideOver.frames[index - 1].addArt(
-        file,
-        this.currentSideOver.defaultFrame
-      );
-      this.wallGroup.remove(this.currentSideOver.defaultFrame.group);
-
-      // this.currentSideOver.defaultFrame.addArt(file);
-      // this.currentSideOver.defaultFrame.removeDefault();
-      this.updateWallLight(side);
-      return;
-    }
-
+    // if (holderOver.defaultArtMesh || holderOver.wallOver) {
     this.sides[side].wallLight.hoverOff();
-  }
+    let index = this.sides[side].frames.push(new Frame(this, side));
+    this.currentSideOver.frames[index - 1].addArt(
+      file,
+      this.currentSideOver.defaultFrame
+    );
+    this.wallGroup.remove(this.currentSideOver.defaultFrame.group);
 
-  setFrameColor(item, side) {
-    this.sides[side].frame.setFrameColor(item);
+    // this.currentSideOver.defaultFrame.addArt(file);
+    // this.currentSideOver.defaultFrame.removeDefault();
+    this.updateWallLight(side);
+    return;
+    // }
+
+    // this.sides[side].wallLight.hoverOff();
   }
 }
 

@@ -1,9 +1,9 @@
 import React, { Component, PureComponent } from "react";
 import "../css/elevator.css";
 // import { Button, Icon } from "semantic-ui-react";
-import { Transition, Spring, animated, config } from "react-spring/renderprops";
-import * as THREE from "three";
-import { FirebaseContext } from "./Firebase";
+import { Spring, animated, config } from "react-spring/renderprops"; //Transition,
+// import * as THREE from "three";
+// import { FirebaseContext } from "./Firebase";
 
 class FloorWrapper extends Component {
   render() {
@@ -63,6 +63,10 @@ class Elevator extends PureComponent {
     vaultOpen: false,
     y: 0
   };
+
+  el = React.createRef();
+  spring = React.createRef();
+
   constructor(props) {
     super(props);
     this.floors = props.floors;
@@ -71,8 +75,6 @@ class Elevator extends PureComponent {
     this.setState({ vaultOpen: !this.state.vaultOpen });
   }
 
-  el = React.createRef();
-  spring = React.createRef();
   handleFloorClick = floorNo => {
     console.log("set y", floorNo);
     this.setState({ y: this.floors[floorNo].y, currentFloor: floorNo });

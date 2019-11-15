@@ -95,13 +95,27 @@ class Builder extends Component {
 
   onMouseDown(e) {
     console.log("fire");
-    // this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-    // this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-    // this.onMouseMove(e);
-    console.log(this.checkForIntersecting());
+    console.log("onMouseDown", this.checkForIntersecting());
+    const intersectedData = this.checkForIntersecting();
+    if (intersectedData) {
+      let artHolder;
+      if (intersectedData.artMesh || intersectedData.frameMesh) {
+        for (var key in intersectedData) {
+          artHolder = intersectedData[key].parent;
+        }
+      }
+      if (this.state.selectedTile && artHolder) {
+        console.log("selectedTile", this.state.selectedTile);
+        const frameData = {
+          selectedTile: this.state.selectedTile
+        };
+        artHolder.setFrameColor(frameData);
+      }
+    }
   }
 
   dragOverHandler = e => {
+    this.dragging = true;
     this.onMouseMove(e);
     let intersectedData = this.checkForIntersecting();
     const { wallOver, wallSideOver } = intersectedData;
@@ -119,22 +133,38 @@ class Builder extends Component {
   };
 
   fileDragLeaveHandler = () => {
+    this.dragging = false;
     if (this.currentWallOver) {
       this.currentWallOver.dragOutHandler(this.currentSide);
     }
   };
 
   fileDropHandler = file => {
-    this.setSceneMeshes();
+    this.dragging = false;
+
+    this.setSceneMeshes(); //?
     let intersect = this.checkForIntersecting();
-    console.log("fileDropHandler intersect", intersect);
     this.holderOver = intersect;
-    if (this.currentWallOver) {
-      this.currentWallOver.addImageFile(
-        file,
-        this.currentSide,
-        this.holderOver
-      );
+    console.log(
+      "fileDropHandler intersect",
+      intersect,
+      "this.holderOver",
+      this.holderOver,
+      "this.currentWallOver",
+      this.currentWallOver
+    );
+
+    if (this.currentWallOver || this.holderOver) {
+      const addImageData = {
+        file: file,
+        side: this.currentSide,
+        holderOver: this.holderOver
+      };
+      if (this.currentWallOver || this.holderOver.defaultArtMesh) {
+        this.currentWallOver.addImageFile(addImageData);
+      } else {
+        this.holderOver.artMesh.parent.holderClass.addArt(file);
+      }
     }
   };
 
@@ -148,18 +178,20 @@ class Builder extends Component {
   }
 
   hoverArtMesh(artMesh) {
-    console.log("hoverArtMesh", artMesh);
-    // this.setSceneMeshes();
-    this.transformControls.showZ = artMesh.parent.wallPos === 0;
-    this.transformControls.showX = artMesh.parent.wallPos === 1;
-    this.transformControls.attach(artMesh);
-    this.activeArtMesh = artMesh;
+    console.log("hoverArtMesh", artMesh, this.dragging);
+    if (!this.dragging) {
+      // this.setSceneMeshes();
+      this.transformControls.showZ = artMesh.parent.wallPos === 0;
+      this.transformControls.showX = artMesh.parent.wallPos === 1;
+      this.transformControls.attach(artMesh);
+      this.activeArtMesh = artMesh;
 
-    this.transformControls2.showZ = artMesh.parent.wallPos === 0;
-    this.transformControls2.showX = artMesh.parent.wallPos === 1;
-    // this.transformControls2.showY = true;
+      this.transformControls2.showZ = artMesh.parent.wallPos === 0;
+      this.transformControls2.showX = artMesh.parent.wallPos === 1;
+      // this.transformControls2.showY = true;
 
-    this.transformControls2.attach(artMesh);
+      this.transformControls2.attach(artMesh);
+    }
   }
 
   unhoverArtMesh(artMesh) {
@@ -260,16 +292,8 @@ class Builder extends Component {
     );
 
     this.transformControls2.setMode("scale");
-    this.scene.add(this.transformControls2);
-
-    // this.transformControls.attach(this.artMesh);
-    // this.transformControls.showZ = this.wall.pos === 0;
-    // this.transformControls.showX = this.wall.pos === 1;
-    // this.transformControls.updateMatrixWorld();
-    // this.addListeners();
-
     this.scene.add(this.transformControls);
-    // this.scene.add(this.transformControls2);
+    this.scene.add(this.transformControls2);
 
     this.transformControls.addEventListener("mouseUp", event => {
       this.transformMouseUpHandler(event);
@@ -354,13 +378,13 @@ class Builder extends Component {
         this.transformOriginVector_temp,
         this.transformDirectionVector
       );
-
-      let transformDirectionArrow = new THREE.ArrowHelper(
-        this.transformDirectionVector,
-        this.transformOriginVector_temp,
-        10,
-        Math.random() * 0xffffff
-      );
+      //uncomment these for helper
+      // let transformDirectionArrow = new THREE.ArrowHelper(
+      //   this.transformDirectionVector,
+      //   this.transformOriginVector_temp,
+      //   10,
+      //   Math.random() * 0xffffff
+      // );
       // this.scene.add(transformDirectionArrow);
 
       let intersect = this.rayIntersectObject(
@@ -422,6 +446,7 @@ class Builder extends Component {
     }
     if (side) {
       // if (this.state.selectedTile) {
+      //   console.log("selectedTile", this.state.selectedTile);
       //   this.wallEntities[intersectedWallIndex].setFrameColor(
       //     this.state.selectedTile,
       //     side
@@ -474,7 +499,7 @@ class Builder extends Component {
       0x0000ff,
       0x808080
     );
-    // this.scene.add(gridHelper);
+    this.scene.add(gridHelper);
   }
 
   addBox() {
@@ -512,7 +537,7 @@ class Builder extends Component {
     this.setState({ floorplanTitle: floorSnapshot.title });
     this.setWalls();
     this.setFloor();
-    this.addHelperGrid();
+    // this.addHelperGrid();
     // this.renderRenderer();
     this.animate();
     this.initialWallBuild();
@@ -633,7 +658,8 @@ class Builder extends Component {
           node.distance < distance &&
           (node.object.name === "artMesh" ||
             node.object.name === "wallMesh" ||
-            node.object.name === "defaultArtMesh")
+            node.object.name === "defaultArtMesh" ||
+            node.object.name === "frameMesh")
       );
     }
     // debugger;

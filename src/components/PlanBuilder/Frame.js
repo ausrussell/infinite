@@ -1,7 +1,5 @@
 import * as THREE from "three";
 
-import { TransformControls } from "./TransformControls";
-
 class Frame {
   constructor(props, side = "front") {
     // super(props);
@@ -14,24 +12,24 @@ class Frame {
     this.wallHeight = wallHeight;
     this.maxFrameWidth = this.wallWidth * 0.8;
     this.maxFrameHeight = wallHeight * 0.8;
-    console.log("this.maxFrameWidth", this.maxFrameWidth);
-
     this.hasArt = this.wall.sides[side].hasArt;
     this.loader = new THREE.TextureLoader();
     this.side = side;
     this.offset = new THREE.Vector3();
     this.group = new THREE.Group();
-    this.group.side = this.side;
-    this.group.wallPos = this.wall.pos;
     this.group.name = "artHolder";
     this.group.holderClass = this;
+    this.group.side = this.side;
+    this.group.wallPos = this.wall.pos;
+
+    this.group.setFrameColor = frameData => this.setFrameColor(frameData);
 
     this.frameWidth = 1;
     // console.log("Frame constructor", this.wall, this.wall.col, this.side);
   }
 
   setDefaultFrameMaterial() {
-    const texture1 = this.loader.load("../textures/wood/wood3.png");
+    // const texture1 = this.loader.load("../textures/wood/wood3.png");
     this.fmaterial = new THREE.MeshLambertMaterial({
       color: 0x666666,
       side: THREE.DoubleSide
@@ -54,41 +52,27 @@ class Frame {
     });
     const defaultArtMesh = new THREE.Mesh(defaultPlane, material);
     this.group.add(defaultArtMesh);
-    // console.log("defaultArtMesh.position", defaultArtMesh.position);
     defaultArtMesh.translateZ(this.wallDepth);
     this.artMesh = defaultArtMesh;
-
     this.setDefaultFrameMaterial();
     this.setFrameMesh(defaultPlane);
     this.group.add(this.frameMesh);
-    console.log("setDefaultFrameGroup");
-    console.log("this.group.position", this.group.position);
-    console.log("this.artMesh.position", this.artMesh.position);
-    console.log("this.frameMesh.position", this.frameMesh.position);
+    // console.log("setDefaultFrameGroup");
+    // console.log("this.group.position", this.group.position);
+    // console.log("this.artMesh.position", this.artMesh.position);
+    // console.log("this.frameMesh.position", this.frameMesh.position);
     if (this.side === "back") this.group.rotateY(Math.PI);
   }
 
   setFrameMesh(plane) {
     const imageWidth = plane.parameters.width * this.artMesh.scale.x;
     const imageHeight = plane.parameters.height * this.artMesh.scale.y;
-    console.log("imageWidth", imageWidth, this.artMesh.scale.x);
+    // console.log("imageWidth", imageWidth, this.artMesh.scale.x);
     this.setFrameGeometry(imageWidth, imageHeight);
     if (!this.fmaterial) this.setDefaultFrameMaterial();
     const mesh = new THREE.Mesh(this.fgeometry, this.fmaterial);
     this.totalWidth = imageWidth + 2 * this.frameWidth;
     this.totalHeight = imageHeight + 2 * this.frameWidth;
-    // const wallMatrix = this.wall.wallMesh.matrixWorld;
-    // const shiftedLeft = wallMatrix.makeTranslation(
-    //   (-imageWidth / 2) * this.artMesh.scale.x, //-(this.totalWidth / 2),
-    //   (-imageHeight / 2) * this.artMesh.scale.y,
-    //   0 // this.side === "back" ? -(this.wallDepth * 1.5) : this.wallDepth * 0.5
-    // );
-    //
-    // mesh.position.setFromMatrixPosition(shiftedLeft);
-    //
-    // mesh.updateMatrix();
-    //
-    // mesh.castShadow = true;
 
     if (!this.group) {
       // this.group.side = this.side;
@@ -109,9 +93,7 @@ class Frame {
   }
 
   setFramePosition() {
-    const artMatrix = this.artMesh.matrixWorld;
     const wallMatrix = this.wall.wallMesh.matrixWorld;
-
     const shiftedLeft = wallMatrix.makeTranslation(
       (-this.artMesh.geometry.parameters.width * this.artMesh.scale.x) / 2, //-(this.totalWidth / 2),
       (-this.artMesh.geometry.parameters.height * this.artMesh.scale.y) / 2,
@@ -150,7 +132,6 @@ class Frame {
 
     this.frameMesh.material.opacity = 1;
     this.group.add(this.frameMesh);
-    console.log("this.fmaterial", this.fmaterial);
   };
 
   setFrameGeometry(imageWidth, imageHeight) {
@@ -278,7 +259,7 @@ class Frame {
   getFrameGroup() {
     return this.group;
   }
-  addArt(file, holder) {
+  addArt(file, holder = this) {
     console.log("addART");
     const image = new Image();
     image.src = file;
@@ -310,8 +291,12 @@ class Frame {
     var texture = loader.load(file);
     let imageWidth = image.width;
     let imageHeight = image.height;
-    const fitW = holder.artMesh.geometry.parameters.width;
-    const fitH = holder.artMesh.geometry.parameters.height;
+
+    const fitW =
+      holder.artMesh.geometry.parameters.width * holder.artMesh.scale.x;
+    const fitH =
+      holder.artMesh.geometry.parameters.height * holder.artMesh.scale.y; // * this.rescale;
+
     const artDimensions = this.fitToFrame(imageWidth, imageHeight, fitW, fitH);
     const artPlane = new THREE.PlaneGeometry(
       artDimensions[0],
@@ -326,20 +311,19 @@ class Frame {
     } else {
       this.iMaterial.map = texture;
     }
-    if (this.artMesh) this.group.remove(this.artMesh);
+    if (this.artMesh) {
+      this.group.remove(this.artMesh);
+    }
+    if (this.frameMesh) {
+      this.group.remove(this.frameMesh);
+    }
     this.artMesh = new THREE.Mesh(artPlane, this.iMaterial);
-    const wallMatrix = this.wall.wallMesh.matrixWorld;
-
     this.artMesh.name = "artMesh";
     this.artMesh.getWallData = this.getWallData;
-    this.artMesh.rescale = this.rescale;
+    // this.artMesh.rescale = this.rescale;
     this.artMesh.translateZ(this.wallDepth);
 
     this.setFrameMesh(artPlane);
-    // this.group.side = this.side;
-    // this.group.wallPos = this.wall.pos;
-    // // this.group.name = "artHolder";
-    // this.group.holderClass = this;
 
     this.group.add(this.frameMesh);
     this.group.add(this.artMesh);
@@ -347,12 +331,16 @@ class Frame {
 
     console.log("add art this.group", this.group.position);
 
-    this.wall.wallGroup.add(this.group);
+    //ONLY add if added to default
+    if (!holder.hasArt) {
+      this.wall.wallGroup.add(this.group);
+    }
+
     this.wall.builder.setSceneMeshes(); //maybe update method in builder
 
-    console.log("this.group.position", this.group.position);
-    console.log("this.artMesh.position", this.artMesh.position);
-    console.log("this.frameMesh.position", this.frameMesh.position);
+    // console.log("this.group.position", this.group.position);
+    // console.log("this.artMesh.position", this.artMesh.position);
+    // console.log("this.frameMesh.position", this.frameMesh.position);
   }
 
   loadHandler = texture => {
@@ -363,15 +351,15 @@ class Frame {
     this.fmaterial.needsUpdate = true;
   };
 
-  setFrameColor(item) {
-    if (item.color) {
+  setFrameColor({ selectedTile }) {
+    if (selectedTile.color) {
       this.fmaterial.map = null;
       this.fmaterial.needsUpdate = true;
-      this.fmaterial.color.set(item.color);
+      this.fmaterial.color.set(selectedTile.color);
     } else {
       var loader = new THREE.TextureLoader();
       // loader.crossOrigin = "";
-      loader.load(item.url, texture => this.loadHandler(texture));
+      loader.load(selectedTile.url, texture => this.loadHandler(texture));
     }
   }
   show() {
