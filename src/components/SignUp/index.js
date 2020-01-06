@@ -15,6 +15,7 @@ const SignUpPage = () => (
 const INITIAL_STATE = {
   username: "",
   email: "",
+  displayName: "",
   passwordOne: "",
   passwordTwo: "",
   error: null
@@ -27,21 +28,28 @@ class SignUpFormBase extends Component {
   }
 
   onSubmit = event => {
-    const { username, email, passwordOne } = this.state;
-
+    const { username, email, passwordOne, displayName } = this.state;
+    const formState = this.state;
+    debugger;
     this.props.firebase
-      .doCreateUserWithEmailAndPassword(email, passwordOne)
-      .then(authUser => {
-        // Create a user in your Firebase realtime database
-        return this.props.firebase.user(authUser.user.uid).set({
-          username,
-          email
-        });
-      })
-      .then(authUser => {
+      .doCreateUserWithEmailAndPassword(this.state) //email, passwordOne,
+      .then(authUser => this.props.firebase.setupNewUser(authUser, this.state))
+      .then(data => {
+        debugger;
         this.setState({ ...INITIAL_STATE });
+        console.log("onsubmit then", data);
         this.props.history.push(ROUTES.HOME);
       })
+      // .then(authUser => {
+      //   console.log("SignUpFormBase this.state", this.state);
+      //
+      //   this.props.firebase.setupNewUser(authUser, this.state).then(data => {
+      //     debugger;
+      //     console.log("data onSubmit", data);
+      //     this.setState({ ...INITIAL_STATE });
+      //     this.props.history.push(ROUTES.HOME);
+      //   });
+      // })
       .catch(error => {
         this.setState({ error });
       });
@@ -54,7 +62,14 @@ class SignUpFormBase extends Component {
   };
 
   render() {
-    const { username, email, passwordOne, passwordTwo, error } = this.state;
+    const {
+      username,
+      displayName,
+      email,
+      passwordOne,
+      passwordTwo,
+      error
+    } = this.state;
     const isInvalid =
       passwordOne !== passwordTwo ||
       passwordOne === "" ||
@@ -62,13 +77,20 @@ class SignUpFormBase extends Component {
       username === "";
 
     return (
-      <form onSubmit={this.onSubmit}>
+      <form onSubmit={event => this.onSubmit(event)}>
         <input
           name="username"
           value={username}
           onChange={this.onChange}
           type="text"
           placeholder="Full Name"
+        />
+        <input
+          name="displayName"
+          value={displayName}
+          onChange={this.onChange}
+          type="text"
+          placeholder="Display Name"
         />
         <input
           name="email"

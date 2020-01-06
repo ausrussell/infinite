@@ -21,21 +21,42 @@ class Firebase {
     this.database = app.database();
 
     this.auth.onAuthStateChanged(user => {
-      if (user) this.currentUID = user.uid;
+      this.currentUID = user ? user.uid : null;
+      this.currentUser = user;
+      console.log("this.auth.onAuthStateChanged", this.currentUID);
     });
     this.floorplansRef = this.database.ref("floorplans");
   }
 
+  setupNewUser = (user, { displayName }) => {
+    user.user.updateProfile({
+      displayName: displayName
+    });
+  };
+
+  getCurrentUser = () => {
+    return this.auth.user;
+  };
+
   // *** Auth API ***
 
-  doCreateUserWithEmailAndPassword = (email, password) =>
-    this.auth.createUserWithEmailAndPassword(email, password);
+  doCreateUserWithEmailAndPassword = ({ email, passwordOne }) =>
+    this.auth
+      .createUserWithEmailAndPassword(email, passwordOne)
+      .catch(function(error) {
+        debugger;
+        console.error(error); //Handle error
+      });
 
-  doSignInWithEmailAndPassword = (email, password) => {
-    debugger;
+  // .then(function(user) {
+  //   console.log("doCreateUserWithEmailAndPassword uid", user.uid);
+  //
+  //   //Here if you want you can sign in the user
+  // })
+
+  // };
+  doSignInWithEmailAndPassword = (email, password) =>
     this.auth.signInWithEmailAndPassword(email, password);
-    debugger;
-  };
 
   doSignOut = () => this.auth.signOut();
 
