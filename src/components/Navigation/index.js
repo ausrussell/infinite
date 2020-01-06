@@ -85,7 +85,7 @@ const DeskButton = props => {
 };
 
 const NavigationAuth = (user, authuser) => {
-  console.log("NavigationAuth , user, authuser", user, authuser);
+  // console.log("NavigationAuth , user, authuser", user, authuser);
   return (
     <ul className="navigation-list">
       <li>

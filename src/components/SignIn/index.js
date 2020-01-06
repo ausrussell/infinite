@@ -25,6 +25,7 @@ const INITIAL_STATE = {
 class SignInFormBase extends Component {
   constructor(props) {
     super(props);
+    console.log("SignInFormBase props", props);
     this.state = { ...INITIAL_STATE };
   }
 
@@ -34,12 +35,10 @@ class SignInFormBase extends Component {
     this.props.firebase
       .doSignInWithEmailAndPassword(email, password)
       .then(() => {
-        debugger;
         this.setState({ ...INITIAL_STATE });
         this.props.history.push(ROUTES.HOME);
       })
       .catch(error => {
-        debugger;
         this.setState({ error });
       });
 
