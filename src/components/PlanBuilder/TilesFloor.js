@@ -3,8 +3,56 @@ import { withFirebase } from "../Firebase";
 import * as THREE from "three";
 
 const texturesPath = "../textures/";
-
 export const floorData = [
+  {
+    type: "texture-array",
+    url: texturesPath + "wood/hardwood2_diffuse.jpg",
+    floorMat: new THREE.MeshStandardMaterial({
+      roughness: 0.8,
+      color: 0xffffff,
+      metalness: 0.2,
+      bumpScale: 0.0005
+    }),
+    map: texturesPath + "wood/hardwood2_diffuse.jpg",
+    bumpMap: texturesPath + "wood/hardwood2_bump.jpg",
+    roughnessMap: texturesPath + "wood/hardwood2_roughness.jpg"
+  },
+  {
+    type: "texture-array",
+    url: texturesPath + "concrete_stone/concrete01_diff.jpg",
+    floorMat: new THREE.MeshStandardMaterial({
+      roughness: 0.8,
+      color: 0xffffff,
+      metalness: 0.2,
+      bumpScale: 0.0005
+    }),
+    map: texturesPath + "concrete_stone/concrete01_diff.jpg",
+    bumpMap: texturesPath + "concrete_stone/concrete01_norm.jpg",
+    roughnessMap: texturesPath + "concrete_stone/concrete01_spec.jpg"
+  },
+  {
+    type: "texture",
+    url: "../textures/concrete_stone/concrete01_diff.jpg"
+  },
+  {
+    type: "texture",
+    url: "../textures/concrete_stone/stonetiles_001_diff.jpg"
+  },
+  {
+    type: "texture",
+    url: "../textures/concrete_stone/stonetiles_002_diff.jpg"
+  },
+  {
+    type: "texture",
+    url: "../textures/concrete_stone/stonetiles_003_diff.jpg"
+  },
+  { type: "color", color: "#F9FBE7" },
+  { color: "#F0F4C3", type: "color" },
+  { type: "color", color: "#FFECB3" },
+  { type: "color", color: "#FFCC80" },
+  { type: "texture", url: "../textures/wood/hardwood.jpg" }
+];
+export const floorDataX = [
   {
     key: 0,
     type: "texture-array",
@@ -61,6 +109,9 @@ export const floorData = [
 ];
 
 const Tile = props => {
+  console.log("add this tile", props);
+  // this.props.firebase.addFloorTile(props.item);
+
   const { color, url, type } = props.item;
 
   const style = {
@@ -75,6 +126,9 @@ class TilesFloor extends Component {
   constructor(props) {
     super(props);
     this.tileCallback = props.tileCallback;
+    // props.tilesData.map(item => {
+    //   this.props.firebase.addFrameTile(item);
+    // });
   }
 
   tileClickHandler = item => {
@@ -87,7 +141,7 @@ class TilesFloor extends Component {
       <div className="tile-holder">
         {tilesData.map(item => {
           return (
-            <div key={item.key} onClick={e => this.tileClickHandler(item)}>
+            <div onClick={e => this.tileClickHandler(item)}>
               <Tile item={item} />
             </div>
           );

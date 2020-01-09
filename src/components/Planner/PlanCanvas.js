@@ -186,8 +186,7 @@ class PlanCanvas extends Component {
       }
     }
     // debugger;
-    this.props.stats.update();
-    // requestAnimationFrame(() =>this.updateAnimationState());
+    // this.props.stats.update();
   }
   userEvents = () => {
     this.doAnyHover();

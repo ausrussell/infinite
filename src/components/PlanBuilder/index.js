@@ -7,35 +7,33 @@ import WallObject from "./WallObject";
 import FlaneurControls from "./FlaneurControls";
 import GeneralLight from "./GeneralLight";
 import { withAuthentication } from "../Session";
+import { withFirebase } from "../Firebase";
+
 import TilesFloor, { floorData } from "./TilesFloor";
+
+import VaultFloor from "./VaultFloor";
+
 import Floor from "./Floor";
 
 import Elevator from "../Elevator";
 
+import ErrorBoundary from "../ErrorBoundary";
+
 import { TransformControls } from "./TransformControls";
 
 const wallWidth = 20;
-// const wallHeight = 60;
-// const wallDepth = 5;
 
-const framesData = [
-  { key: 0, type: "color", color: "#543499" },
-  { key: 1, color: "#240099", type: "color" },
-  { key: 2, type: "color", color: "#111111" },
-  { key: 3, type: "color", color: "#FFFFFF" },
-  { key: 4, type: "texture", url: "../textures/wood/wood1.png" },
-  { key: 5, type: "texture", url: "../textures/wood/wood2.png" },
-  { key: 6, type: "texture", url: "../textures/wood/wood3.png" }
-];
 const degreesToRadians = degrees => {
   return (degrees * Math.PI) / 180;
 };
+
 class Builder extends Component {
   state = {
     floorplanTitle: "",
     wallEntities: [],
     width: null,
-    height: null
+    height: null,
+    authUser: null
   };
   constructor(props) {
     super(props);
@@ -47,7 +45,7 @@ class Builder extends Component {
     this.clock = new THREE.Clock();
     this.wallMeshes = [];
     this.floorMesh = null;
-    this.setUpGui();
+    // this.setUpGui();
     this.transformOriginVector = new THREE.Vector3();
     this.transformOriginVector_temp = new THREE.Vector3();
     this.transformDirectionVector = new THREE.Vector3();
@@ -139,33 +137,23 @@ class Builder extends Component {
     }
   };
 
-  fileDropHandler = file => {
+  fileDropHandler = (file, uploadTask) => {
     this.dragging = false;
-
-    this.setSceneMeshes(); //?
     let intersect = this.checkForIntersecting();
     this.holderOver = intersect;
-    console.log(
-      "fileDropHandler intersect",
-      intersect,
-      "this.holderOver",
-      this.holderOver,
-      "this.currentWallOver",
-      this.currentWallOver
-    );
-
     if (this.currentWallOver || this.holderOver) {
       const addImageData = {
         file: file,
         side: this.currentSide,
-        holderOver: this.holderOver
+        holderOver: this.holderOver,
+        uploadTask: uploadTask
       };
       if (this.currentWallOver || this.holderOver.defaultArtMesh) {
         this.currentWallOver.addImageFile(addImageData);
       } else {
-        this.holderOver.artMesh.parent.holderClass.addArt(file);
+        this.holderOver.artMesh.parent.holderClass.addArt(file, uploadTask);
       }
-    }
+    } //else it's straight in vault
   };
 
   floorTileCallback(item) {
@@ -521,12 +509,15 @@ class Builder extends Component {
   }
   //process floorplan
   processFloorplan() {
-    if (this.props.location.state.plan) {
+    console.log("processFloorplan", this.props);
+    if (this.props.location.state) {
       // if plan is provided by router
       this.props.firebase.getPlanByKey(
         this.props.location.state.plan,
         this.getPlanCallback.bind(this)
       );
+    } else {
+      console.log("no state in location");
     }
   }
 
@@ -662,29 +653,40 @@ class Builder extends Component {
             node.object.name === "frameMesh")
       );
     }
-    // debugger;
 
     return intersects[0] || null;
   }
 
-  floors = {
-    0: {
-      name: "Frames",
-      y: 0,
-      floorComponent: TilesFloor,
-      tilesData: framesData,
-      level: 0,
-      tileCallback: this.frameClickHandler.bind(this) //to do
-    },
-    1: {
-      name: "Floor surfaces",
-      y: 235,
-      floorComponent: TilesFloor,
-      tilesData: floorData,
-      level: 1,
-      tileCallback: this.floorTileCallback.bind(this)
-    }
-  };
+  getElevatorFloors() {
+    let floors = {
+      0: {
+        name: "Frames",
+        y: 0,
+        floorComponent: VaultFloor,
+        refPath: "master/frametiles",
+        level: 0,
+        tileCallback: this.frameClickHandler.bind(this) //to do
+      },
+      1: {
+        name: "Floor surfaces",
+        y: 235,
+        floorComponent: VaultFloor,
+        refPath: "master/floortiles",
+        level: 1,
+        tileCallback: this.floorTileCallback.bind(this)
+      },
+      2: {
+        name: "Art",
+        y: 470,
+        floorComponent: VaultFloor,
+        refPath: "users/" + this.props.firebase.currentUID + "/art",
+        level: 2,
+        tileCallback: this.floorTileCallback.bind(this)
+      }
+    };
+    return floors;
+  }
+
   animate() {
     if (this.flaneurControls) {
       var delta = this.clock.getDelta();
@@ -693,22 +695,28 @@ class Builder extends Component {
 
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(() => this.animate());
-    this.props.stats.update();
+    // this.props.stats.update();
   }
 
   render() {
     return (
-      <div>
-        <h3>Floorplan: __{this.state.floorplanTitle}__</h3>
-        <MainCanvas refer={mount => (this.mount = mount)} />
-        <Elevator name="Vault" floors={this.floors} />
-        <Uploader
-          fileDragover={this.dragOverHandler}
-          fileDragLeaveHandler={this.fileDragLeaveHandler}
-          fileDrop={item => this.fileDropHandler(item)}
-          wallOver={this.state.wallOver}
-        />
-      </div>
+      <ErrorBoundary>
+        <div>
+          <h3>Floorplan: __{this.state.floorplanTitle}__</h3>
+          <MainCanvas refer={mount => (this.mount = mount)} />
+          {this.props.firebase.currentUID && (
+            <Elevator name="Vault" floors={this.getElevatorFloors()} />
+          )}
+          <Uploader
+            fileDragover={this.dragOverHandler}
+            fileDragLeaveHandler={this.fileDragLeaveHandler}
+            fileDrop={(item, uploadTask) =>
+              this.fileDropHandler(item, uploadTask)
+            }
+            wallOver={this.state.wallOver}
+          />
+        </div>
+      </ErrorBoundary>
     );
   }
 }
@@ -723,4 +731,4 @@ const MainCanvas = props => {
   );
 };
 
-export default withAuthentication(Builder);
+export default withAuthentication(withFirebase(Builder));

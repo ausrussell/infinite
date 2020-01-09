@@ -20,49 +20,63 @@ class Uploader extends Component {
   componentDidMount() {
     this.initListeners();
   }
-  initListeners() {
-    console.log("initListeners");
-    window.addEventListener("dragenter", this.dragEnterHandler);
-    document.body.addEventListener("dragleave", () => this.dragLeaveHandler());
-    document.body.addEventListener("dragover", e => this.dragOverHandler(e));
-
-    window.addEventListener("dragend", e => this.dragendHandler(e));
-    window.addEventListener("drop", e => this.dropHandler(e));
+  componentWillUnmount() {
+    window.removeEventListener("dragenter", this.dragEnterHandler);
+    document.body.removeEventListener("dragleave", this.dragLeaveHandler);
+    document.body.removeEventListener("dragover", this.dragOverHandler);
+    window.removeEventListener("dragend", this.dragendHandler);
+    window.removeEventListener("drop", this.dropHandler);
   }
-  dragOverHandler(e) {
+  initListeners() {
+    window.addEventListener("dragenter", this.dragEnterHandler);
+    document.body.addEventListener("dragleave", this.dragLeaveHandler);
+    document.body.addEventListener("dragover", this.dragOverHandler);
+    window.addEventListener("dragend", this.dragendHandler);
+    window.addEventListener("drop", this.dropHandler);
+  }
+
+  dragEnterHandler() {
+    console.log("dragEnterHandler");
+  }
+
+  dragLeaveHandler = () => {
+    this.props.fileDragLeaveHandler();
+  };
+
+  dragOverHandler = e => {
     e.preventDefault();
     this.props.fileDragover(e);
-  }
-  dragendHandler(e) {
+  };
+  dragendHandler = e => {
     e.preventDefault();
-
-    debugger;
-  }
-  dropHandler(e) {
+  };
+  dropHandler = e => {
     e.preventDefault();
-
+    //TO DO: check for multiple uploads
     var file = e.dataTransfer.files[0],
       reader = new FileReader();
-
     reader.onload = e => this.fileLoadedHandler(e, file);
     reader.readAsDataURL(file);
-
     return false;
-  }
-  dragLeaveHandler() {
-    this.props.fileDragLeaveHandler();
-  }
+  };
 
   fileLoadedHandler(e, file) {
-    console.log(e.target);
-    console.log(file);
-    this.props.fileDrop(e.target.result);
-    // Create a root reference
-
     //uncomment these to save image
+    const uploadTask = this.props.firebase.storeArt(file);
 
-    // this.props.firebase.storeArt(file);
-
+    console.log("uploader fileLoadedHandler uploadTask", uploadTask);
+    this.props.fileDrop(e.target.result, uploadTask);
+    uploadTask.then(snapshot => {
+      console.log("uploaded file", snapshot);
+      uploadTask.snapshot.ref.getDownloadURL().then(downloadURL => {
+        console.log("File available at", downloadURL);
+        this.props.firebase
+          .storeArtRef(downloadURL, uploadTask.snapshot.ref)
+          .then(snapshot => {
+            console.log("done pushing art", snapshot);
+          });
+      });
+    });
     // const storageRef = this.props.firebase.storage().ref();
     // const imageRef = storageRef.child("art2/" + file.name);
     // imageRef.put(file).then(function(snapshot) {
@@ -70,9 +84,6 @@ class Uploader extends Component {
     // });
   }
 
-  dragEnterHandler() {
-    console.log("dragEnterHandler");
-  }
   handleUploadStart = () => {
     this.setState({ progress: 0 });
   };

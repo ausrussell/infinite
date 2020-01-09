@@ -11,7 +11,12 @@ class PreFab extends Component {
     this.props.firebase.getUsersFloorplans(this.plansCallback);
   }
 
+  componentWillUnmount() {
+    this.props.firebase.detachGetUsersFloorplans();
+  }
+
   plansCallback = data => {
+    console.log("Prefab plansCallback", data);
     const list = [];
     if (data) {
       data.forEach(function(childSnapshot) {
@@ -19,6 +24,7 @@ class PreFab extends Component {
       });
     }
     this.setState({ userFloorplans: list });
+    console.log("Prefab plansCallback", list);
   };
 
   useLocalStorage = () => {
@@ -56,6 +62,7 @@ class PreFab extends Component {
   }
 
   buildPlan(key) {
+    debugger; //looks wropng
     this.props.firebase.removePlan(key);
   }
 

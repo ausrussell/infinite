@@ -21,9 +21,7 @@ class Frame {
     this.group.holderClass = this;
     this.group.side = this.side;
     this.group.wallPos = this.wall.pos;
-
     this.group.setFrameColor = frameData => this.setFrameColor(frameData);
-
     this.frameWidth = 1;
     // console.log("Frame constructor", this.wall, this.wall.col, this.side);
   }
@@ -73,19 +71,6 @@ class Frame {
     const mesh = new THREE.Mesh(this.fgeometry, this.fmaterial);
     this.totalWidth = imageWidth + 2 * this.frameWidth;
     this.totalHeight = imageHeight + 2 * this.frameWidth;
-
-    if (!this.group) {
-      // this.group.side = this.side;
-      // this.group.wallPos = this.wall.pos;
-      // this.group.name = "artHolder";
-      // this.group.holderClass = this;
-    }
-    // if (defaultFrame) {
-    // } else {
-    //   // console.log("defaultDimensions for new frame");
-    //   // console.log("this.holeWidth", this.holeWidth);
-    //   // console.log("this.holeHeight", this.holeHeight);
-    // this.group.remove(this.frameMesh);
     this.frameMesh = mesh;
     this.frameMesh.name = "frameMesh";
     this.setFramePosition();
@@ -259,7 +244,7 @@ class Frame {
   getFrameGroup() {
     return this.group;
   }
-  addArt(file, holder = this) {
+  addArt(file, uploadTask, holder = this) {
     console.log("addART");
     const image = new Image();
     image.src = file;
@@ -269,6 +254,16 @@ class Frame {
       holder: holder
     };
     image.onload = image => this.imageLoadedHandler(options);
+    console.log("show this.artMesh", this.artMesh);
+    uploadTask.on(
+      "state_changed", // or 'state_changed'
+      snapshot => {
+        // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+        var progress = snapshot.bytesTransferred / snapshot.totalBytes;
+        if (this.artMesh) this.show(progress);
+        console.log("Upload is " + progress + "% done");
+      }
+    );
   }
 
   fitToFrame(w, h, fitW, fitH) {
@@ -306,7 +301,9 @@ class Frame {
     if (!this.iMaterial) {
       this.iMaterial = new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide,
-        map: texture
+        map: texture,
+        opacity: 0.1,
+        transparent: true
       });
     } else {
       this.iMaterial.map = texture;
@@ -362,8 +359,15 @@ class Frame {
       loader.load(selectedTile.url, texture => this.loadHandler(texture));
     }
   }
-  show() {
-    this.mesh.material.opacity = 1;
+  show(opacity = 1) {
+    console.log("show this.artMesh.material this", this);
+
+    console.log(
+      "show this.artMesh.material this.artMesh.material",
+      this.artMesh.material
+    );
+    this.artMesh.material.opacity = opacity;
+    // this.artMesh.material.opacity = 0.5;
   }
   hide() {
     this.mesh.material.opacity = 0;

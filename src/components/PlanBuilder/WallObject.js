@@ -3,9 +3,6 @@ import * as THREE from "three";
 import Frame from "./Frame";
 import WallLight from "./WallLight";
 import Animate from "../../Helpers/animate";
-// import * as dat from "dat.gui";
-
-// const gui = new dat.GUI();
 
 class WallObject {
   constructor(options) {
@@ -190,9 +187,7 @@ class WallObject {
     }
     this.updateWallLight(side);
   }
-  addImageFile({ file, side, holderOver }) {
-    // debugger;
-
+  addImageFile({ file, side, holderOver, uploadTask }) {
     console.log("addImageFile", this.col, side);
     this.builder.scene.updateMatrixWorld(true);
     this.sides[side].hasArt = true;
@@ -202,8 +197,10 @@ class WallObject {
     let index = this.sides[side].frames.push(new Frame(this, side));
     this.currentSideOver.frames[index - 1].addArt(
       file,
+      uploadTask,
       this.currentSideOver.defaultFrame
     );
+
     this.wallGroup.remove(this.currentSideOver.defaultFrame.group);
 
     // this.currentSideOver.defaultFrame.addArt(file);

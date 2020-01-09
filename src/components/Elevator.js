@@ -18,45 +18,6 @@ class FloorWrapper extends Component {
   }
 }
 
-class ArtFloor extends Component {
-  constructor(props) {
-    super(props);
-    // this.props.firebase.listArt();
-
-    //
-    // var storageRef = firebase.storage().ref("art");
-    //
-    // // Now we get the references of these images
-    // storageRef
-    //   .listAll()
-    //   .then(function(result) {
-    //     result.items.forEach(function(imageRef) {
-    //       // And finally display them
-    //       displayImage(imageRef);
-    //     });
-    //   })
-    //   .catch(function(error) {
-    //     // Handle any errors
-    //   });
-    //
-    // function displayImage(imageRef) {
-    //   imageRef
-    //     .getDownloadURL()
-    //     .then(function(url) {
-    //       console.log("url of image", url);
-    //       // TODO: Display the image on the UI
-    //     })
-    //     .catch(function(error) {
-    //       // Handle any errors
-    //     });
-    // }
-  }
-
-  render() {
-    return <div> art works</div>;
-  }
-}
-
 class Elevator extends PureComponent {
   state = {
     currentFloor: 0,

@@ -43,18 +43,10 @@ class Firebase {
   doCreateUserWithEmailAndPassword = ({ email, passwordOne }) =>
     this.auth
       .createUserWithEmailAndPassword(email, passwordOne)
-      .catch(function(error) {
-        debugger;
+      .catch(error => {
         console.error(error); //Handle error
       });
 
-  // .then(function(user) {
-  //   console.log("doCreateUserWithEmailAndPassword uid", user.uid);
-  //
-  //   //Here if you want you can sign in the user
-  // })
-
-  // };
   doSignInWithEmailAndPassword = (email, password) =>
     this.auth.signInWithEmailAndPassword(email, password);
 
@@ -73,9 +65,11 @@ class Firebase {
   users = () => this.database.ref("users");
 
   storeFloorplan = ({ data, title, timestamp }) => {
-    const newPostRef = this.database.ref("floorplans").push();
+    console.log("storeFloorplan", this.currentUID);
+    const newPostRef = this.database
+      .ref("users/" + this.currentUID + "/floorplans")
+      .push();
     newPostRef.set({
-      uid: this.currentUID,
       data: data,
       title: title
     });
@@ -84,88 +78,76 @@ class Firebase {
 
   removePlan = key => {
     this.database
-      .ref("floorplans")
+      .ref("users/" + this.currentUID + "/floorplans")
       .child(key)
       .remove();
   };
 
   getUsersFloorplans = callback => {
-    this.currentUID = this.currentUID || "Smj8Dswyd7eJTZ2gigjJhXtfDDZ2";
-    if (this.currentUID) {
-      return this.floorplansRef
-        .orderByChild("uid")
-        .equalTo(this.currentUID)
-        .on("value", callback);
-    }
+    console.log(
+      "getUsersFloorplans",
+      "users/" + this.currentUID + "/floorplans"
+    );
+    this.userFloorplansRef = this.database.ref(
+      "users/" + this.currentUID + "/floorplans"
+    );
+    return this.userFloorplansRef.on("value", callback);
+  };
+  detachGetUsersFloorplans() {
+    this.userFloorplansRef.off();
+  }
+  getTiles = (refPath, callback) => {
+    this.newArtRef = this.database.ref(refPath);
+    return this.newArtRef.on("value", callback);
   };
 
+  detachGetTiles() {
+    this.newArtRef.off();
+  }
+
+  addFloorTile(tile) {
+    const floortilesRef = this.database.ref("master/floortiles").push();
+    floortilesRef.set(tile);
+  }
+
+  addFrameTile(tile) {
+    const floortilesRef = this.database.ref("master/frametiles").push();
+    floortilesRef.set(tile);
+  }
+
   getPlanByKey = (key, callback) => {
-    this.floorplansRef.child(key).on("value", callback);
+    console.log(
+      "getPlanByKey",
+      key,
+      "users/" + this.currentUID + "floorplans/" + key
+    );
+    return this.database
+      .ref("users/" + this.currentUID + "/floorplans/" + key)
+      .on("value", callback);
   };
 
   storeArt = file => {
     const storageRef = this.storage.ref();
-    const imageRef = storageRef.child("art2/" + file.name);
-    imageRef.put(file).then(function(snapshot) {
-      console.log("Uploaded a blob or file!:" + file.name);
-    });
-    const data = {
-      url: "imageRef"
-    };
-    this.database.ref("vault").set(data);
+    const imageRef = storageRef.child(
+      "users/" + this.currentUID + "/art/" + file.name
+    );
+    return imageRef.put(file);
   };
 
-  listArt = () => {
-    const storageRef = this.storage.ref("art");
-    debugger;
-    storageRef
-      .listAll()
-      .then(result => {
-        result.items.forEach(function(imageRef) {
-          // And finally display them
-          displayImage(imageRef);
-        });
-      })
-      .catch(function(error) {
-        // Handle any errors
-      });
-    function displayImage(imageRef) {
-      imageRef
-        .getDownloadURL()
-        .then(function(url) {
-          console.log("url of image", url);
-          // TODO: Display the image on the UI
-        })
-        .catch(function(error) {
-          // Handle any errors
-        });
-    }
-    // var storageRef = firebase.storage().ref("art");
-    //
-    // // Now we get the references of these images
-    // storageRef
-    //   .listAll()
-    //   .then(function(result) {
-    //     result.items.forEach(function(imageRef) {
-    //       // And finally display them
-    //       displayImage(imageRef);
-    //     });
-    //   })
-    //   .catch(function(error) {
-    //     // Handle any errors
-    //   });
-    //
-    // function displayImage(imageRef) {
-    //   imageRef
-    //     .getDownloadURL()
-    //     .then(function(url) {
-    //       console.log("url of image", url);
-    //       // TODO: Display the image on the UI
-    //     })
-    //     .catch(function(error) {
-    //       // Handle any errors
-    //     });
-    // }
+  storeArtRef = (url, ref) => {
+    const artData = {
+      url: url
+    };
+    console.log(
+      "storeArtRef",
+      ref,
+      "users/" + this.currentUID + "/art",
+      artData
+    );
+    const newArtRef = this.database
+      .ref("users/" + this.currentUID + "/art")
+      .push();
+    return newArtRef.set(artData);
   };
 }
 

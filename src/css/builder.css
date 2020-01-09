@@ -11,11 +11,14 @@ body {
 }
 
 .tile {
-  width: 140px;
   height: 140px;
+  width: 140px;
   background-color: #fff;
   border-radius: 4px;
   margin: 1em;
+  flex: 0 0 140px;
+  overflow: hidden;
+  position: relative;
 }
 .tile-center-content {
   display: flex;
@@ -24,6 +27,14 @@ body {
 }
 .tile-center-content canvas {
   margin: auto auto;
+}
+
+.tile-image {
+  position: absolute;
+  bottom: 0;
+  height: 120px;
+  width: 100%;
+  border-top: 1px solid rgb(55, 71, 79);
 }
 
 .remove-plan-button {

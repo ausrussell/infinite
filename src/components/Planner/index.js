@@ -249,8 +249,9 @@ class Planner extends Component {
                 stats={this.props.stats}
               />
             </div>
-
-            <Elevator name="Plans" floors={this.floors} />
+            {this.props.firebase.currentUID && (
+              <Elevator name="Plans" floors={this.floors} />
+            )}
           </div>
         </div>
       </div>
