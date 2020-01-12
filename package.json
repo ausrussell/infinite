@@ -19,6 +19,7 @@
     "recompose": "^0.30.0",
     "semantic-ui-react": "^0.87.1",
     "stats-js": "^1.0.1",
+    "styled-components": "^4.4.1",
     "three": "^0.103.0",
     "three-orbit-controls": "^82.1.0"
   },

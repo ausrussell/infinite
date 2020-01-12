@@ -8,7 +8,6 @@ import { Spring, animated, config } from "react-spring/renderprops"; //Transitio
 class FloorWrapper extends Component {
   render() {
     const { title, children } = this.props;
-
     return (
       <div className="floor-container" key="title">
         <h4 className="floor-title">{title}</h4>
@@ -17,12 +16,16 @@ class FloorWrapper extends Component {
     );
   }
 }
+const DragMe = () => {
+  return <div> returned drag me</div>;
+};
 
 class Elevator extends PureComponent {
   state = {
     currentFloor: 0,
     vaultOpen: false,
-    y: 0
+    y: 0,
+    draggableElement: null
   };
 
   el = React.createRef();
@@ -35,7 +38,9 @@ class Elevator extends PureComponent {
   vaultButtonHandler() {
     this.setState({ vaultOpen: !this.state.vaultOpen });
   }
-
+  setDraggable(element) {
+    this.setState({ draggableElement: element });
+  }
   handleFloorClick = floorNo => {
     console.log("set y", floorNo);
     this.setState({ y: this.floors[floorNo].y, currentFloor: floorNo });
@@ -61,6 +66,7 @@ class Elevator extends PureComponent {
     const y = this.el.current ? this.el.current.scrollTop : 0;
     return (
       <div className={`vault-container ${vaultOpen ? "open" : "closed"}`}>
+        <div draggable="true">{this.state.draggable}</div>
         <div className="vault-doors">
           <div className="vault-floors-container">
             <Spring

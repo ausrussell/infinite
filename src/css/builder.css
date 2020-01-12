@@ -37,6 +37,15 @@ body {
   border-top: 1px solid rgb(55, 71, 79);
 }
 
+.vault-floor-empty {
+  height: 100%;
+  width: 100%;
+  padding: 2em;
+  font-size: 2em;
+  color: #efefef;
+  text-align: center;
+}
+
 .remove-plan-button {
   position: absolute;
   right: 4px;
@@ -48,5 +57,11 @@ body {
 }
 
 #root .ant-layout {
-  /* position: relative; */
+  position: relative;
+}
+
+#root,
+#root > div,
+section.ant-layout {
+  height: 100%;
 }

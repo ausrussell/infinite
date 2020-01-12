@@ -244,26 +244,37 @@ class Frame {
   getFrameGroup() {
     return this.group;
   }
-  addArt(file, uploadTask, holder = this) {
-    console.log("addART");
-    const image = new Image();
-    image.src = file;
-    const options = {
-      file: file,
-      image: image,
-      holder: holder
-    };
-    image.onload = image => this.imageLoadedHandler(options);
-    console.log("show this.artMesh", this.artMesh);
-    uploadTask.on(
-      "state_changed", // or 'state_changed'
-      snapshot => {
-        // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-        var progress = snapshot.bytesTransferred / snapshot.totalBytes;
-        if (this.artMesh) this.show(progress);
-        console.log("Upload is " + progress + "% done");
-      }
-    );
+  addArt(file, uploadTask, holder = this, draggableImageRef) {
+    console.log("addART", file);
+    if (file.url) {
+      const options = {
+        file: file.url,
+        image: draggableImageRef.current,
+        holder: holder
+      };
+
+      this.imageLoadedHandler(options);
+      this.show(1);
+    } else {
+      const image = new Image();
+      image.src = file;
+      const options = {
+        file: file,
+        image: image,
+        holder: holder
+      };
+      image.onload = image => this.imageLoadedHandler(options);
+      console.log("show this.artMesh", this.artMesh);
+      uploadTask.on(
+        "state_changed", // or 'state_changed'
+        snapshot => {
+          // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+          var progress = snapshot.bytesTransferred / snapshot.totalBytes;
+          if (this.artMesh) this.show(progress);
+          console.log("Upload is " + progress + "% done");
+        }
+      );
+    }
   }
 
   fitToFrame(w, h, fitW, fitH) {

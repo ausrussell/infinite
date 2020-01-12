@@ -187,18 +187,35 @@ class WallObject {
     }
     this.updateWallLight(side);
   }
-  addImageFile({ file, side, holderOver, uploadTask }) {
+  addImageFile({
+    file,
+    side,
+    holderOver,
+    uploadTask,
+    itemData,
+    draggableImageRef
+  }) {
     console.log("addImageFile", this.col, side);
     this.builder.scene.updateMatrixWorld(true);
     this.sides[side].hasArt = true;
-    console.log("addImageFile", this.sides[side].frames);
+    console.log(
+      "addImageFile",
+      this.sides[side].frames,
+      file,
+      side,
+      holderOver,
+      uploadTask,
+      itemData
+    );
     // if (holderOver.defaultArtMesh || holderOver.wallOver) {
     this.sides[side].wallLight.hoverOff();
     let index = this.sides[side].frames.push(new Frame(this, side));
+
     this.currentSideOver.frames[index - 1].addArt(
-      file,
+      file || itemData,
       uploadTask,
-      this.currentSideOver.defaultFrame
+      this.currentSideOver.defaultFrame,
+      draggableImageRef
     );
 
     this.wallGroup.remove(this.currentSideOver.defaultFrame.group);

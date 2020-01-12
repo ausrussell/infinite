@@ -23,62 +23,90 @@ class VaultFloor extends Component {
 
   getTilesCallback = data => {
     const list = [];
-    console.log("getTilesCallback", data);
+    const listObj = {};
+    // console.log("getTilesCallback", data);
     if (data) {
       data.forEach(function(childSnapshot) {
-        list.push(childSnapshot);
+        const itemKey = list.push(childSnapshot);
+        listObj[childSnapshot.key] = childSnapshot;
       });
     }
     this.setState({ tilesData: list });
-    console.log("getTilesCallback", list);
+    // console.log("getTilesCallback", list);
   };
 
-  tileClickHandler = item => {
-    console.log("item", item);
-    this.tileCallback(item);
+  tileClickHandler = (item, tile) => {
+    console.log("item", item, tile);
+    this.tileCallback(item, tile);
   };
 
   renderTile(snapshot) {
     console.log("renderTile(snapshot)", snapshot);
-    console.log(snapshot.val());
     const tileData = snapshot.val();
     const { url, color } = tileData;
     const { key } = snapshot;
+    tileData.key = key;
+    const { draggable } = this.props;
     const style = {
       backgroundColor: color || "#FFFFFF",
       backgroundImage: "url(" + url + ")",
       backgroundSize: "cover"
     };
-    return (
-      <div
+    //style={style} onClick={() => this.tileClickHandler(tileData)}
+    // return  ({draggable ? (<Draggable><Tile  /></Draggable> ): (<Tile />)})
+    //
+    // <Draggable key={key}>
+    //   <Tile
+    //     style={style}
+    //     onClick={() => this.tileClickHandler(tileData)}
+    //   />
+    // </Draggable>
+
+    return draggable ? (
+      <Tile
         key={key}
-        className="tile"
-        onClick={() => this.tileClickHandler(tileData)}
-      >
-        <div className="tile-image" style={style} />
-      </div>
+        style={style}
+        onMouseDown={() => this.tileClickHandler(tileData)}
+      />
+    ) : (
+      <Tile
+        style={style}
+        onClick={() => this.tileClickHandler(tileData, "not draggable")}
+        key={key}
+      />
     );
+    // <div
+    //   key={key}
+    //   className="tile"
+    //   onClick={() => this.tileClickHandler(tileData)}
+    // >
+    //   <div className="tile-image" style={style} />
+    // </div>
   }
 
   render() {
     const { tilesData } = this.state;
+    console.log("tilesData", tilesData, tilesData.length);
     return (
       <div className="tile-holder">
-        {tilesData.map(data => this.renderTile(data))}
+        {tilesData.length > 0 ? (
+          tilesData.map(data => this.renderTile(data))
+        ) : (
+          <div className="vault-floor-empty">Nothing on this floor, yet!</div>
+        )}
       </div>
     );
   }
 }
 
 const Tile = props => {
-  const { color, url, type } = props.item;
-
-  const style = {
-    backgroundColor: color,
-    backgroundImage: "url(" + url + ")"
-    // fontSize: "55px"
-  };
-  return <div className="tile" style={style} />;
+  const { style, onClick, onMouseDown } = props;
+  console.log("Tile", props);
+  return (
+    <div className="tile" onClick={onClick}>
+      <div className="tile-image" style={style} onMouseDown={onMouseDown} />
+    </div>
+  );
 };
 
 export default withFirebase(VaultFloor);

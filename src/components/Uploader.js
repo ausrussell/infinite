@@ -93,12 +93,6 @@ class Uploader extends Component {
       progress: 100
     });
     console.log("uploaded", filename);
-    // firebase
-    //   .storage()
-    //   .ref("art")
-    //   .child(filename)
-    //   .getDownloadURL()
-    //   .then(url => this.setState({ imageURL: url }));
   };
 
   render() {

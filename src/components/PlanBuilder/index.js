@@ -21,6 +21,8 @@ import ErrorBoundary from "../ErrorBoundary";
 
 import { TransformControls } from "./TransformControls";
 
+import Draggable from "./Draggable";
+
 const wallWidth = 20;
 
 const degreesToRadians = degrees => {
@@ -33,7 +35,9 @@ class Builder extends Component {
     wallEntities: [],
     width: null,
     height: null,
-    authUser: null
+    authUser: null,
+    draggableVaultElementActive: null,
+    draggableVaultItem: null
   };
   constructor(props) {
     super(props);
@@ -53,11 +57,20 @@ class Builder extends Component {
   }
   componentDidMount() {
     this.setUpScene();
-    this.processFloorplan();
+    // this.processFloorplan();
   }
 
   componentDidUpdate(props) {
     // this.flaneurControls.dispose();
+    console.log(
+      "Builder componentDidUpdate props",
+      props.firebase.currentUID,
+      this.props.firebase.currentUID
+    );
+    if (this.props.firebase.currentUID && !this.floorplanProcessed) {
+      this.processFloorplan();
+      this.floorplanProcessed = true;
+    }
   }
 
   setUpGui() {
@@ -73,6 +86,8 @@ class Builder extends Component {
   //listeners
   setupListeners() {
     this.mount.addEventListener("mousemove", e => this.onMouseMove(e), false);
+    // window.addEventListener("mousemove", e => this.onMouseMove(e), false);
+
     this.mount.addEventListener("mousedown", e => this.onMouseDown(e), false);
     // window.addEventListener("resize", () => this.onWindowResize(), false);
     // this.setupRaycaster();
@@ -156,6 +171,31 @@ class Builder extends Component {
     } //else it's straight in vault
   };
 
+  itemDropHandler = itemData => {
+    this.dragging = false;
+    let intersect = this.checkForIntersecting();
+    this.holderOver = intersect;
+    if (this.currentWallOver || this.holderOver) {
+      const addImageData = {
+        itemData: itemData,
+        side: this.currentSide,
+        holderOver: this.holderOver,
+        draggableImageRef: this.draggableImageRef
+        // uploadTask: uploadTask
+      };
+      if (this.currentWallOver || this.holderOver.defaultArtMesh) {
+        console.log("add addImageFile", addImageData);
+        this.currentWallOver.addImageFile(addImageData);
+      } else {
+        this.holderOver.artMesh.parent.holderClass.addArt(addImageData);
+      }
+    }
+    this.setState({
+      draggableVaultElementActive: false,
+      draggableVaultItem: null
+    });
+  };
+
   floorTileCallback(item) {
     this.floor.floorTileCallback(item);
   }
@@ -163,6 +203,16 @@ class Builder extends Component {
   frameClickHandler(item) {
     // console.log("type", item.type, item.color);
     this.setState({ selectedTile: item });
+  }
+
+  artClickHandler(item, draggableVaultElement) {
+    console.log("artClickHandler", item);
+    this.setState({
+      draggableVaultElementActive: true,
+      draggableVaultItem: item
+    });
+    this.draggableImageRef = React.createRef();
+    this.dragging = true;
   }
 
   hoverArtMesh(artMesh) {
@@ -566,19 +616,6 @@ class Builder extends Component {
     this.wallEntities.forEach((item, index) => item.initialAnimateBuild(index));
     this.wallMeshes = this.wallEntities.map(item => item.getMesh()); //used for raycaster, needs to occur after rendering
   }
-  //
-  // rayIntersect(ray, distance) {
-  //   let collidableObjects = this.wallEntities.map(item => item.getMesh()); //used for raycaster
-  //   var intersects = ray.intersectObjects(collidableObjects);
-  //   for (var i = 0; i < intersects.length; i++) {
-  //     // Check if there's a collision
-  //     if (intersects[i].distance < distance) {
-  //       console.log("collide");
-  //       return true;
-  //     }
-  //   }
-  //   return false;
-  // }
 
   setSceneMeshes() {
     this.meshesInScene = [];
@@ -660,6 +697,15 @@ class Builder extends Component {
   getElevatorFloors() {
     let floors = {
       0: {
+        name: "Art",
+        y: 470,
+        floorComponent: VaultFloor,
+        refPath: "users/" + this.props.firebase.currentUID + "/art",
+        level: 2,
+        tileCallback: this.artClickHandler.bind(this),
+        draggable: true
+      },
+      1: {
         name: "Frames",
         y: 0,
         floorComponent: VaultFloor,
@@ -667,20 +713,12 @@ class Builder extends Component {
         level: 0,
         tileCallback: this.frameClickHandler.bind(this) //to do
       },
-      1: {
+      2: {
         name: "Floor surfaces",
         y: 235,
         floorComponent: VaultFloor,
         refPath: "master/floortiles",
         level: 1,
-        tileCallback: this.floorTileCallback.bind(this)
-      },
-      2: {
-        name: "Art",
-        y: 470,
-        floorComponent: VaultFloor,
-        refPath: "users/" + this.props.firebase.currentUID + "/art",
-        level: 2,
         tileCallback: this.floorTileCallback.bind(this)
       }
     };
@@ -697,13 +735,29 @@ class Builder extends Component {
     requestAnimationFrame(() => this.animate());
     // this.props.stats.update();
   }
-
+  // (<Draggable><DraggableVaultElement /></<Draggable>)
   render() {
+    console.log("render planner", this.state.draggableVaultElement);
     return (
       <ErrorBoundary>
         <div>
           <h3>Floorplan: __{this.state.floorplanTitle}__</h3>
           <MainCanvas refer={mount => (this.mount = mount)} />
+          {this.state.draggableVaultElementActive && (
+            <Draggable
+              itemDragover={this.dragOverHandler}
+              itemData={this.state.draggableVaultItem}
+              itemDrop={(item, uploadTask) =>
+                this.itemDropHandler(item, uploadTask)
+              }
+            >
+              <DraggableVaultElement
+                ref={this.draggableImageRef}
+                imgSrc={this.state.draggableVaultItem.url}
+              />
+            </Draggable>
+          )}
+
           {this.props.firebase.currentUID && (
             <Elevator name="Vault" floors={this.getElevatorFloors()} />
           )}
@@ -720,6 +774,12 @@ class Builder extends Component {
     );
   }
 }
+
+const DraggableVaultElement = React.forwardRef((props, ref) => (
+  <div className="draggable-vault-element">
+    <img src={props.imgSrc} style={{ width: "140px" }} ref={ref} />
+  </div>
+));
 
 const MainCanvas = props => {
   return (
