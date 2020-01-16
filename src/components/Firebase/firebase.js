@@ -76,6 +76,20 @@ class Firebase {
     return newPostRef.getKey();
   };
 
+  storeGallery = galleryData => {
+    const newGalleryRef = this.database.ref("galleries").push();
+    newGalleryRef.set(galleryData);
+  };
+
+  getGalleryByName = (name, callback) => {
+    console.log("getGalleryByName", name);
+    const galleryRef = this.database.ref("galleries");
+    galleryRef
+      .orderByChild("name")
+      .equalTo(name)
+      .on("value", callback);
+  };
+
   removePlan = key => {
     this.database
       .ref("users/" + this.currentUID + "/floorplans")

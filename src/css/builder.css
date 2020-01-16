@@ -2,6 +2,7 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
+  position: relative;
 }
 
 .tile-holder {
@@ -64,4 +65,9 @@ body {
 #root > div,
 section.ant-layout {
   height: 100%;
+}
+
+#boardCanvas {
+  height: 100%;
+  width: 100%;
 }

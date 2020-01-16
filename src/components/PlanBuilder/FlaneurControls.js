@@ -161,6 +161,7 @@ class FlaneurControls {
 
   onKeyDown = event => {
     //event.preventDefault();
+    console.log("flaneur onKeyDown", this.domElement);
 
     switch (event.keyCode) {
       case 38: /*up*/
@@ -421,7 +422,8 @@ class FlaneurControls {
     this.domElement.removeEventListener("mousemove", this.onMouseMove, false);
     this.domElement.removeEventListener("mouseup", this.onMouseUp, false);
 
-    window.removeEventListener("keydown", this.onKeyDown, false);
+    // window.e
+    this.domElement.removeEventListener("keydown", this.onKeyDown, false);
     window.removeEventListener("keyup", this.onKeyUp, false);
   }
 
@@ -436,7 +438,8 @@ class FlaneurControls {
     this.domElement.addEventListener("mousedown", this.onMouseDown, false);
     this.domElement.addEventListener("mouseup", this.onMouseUp, false);
 
-    window.addEventListener("keydown", this.onKeyDown, false);
+    // window
+    this.domElement.addEventListener("keydown", this.onKeyDown, false);
     window.addEventListener("keyup", this.onKeyUp, false);
   }
 

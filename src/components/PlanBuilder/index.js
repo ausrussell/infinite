@@ -23,6 +23,8 @@ import { TransformControls } from "./TransformControls";
 
 import Draggable from "./Draggable";
 
+import GalleryTitle from "./GalleryTitle";
+
 const wallWidth = 20;
 
 const degreesToRadians = degrees => {
@@ -37,7 +39,8 @@ class Builder extends Component {
     height: null,
     authUser: null,
     draggableVaultElementActive: null,
-    draggableVaultItem: null
+    draggableVaultItem: null,
+    galleryTitle: ""
   };
   constructor(props) {
     super(props);
@@ -239,6 +242,65 @@ class Builder extends Component {
       this.activeArtMesh = null;
     }
   }
+
+  onTitleChangeHandler = ({ target }) => {
+    this.setState({ galleryTitle: target.value });
+  };
+
+  saveGallery = () => {
+    console.log("wall entities", this.state.wallEntities);
+    const galleryData = {};
+    galleryData.name = this.state.galleryTitle;
+    galleryData.nameEncoded = encodeURIComponent(this.state.galleryTitle);
+    galleryData.floorplanTitle = this.state.floorplanTitle;
+    galleryData.wallData = [];
+
+    this.state.wallEntities.forEach(item => {
+      const wall = (({ col, row, pos, height, opacity }) => ({
+        col,
+        row,
+        pos,
+        height,
+        opacity
+      }))(item);
+      wall.sides = {};
+      Object.entries(item.sides).forEach(
+        (value, index) => {
+          const side = value[1];
+
+          console.log("sides", side, index);
+          const frames = [];
+          const frame = {};
+          side.frames.forEach(item => {
+            frame.position = item.group.position;
+            frame.artMesh = {
+              width: item.artMesh.geometry.parameters.width,
+              height: item.artMesh.geometry.parameters.height,
+              scale: item.artMesh.scale.x,
+              src: item.artMesh.material.map.image.src //need db ref
+            };
+            frame.frameMesh = {
+              shapes: item.frameMesh.geometry.parameters.shapes,
+              options: item.frameMesh.geometry.parameters.options,
+              color: item.frameMesh.material.color,
+              map: item.frameMesh.material.map
+                ? item.frameMesh.material.map.image.src
+                : null
+            };
+            frames.push(frame);
+          });
+          console.log(value[0]);
+          wall.sides[value[0]] = frames;
+        }
+
+        // item.frames.group.position
+      );
+
+      galleryData.wallData.push(wall);
+    });
+    this.props.firebase.storeGallery(galleryData);
+    console.log("galleryData", galleryData);
+  };
 
   resetTranslatedArt() {
     this.transformOriginVector.copy(this.activeArtMesh.getWorldPosition());
@@ -604,6 +666,7 @@ class Builder extends Component {
         });
       }
     }
+    this.setState({ wallEntities: this.wallEntities });
   }
 
   setFloor() {
@@ -740,40 +803,53 @@ class Builder extends Component {
     console.log("render planner", this.state.draggableVaultElement);
     return (
       <ErrorBoundary>
-        <div>
-          <h3>Floorplan: __{this.state.floorplanTitle}__</h3>
-          <MainCanvas refer={mount => (this.mount = mount)} />
-          {this.state.draggableVaultElementActive && (
-            <Draggable
-              itemDragover={this.dragOverHandler}
-              itemData={this.state.draggableVaultItem}
-              itemDrop={(item, uploadTask) =>
-                this.itemDropHandler(item, uploadTask)
-              }
-            >
-              <DraggableVaultElement
-                ref={this.draggableImageRef}
-                imgSrc={this.state.draggableVaultItem.url}
-              />
-            </Draggable>
-          )}
-
-          {this.props.firebase.currentUID && (
-            <Elevator name="Vault" floors={this.getElevatorFloors()} />
-          )}
-          <Uploader
-            fileDragover={this.dragOverHandler}
-            fileDragLeaveHandler={this.fileDragLeaveHandler}
-            fileDrop={(item, uploadTask) =>
-              this.fileDropHandler(item, uploadTask)
-            }
-            wallOver={this.state.wallOver}
+        <div className="floorplan-title">
+          <GalleryTitle
+            content={this.state.galleryTitle}
+            onTitleChangeHandler={this.onTitleChangeHandler}
           />
+          <SaveButton onClick={this.saveGallery} />
         </div>
+        <h3>Floorplan: __{this.state.floorplanTitle}__</h3>
+        <MainCanvas refer={mount => (this.mount = mount)} />
+        {this.state.draggableVaultElementActive && (
+          <Draggable
+            itemDragover={this.dragOverHandler}
+            itemData={this.state.draggableVaultItem}
+            itemDrop={(item, uploadTask) =>
+              this.itemDropHandler(item, uploadTask)
+            }
+          >
+            <DraggableVaultElement
+              ref={this.draggableImageRef}
+              imgSrc={this.state.draggableVaultItem.url}
+            />
+          </Draggable>
+        )}
+
+        {this.props.firebase.currentUID && (
+          <Elevator name="Vault" floors={this.getElevatorFloors()} />
+        )}
+        <Uploader
+          fileDragover={this.dragOverHandler}
+          fileDragLeaveHandler={this.fileDragLeaveHandler}
+          fileDrop={(item, uploadTask) =>
+            this.fileDropHandler(item, uploadTask)
+          }
+          wallOver={this.state.wallOver}
+        />
       </ErrorBoundary>
     );
   }
 }
+
+const SaveButton = props => {
+  return (
+    <button className="primary-button" onClick={() => props.onClick()}>
+      Save
+    </button>
+  );
+};
 
 const DraggableVaultElement = React.forwardRef((props, ref) => (
   <div className="draggable-vault-element">
@@ -782,13 +858,7 @@ const DraggableVaultElement = React.forwardRef((props, ref) => (
 ));
 
 const MainCanvas = props => {
-  return (
-    <div
-      id="boardCanvas"
-      style={{ width: "100vw", height: "100vh" }}
-      ref={mount => props.refer(mount)}
-    />
-  );
+  return <div id="boardCanvas" ref={mount => props.refer(mount)} />;
 };
 
 export default withAuthentication(withFirebase(Builder));

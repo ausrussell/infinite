@@ -30,23 +30,22 @@ const AppAuth = () => {
 
   //<div className="desk-container"></div>
   return (
-    <div>
-      <Layout style={{ backgroundColor: "#37474F" }}>
-        <Header>Header</Header>
-        <Router>
-          <Navigation />
-          <Route path={ROUTES.SIGN_UP} component={SignUpPage} />
-          <Route path={ROUTES.SIGN_IN} component={SignInPage} />
-          <Route path={ROUTES.PASSWORD_FORGET} component={PasswordForgetPage} />
-          <Route path={ROUTES.HOME} component={HomePage} />
-          <Route path={ROUTES.ACCOUNT} component={AccountPage} />
-          <Route path={ROUTES.ADMIN} component={AdminPage} />
-          <Route path={ROUTES.PLANNER} component={Planner} />
-          <Route path={ROUTES.GALLERY} component={Gallery} />
-          <Route path={ROUTES.BUILDER} component={Builder} />
-        </Router>
-      </Layout>
-    </div>
+    <Layout style={{ backgroundColor: "#37474F" }}>
+      <Header>Header</Header>
+      <Router>
+        <Navigation />
+        <Route path={`${ROUTES.GALLERY}/:galleryName`} component={Gallery} />
+        <Route path={ROUTES.SIGN_UP} component={SignUpPage} />
+        <Route path={ROUTES.SIGN_IN} component={SignInPage} />
+        <Route path={ROUTES.PASSWORD_FORGET} component={PasswordForgetPage} />
+        <Route path={ROUTES.HOME} component={HomePage} />
+        <Route path={ROUTES.ACCOUNT} component={AccountPage} />
+        <Route path={ROUTES.ADMIN} component={AdminPage} />
+        <Route path={ROUTES.PLANNER} component={Planner} />
+
+        <Route path={ROUTES.BUILDER} component={Builder} />
+      </Router>
+    </Layout>
   );
 };
 
