@@ -6,14 +6,22 @@ import { SignUpLink } from "../SignUp";
 import { PasswordForgetLink } from "../PasswordForget";
 import { withFirebase } from "../Firebase";
 import * as ROUTES from "../../constants/routes";
+import { Row, Col, Card, Form, Icon, Input, Button } from "antd";
 
 const SignInPage = () => (
-  <div>
-    <h1>SignIn</h1>
-    <SignInForm />
-    <SignUpLink />
-    <PasswordForgetLink />
-  </div>
+  <Row>
+    <Col span={12} offset={6} className="center-standard-form">
+      <Card title="Sign In">
+        <Card type="inner" title="Name and Email">
+          <SignInForm />
+          <SignUpLink />
+        </Card>
+        <Card type="inner" title="Forgot?">
+          <PasswordForgetLink />
+        </Card>
+      </Card>
+    </Col>
+  </Row>
 );
 
 const INITIAL_STATE = {
@@ -55,27 +63,32 @@ class SignInFormBase extends Component {
     const isInvalid = password === "" || email === "";
 
     return (
-      <form onSubmit={this.onSubmit}>
-        <input
-          name="email"
-          value={email}
-          onChange={this.onChange}
-          type="text"
-          placeholder="Email Address"
-        />
-        <input
-          name="password"
-          value={password}
-          onChange={this.onChange}
-          type="password"
-          placeholder="Password"
-        />
-        <button disabled={isInvalid} type="submit">
-          Sign In
-        </button>
-
+      <Form layout="inline" onSubmit={this.onSubmit}>
+        <Form.Item>
+          <Input
+            name="email"
+            value={email}
+            onChange={this.onChange}
+            type="text"
+            placeholder="Email Address"
+          />
+        </Form.Item>
+        <Form.Item>
+          <Input
+            name="password"
+            value={password}
+            onChange={this.onChange}
+            type="password"
+            placeholder="Password"
+          />
+        </Form.Item>
+        <Form.Item>
+          <Button disabled={isInvalid} type="primary" htmlType="submit">
+            Sign In
+          </Button>
+        </Form.Item>
         {error && <p>{error.message}</p>}
-      </form>
+      </Form>
     );
   }
 }

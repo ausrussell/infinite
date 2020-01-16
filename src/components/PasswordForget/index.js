@@ -3,14 +3,17 @@ import { Link } from "react-router-dom";
 
 import Firebase, { withFirebase } from "../Firebase";
 import * as ROUTES from "../../constants/routes";
-import { Form, Icon, Input, Button } from "antd";
+import { Form, Icon, Input, Button, Row, Col, Card } from "antd";
 import "antd/dist/antd.css";
 
 const PasswordForgetPage = () => (
-  <div>
-    <h1>PasswordForget</h1>
-    <PasswordForgetForm />
-  </div>
+  <Row>
+    <Col span={12} offset={6} className="center-standard-form">
+      <Card title="Resetting your password">
+        <PasswordForgetForm />{" "}
+      </Card>
+    </Col>
+  </Row>
 );
 
 const INITIAL_STATE = {
