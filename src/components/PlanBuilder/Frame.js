@@ -153,6 +153,17 @@ class Frame {
       bevelSegments: 8
     };
 
+    console.log("ExtrudeBufferGeometry", shape, extrudeSettings);
+
+    // __arcLengthDivisions: (...)
+    // type: "Shape"
+    // arcLengthDivisions: 200
+    // curves: (4) [LineCurve, LineCurve, LineCurve, LineCurve]
+    // autoClose: false
+    // currentPoint: Vector2 {x: 0, y: 0}
+    // uuid: "3E020CAE-6AC2-457A-AC8C-3CA2BA21C205"
+    // holes: [Shape]
+
     this.fgeometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
   }
 

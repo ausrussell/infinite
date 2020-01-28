@@ -77,6 +77,7 @@ class Firebase {
   };
 
   storeGallery = galleryData => {
+    debugger;
     const newGalleryRef = this.database.ref("galleries").push();
     newGalleryRef.set(galleryData);
   };
@@ -88,6 +89,12 @@ class Firebase {
       .orderByChild("name")
       .equalTo(name)
       .on("value", callback);
+  };
+
+  getGalleryList = callback => {
+    const galleryRef = this.database.ref("galleries");
+    galleryRef.orderByChild("name").on("value", callback);
+    console.log("getGalleryList");
   };
 
   removePlan = key => {
