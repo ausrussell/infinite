@@ -8,8 +8,11 @@ const degreesToRadians = degrees => {
 class FlaneurControls {
   constructor(object, builder) {
     this.object = object;
+    console.log("this.object", this.object);
     this.builder = builder;
-
+    console.log("this.builder", this.builder);
+    this.mode = this.builder.flaneurMode;
+    console.log("flaneurMode", this.mode);
     this.domElement = this.builder.mount;
 
     this.enabled = true;
@@ -123,6 +126,7 @@ class FlaneurControls {
 
     this.mouseDragOn = true;
     const hoverIntersect = this.checkForIntersecting();
+    console.log("hoverIntersect in mousedown", hoverIntersect);
     if (hoverIntersect.footstepsHover) {
       console.log(
         "hoverIntersect.footstepsHover",
@@ -344,65 +348,6 @@ class FlaneurControls {
     if (this.moveCameraLeft) {
       this.object.rotation.y += 0.01;
     }
-    // if (this.startToDestination) {
-    //   this.moveToDestination();
-    // }
-
-    // console.log("this.object.position", this.object.position);
-    /*
-    let actualLookSpeed = delta * this.lookSpeed;
-
-    if (!this.activeLook) {
-      actualLookSpeed = 0;
-    }
-
-    let verticalLookRatio = 1;
-
-    if (this.constrainVertical) {
-      verticalLookRatio = Math.PI / (this.verticalMax - this.verticalMin);
-    }
-
-    this.lon -= this.mouseX * actualLookSpeed;
-    if (this.lookVertical) {
-      this.lat -= this.mouseY * actualLookSpeed * verticalLookRatio;
-    }
-
-    this.lat = Math.max(-85, Math.min(85, this.lat));
-    this.phi = THREE.Math.degToRad(90 - this.lat);
-
-    this.theta = THREE.Math.degToRad(this.lon);
-
-    if (this.constrainVertical) {
-      this.phi = THREE.Math.mapLinear(
-        this.phi,
-        0,
-        Math.PI,
-        this.verticalMin,
-        this.verticalMax
-      );
-    }
-    // console.log("this.phi, this.theta", this.phi, this.theta);
-    let targetPosition = this.target;
-    // if (!this.targetSetExternally) {
-    // console.log("not external set target");
-    let position = this.object.position;
-    targetPosition.x = -(
-      position.x +
-      100 * Math.sin(this.phi) * Math.cos(this.theta)
-    );
-    targetPosition.y = position.y + 100 * Math.cos(this.phi);
-    targetPosition.z =
-      position.z + 100 * Math.sin(this.phi) * Math.sin(this.theta);
-    targetPosition
-      .setFromSphericalCoords(1, this.phi, this.theta)
-      .add(position);
-    // this.enabled = !this.enabled;
-    // this.cameraTimeout = setTimeout(this.cameraTimer, 1009);
-    // }
-    // console.log("this.object.quaternion", this.object.quaternion);
-    // console.log("targetPosition", targetPosition);
-    this.object.lookAt(targetPosition);
-     */
   }
   cameraTimer = () => {
     console.log("cameraTimer");
@@ -427,11 +372,6 @@ class FlaneurControls {
     window.removeEventListener("keyup", this.onKeyUp, false);
   }
 
-  //  _onMouseMove = bind(this, this.onMouseMove);
-  // var _onMouseDown = bind(this, this.onMouseDown);
-  // var _onMouseUp = bind(this, this.onMouseUp);
-  // var _onKeyDown = bind(this, this.onKeyDown);
-  // var _onKeyUp = bind(this, this.onKeyUp);
   bindEvents() {
     this.domElement.addEventListener("contextmenu", this.contextmenu, false);
     this.domElement.addEventListener("mousemove", this.onMouseMove, false);
@@ -582,12 +522,20 @@ class FlaneurControls {
     this.object.updateMatrixWorld();
     this.raycaster.setFromCamera(this.mouse, this.object);
     const intersect = {};
-    let collidableObjects = this.builder.wallEntities.map(item =>
-      item.getMesh()
-    );
-    let all = collidableObjects.concat(this.builder.scene.children);
-    const intersectedAll = this.raycaster.intersectObjects(all);
+    let collidableObjects = [];
+    if (this.mode === "Gallery") {
+      collidableObjects = this.builder.scene.children;
+    } else {
+      collidableObjects = this.builder.wallEntities.map(item => item.getMesh());
+    }
+    // console.log("collidableObjects", collidableObjects);
+    // let all = collidableObjects.concat(this.builder.scene.children);
+    let all = collidableObjects;
+    // console.log("all", all);
+    // debugger;
+    const intersectedAll = this.raycaster.intersectObjects(collidableObjects);
     const intersected0 = intersectedAll[0];
+    console.log("intersected0", intersected0);
     if (!intersected0) return intersect;
 
     switch (intersected0.object.name) {

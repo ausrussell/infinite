@@ -82,6 +82,31 @@ class Firebase {
     newGalleryRef.set(galleryData);
   };
 
+  storeGalleryGltf(galleryData, scene) {
+    const storageRef = this.storage.ref();
+    const galleryRef = storageRef.child(
+      "galleries/" + this.currentUID + "/gallery/" + galleryData.name + ".gltf"
+    );
+    const sceneStr = JSON.stringify(scene);
+
+    const blob = new Blob(
+      [sceneStr],
+      { type: "application/json" } //type: 'application/octet-stream'
+    );
+    galleryRef.put(blob).then(snapshot => {
+      console.log("snapshot", snapshot.ref);
+      console.log("galleryRef", galleryRef.fullPath);
+      galleryRef.getDownloadURL().then(url => {
+        console.log("galleryRef url", url);
+        galleryData.galleryRef = url;
+        const newGalleryRef = this.database.ref("galleries").push();
+        newGalleryRef.set(galleryData);
+      });
+    });
+    // const newGalleryRef = this.database.ref("galleries").push();
+    // newGalleryRef.set(galleryData);
+  }
+
   getGalleryByName = (name, callback) => {
     console.log("getGalleryByName", name);
     const galleryRef = this.database.ref("galleries");

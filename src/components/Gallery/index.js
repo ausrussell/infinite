@@ -21,6 +21,8 @@ import WallDisplayObject from "./WallDisplayObject";
 
 import Floor from "../PlanBuilder/Floor";
 import GeneralLight from "../PlanBuilder/GeneralLight";
+import FrameDisplayObject from "./FrameDisplayObject";
+import GLTFLoader from "three-gltf-loader";
 
 class Gallery extends Component {
   state = {
@@ -33,7 +35,7 @@ class Gallery extends Component {
   constructor(props) {
     super(props);
     console.log("Gallery", props.match.params.galleryName);
-
+    this.flaneurMode = "Gallery";
     // debugger;
     this.walls = props.walls;
     this.wallHeight = 60;
@@ -43,6 +45,9 @@ class Gallery extends Component {
     this.voxelsY = 10;
     console.log(this.walls, this.voxelsX);
     this.clock = new THREE.Clock();
+    this.frameObjects = [];
+    this.loader = new GLTFLoader();
+    this.wallMeshes = [];
   }
 
   componentDidMount() {
@@ -52,11 +57,10 @@ class Gallery extends Component {
       this.props.match.params.galleryName,
       this.processGallery
     );
-    // this.setupFlaneurControls();
-    // this.processFloorplan();
+  }
 
-    // let { galleryName } = useParams();
-    // console.log("galleryName", galleryName);
+  setupListeners() {
+    this.setupFlaneurControls();
   }
   //scene setup and animation
   setUpScene() {
@@ -80,6 +84,21 @@ class Gallery extends Component {
   setupFlaneurControls() {
     this.flaneurControls = new FlaneurControls(this.camera, this);
   }
+
+  rayIntersect(ray, distance) {
+    //used by flaneur controls
+    // let collidableObjects = this.wallEntities.map(item => item.getMesh()); //used for raycaster
+    // var intersects = ray.intersectObjects(collidableObjects);
+    // for (var i = 0; i < intersects.length; i++) {
+    //   // Check if there's a collision
+    //   if (intersects[i].distance < distance) {
+    //     console.log("collide");
+    //     return true;
+    //   }
+    // }
+    return false;
+  }
+
   initialCameraAnimation() {
     // this.flaneurControls.initialCameraAnimation();
   }
@@ -94,20 +113,76 @@ class Gallery extends Component {
     snapshot.forEach(data => {
       console.log("processGallery", data.key, data.val());
       this.galleryData = data.val();
-      // debugger;
-      console.log("this.galleryData.floorplan", this.galleryData.floorplan);
-      this.floorplan = this.galleryData.floorplan.data;
-      this.voxelsX = this.floorplan.length;
-      this.voxelsY = this.floorplan[0].length;
-      this.wallData = this.galleryData.wallData;
+      console.log("this.galleryData.galleryRef", this.galleryData.floorplan);
+      this.setState({ galleryData: data.val() });
 
-      this.setWalls();
-      this.renderWalls();
+      this.setScene();
+      // this.floorplan = this.galleryData.floorplan.data;
+      // this.frameGroups = this.galleryData.frameGroups;
+      // this.voxelsX = this.floorplan.length;
+      // this.voxelsY = this.floorplan[0].length;
+      // this.wallData = this.galleryData.wallData;
+      //
+      // this.setWalls();
+      // this.renderWalls();
+      // this.renderFrames();
+      this.setupListeners();
       this.setCamera();
       this.animate();
-      this.setState({ galleryData: data.val() });
     });
   };
+  isWallMesh(item) {
+    if (item.name === "wallGroup") {
+      return item.children.filter(child => child.name === "wallMesh");
+    }
+  }
+  setScene() {
+    // Load a glTF resource
+
+    // console.log("this.galleryData.galleryRef", this.galleryData.galleryRef);
+    this.loader.load(
+      // resource URL
+      this.galleryData.galleryRef,
+      // called when the resource is loaded
+      gltf => {
+        console.log("gltf", gltf);
+        // gltf.scene.traverse(child => {
+        gltf.scene.children.forEach(child => {
+          console.log("child", child);
+          // if (child.name === "wallMesh" || child.name === "artHolder")
+          this.scene.add(child);
+        });
+        // this.gltfScene = gltf.scene;
+        // this.scene.add(gltf.scene);
+        this.scene.updateMatrixWorld(true);
+        // console.log("gltf.scene", gltf.scene);
+        // console.log("this.scene", this.scene);
+        //
+        gltf.scene.children.forEach(item => {
+          console.log("child item", item);
+          const anyWallMesh = this.isWallMesh(item);
+          console.log("anyWallMesh", anyWallMesh);
+
+          anyWallMesh && this.wallMeshes.push(anyWallMesh);
+        });
+        // console.log("this.wallMeshes", this.wallMeshes);
+
+        // gltf.animations; // Array<THREE.AnimationClip>
+        // gltf.scene; // THREE.Scene
+        // gltf.scenes; // Array<THREE.Scene>
+        // gltf.cameras; // Array<THREE.Camera>
+        // gltf.asset; // Object
+      },
+      // called while loading is progressing
+      function(xhr) {
+        console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+      },
+      // called when loading has errors
+      function(error) {
+        console.log("An error happened", error);
+      }
+    );
+  }
   setCamera() {
     this.camera.position.z = 350;
     this.camera.position.y = 45;
@@ -123,15 +198,11 @@ class Gallery extends Component {
     this.scene.add(gridHelper);
   }
   setWalls() {
-    // debugger;
     this.walls = [];
     this.galleryData.wallData.forEach(wall => {
       const options = wall;
       options.builder = this;
-      console.log("wall", wall);
-      // const wallO = new WallDisplayObject(wall);
       this.walls.push(new WallDisplayObject(wall));
-      // wallO.renderWall();
     });
   }
   renderWalls() {
@@ -139,11 +210,24 @@ class Gallery extends Component {
     var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
     var cube = new THREE.Mesh(geometry, material);
     this.scene.add(cube);
-    console.log("  this.scene", this.scene);
+    console.log("this.scene", this.scene);
     console.log("renderWalls", this.walls);
     this.walls.forEach(wall => {
       console.log("renderWalls wall", wall);
       wall.renderWall();
+    });
+  }
+  renderFrames() {
+    console.log("this.frameGroups", this.frameGroups);
+
+    this.frameGroups.forEach(item => {
+      const frameData = {
+        gltf: item,
+        galleryObject: this
+      };
+      const frame = new FrameDisplayObject(frameData);
+      this.frameObjects.push(frame);
+      frame.renderFrame();
     });
   }
 

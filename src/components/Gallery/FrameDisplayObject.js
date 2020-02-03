@@ -3,24 +3,30 @@ import GLTFLoader from "three-gltf-loader";
 
 class Frame {
   constructor(props) {
-    const { artMesh, frameMesh, position, side, wall } = props;
-    console.log("Frame", artMesh, frameMesh, position, side, wall);
-    this.artMeshData = artMesh;
-    this.convertArtMeshData();
-    this.frameMeshData = frameMesh;
-    this.convertFrameMeshData();
-    this.offset = position;
-    this.side = side;
-
-    this.wall = wall;
-
-    this.wallWidth = 20;
-    this.wallHeight = 60;
+    // const { artMesh, frameMesh, position, side, wall } = props;
+    const { gltf, galleryObject } = props;
+    this.gltf = gltf;
+    this.galleryObject = galleryObject;
+    this.loader = new GLTFLoader();
     this.wallDepth = 5;
 
-    this.group = new THREE.Group();
-    this.group.name = "artHolder";
-    this.gltfLoader = new GLTFLoader();
+    console.log("Frame", gltf);
+    // this.artMeshData = artMesh;
+    // this.convertArtMeshData();
+    // this.frameMeshData = frameMesh;
+    // this.convertFrameMeshData();
+    // this.offset = position;
+    // this.side = side;
+    //
+    // this.wall = wall;
+    //
+    // this.wallWidth = 20;
+    // this.wallHeight = 60;
+    // this.wallDepth = 5;
+    //
+    // this.group = new THREE.Group();
+    // this.group.name = "artHolder";
+    // this.gltfLoader = new GLTFLoader();
   }
 
   convertArtMeshData() {
@@ -88,6 +94,19 @@ class Frame {
     if (this.side === "back") this.group.rotateY(Math.PI);
     this.wall.wallGroup.add(this.group);
     this.artMesh.translateZ(this.wallDepth);
+  }
+
+  renderFrame() {
+    // console.log("JSON parse", JSON.stringify(this.gltf));
+    // debugger;
+    this.loader.parse(JSON.stringify(this.gltf), gltf => {
+      console.log("artMesh = ", gltf);
+
+      this.artMesh = gltf;
+      this.artMesh.position.set(0, 0, this.wallDepth);
+      this.galleryObject.scene.add(this.artMesh);
+      debugger;
+    });
   }
 }
 

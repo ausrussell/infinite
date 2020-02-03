@@ -92,11 +92,8 @@ class Builder extends Component {
   //listeners
   setupListeners() {
     this.mount.addEventListener("mousemove", e => this.onMouseMove(e), false);
-    // window.addEventListener("mousemove", e => this.onMouseMove(e), false);
-
     this.mount.addEventListener("mousedown", e => this.onMouseDown(e), false);
     // window.addEventListener("resize", () => this.onWindowResize(), false);
-    // this.setupRaycaster();
     this.setupFlaneurControls();
   }
 
@@ -255,6 +252,15 @@ class Builder extends Component {
     this.galleryData = {};
     this.galleryData.name = this.state.galleryTitle;
     this.galleryData.nameEncoded = encodeURIComponent(this.state.galleryTitle);
+
+    this.gltfExporter.parse(this.scene, gltf => {
+      this.props.firebase.storeGalleryGltf(this.galleryData, gltf);
+    });
+
+    // debugger;
+    return;
+    // this.makeGallerySave()
+
     this.galleryData.floorplan = this.state.floorplan;
     this.galleryData.wallData = [];
 
@@ -268,6 +274,7 @@ class Builder extends Component {
       }))(item);
       wall.sides = {};
       this.framesToSave = [];
+      this.galleryData.wallData.push(wall);
       this.state.wallEntities.forEach((item, wallIndex) => {
         const wall = (({ col, row, pos, height, opacity }) => ({
           col,
@@ -276,6 +283,7 @@ class Builder extends Component {
           height,
           opacity
         }))(item);
+
         Object.entries(item.sides).forEach((value, index) => {
           const side = value[1];
 
@@ -296,7 +304,7 @@ class Builder extends Component {
     console.log("this.framesToSave", this.framesToSave);
     this.framesToResolve = [];
     this.framesToSave.forEach((item, index2) => {
-      this.gltfExporter.parse(item.artMesh, gltf => {
+      this.gltfExporter.parse(item.group, gltf => {
         // gltf.accessors.forEach(item => (item.byteOffset = 0));
         gltf = JSON.parse(
           JSON.stringify(gltf, function(k, v) {
