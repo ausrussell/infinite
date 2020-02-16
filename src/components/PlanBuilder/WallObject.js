@@ -25,7 +25,51 @@ class WallObject {
     this.renderWall();
     this.addLights();
     this.addFrames();
+    this.setupExport();
   }
+
+  setupExport() {
+    this.export = (({ col, row, pos, height, opacity }) => ({
+      col,
+      row,
+      pos,
+      height,
+      opacity
+    }))(this);
+    console.log("wall this.export", this.export);
+  }
+
+  addArtToExport() {
+    this.export.sides = {};
+    Object.entries(this.sides).forEach((value, index) => {
+      const side = value[1];
+      const framesToSave = [];
+
+      console.log("sides", side, index);
+      const sideFrames = side.frames;
+      sideFrames.forEach((item, wallIndex) => {
+        // this.framesToSave.push(item);
+        // item.getExport();
+        // console.log("item", item);
+        // const { group, artMesh, frameMesh } = item;
+        // const frameData = {
+        //   group: group.position,
+        //   artMesh: artMesh,
+        //   frameMesh: frameMesh
+        // };
+        const frameData = item.getExport();
+        framesToSave.push(JSON.stringify(frameData));
+      });
+      console.log(value[0]);
+
+      this.export.sides[value[0]] = framesToSave;
+    });
+  }
+
+  getExport = () => {
+    this.addArtToExport();
+    return this.export;
+  };
 
   initialAnimateBuild(index) {
     const animationStartDelay =

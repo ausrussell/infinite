@@ -7,12 +7,12 @@ export const floorData = [
   {
     type: "texture-array",
     url: texturesPath + "wood/hardwood2_diffuse.jpg",
-    floorMat: new THREE.MeshStandardMaterial({
-      roughness: 0.8,
-      color: 0xffffff,
-      metalness: 0.2,
-      bumpScale: 0.0005
-    }),
+    // floorMat: new THREE.MeshStandardMaterial({
+    //   roughness: 0.8,
+    //   color: 0xffffff,
+    //   metalness: 0.2,
+    //   bumpScale: 0.0005
+    // }),
     map: texturesPath + "wood/hardwood2_diffuse.jpg",
     bumpMap: texturesPath + "wood/hardwood2_bump.jpg",
     roughnessMap: texturesPath + "wood/hardwood2_roughness.jpg"
@@ -20,12 +20,12 @@ export const floorData = [
   {
     type: "texture-array",
     url: texturesPath + "concrete_stone/concrete01_diff.jpg",
-    floorMat: new THREE.MeshStandardMaterial({
-      roughness: 0.8,
-      color: 0xffffff,
-      metalness: 0.2,
-      bumpScale: 0.0005
-    }),
+    // floorMat: new THREE.MeshStandardMaterial({
+    //   roughness: 0.8,
+    //   color: 0xffffff,
+    //   metalness: 0.2,
+    //   bumpScale: 0.0005
+    // }),
     map: texturesPath + "concrete_stone/concrete01_diff.jpg",
     bumpMap: texturesPath + "concrete_stone/concrete01_norm.jpg",
     roughnessMap: texturesPath + "concrete_stone/concrete01_spec.jpg"

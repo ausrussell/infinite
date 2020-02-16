@@ -3,15 +3,17 @@ import FrameDisplayObject from "./FrameDisplayObject";
 
 class WallDisplayObject {
   constructor(options) {
-    console.log();
-    const { col, row, pos, height, builder, sides } = options;
+    console.log("WallDisplayObject", options);
+    // this.builder = options;
+    const { col, row, pos, height, sides, builder } = options;
     // const { x, y, pos, builder } = options;
     this.col = col;
     this.row = row;
     this.pos = pos;
     this.sides = sides || {};
-    console.log("sides", sides, this.sides && this.sides["front"]);
+    console.log("Wall display", col, row, pos, height, sides);
     this.builder = builder;
+    this.scene = this.builder.scene;
     this.midpointX = this.builder.voxelsX / 2;
     this.midpointY = this.builder.voxelsY / 2;
 
@@ -28,12 +30,12 @@ class WallDisplayObject {
     // this.addLights();
     // this.addFrames();
     this.art = [];
-    console.log("constructor", this.sides && this.sides["front"]);
   }
   setXZPos() {
     this.posX =
       (this.col - this.midpointX) * this.wallWidth + this.wallWidth / 2;
     this.posZ = (this.row - this.midpointY) * this.wallWidth;
+    console.log("this.posX, this.posZ", this.posX, this.posZ);
   }
 
   renderWall() {
@@ -85,16 +87,28 @@ class WallDisplayObject {
     console.log("side", this.sides[side]);
     this.art[side] = [];
     // console.log("this.sides[side]", this.sides[side]);
-    Object.values(this.sides[side]).forEach((item, index) => {
-      const artMesh = item[0];
-      // console.log("artForSide", item);
-      const options = item;
-      options.side = side;
-      options.wall = this;
+    this.sides[side].forEach((item, index) => {
+      console.log("artForSide", item, index);
+      const options = {
+        scene: this.scene, //??
+        wall: this,
+        data: item,
+        side: side
+      };
       const frameObj = new FrameDisplayObject(options);
+      frameObj.renderFrame();
+      this.art[side].push(frameObj);
+
+      // const artMesh = item[0];
+      // console.log("artForSide", item);
+      // const options = item;
+      // options.side = side;
+      // options.wall = this;
+
+      // const frameObj = new FrameDisplayObject(options);
       // this.art[side].push(new FrameDisplayObject(options));
       // this.art[side][index]
-      frameObj.renderArt();
+      // frameObj.renderArt();
     });
   }
 }

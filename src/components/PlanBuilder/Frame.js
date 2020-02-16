@@ -23,7 +23,24 @@ class Frame {
     this.group.wallPos = this.wall.pos;
     this.group.setFrameColor = frameData => this.setFrameColor(frameData);
     this.frameWidth = 1;
+    this.export = {};
     // console.log("Frame constructor", this.wall, this.wall.col, this.side);
+  }
+
+  getExport() {
+    // const exportData = {};
+    this.export.groupPosition = this.group.position;
+    // exportData.frame ={
+    //
+    // }
+    this.export.frame = this.selectedTile;
+    this.export.art = {
+      file: this.artMesh.file, //iMaterial.map,
+      width: this.artMesh.geometry.parameters.width,
+      height: this.artMesh.geometry.parameters.height
+    };
+
+    return this.export;
   }
 
   setDefaultFrameMaterial() {
@@ -304,6 +321,8 @@ class Frame {
 
   imageLoadedHandler(options) {
     const { image, file, holder } = options;
+    this.file = file;
+
     const loader = new THREE.TextureLoader();
     var texture = loader.load(file);
     let imageWidth = image.width;
@@ -315,11 +334,10 @@ class Frame {
       holder.artMesh.geometry.parameters.height * holder.artMesh.scale.y; // * this.rescale;
 
     const artDimensions = this.fitToFrame(imageWidth, imageHeight, fitW, fitH);
-    const artPlane = new THREE.PlaneGeometry(
-      artDimensions[0],
-      artDimensions[1],
-      0
-    );
+    this.artWidth = artDimensions[0];
+    this.artHeight = artDimensions[1];
+    const artPlane = new THREE.PlaneGeometry(this.artWidth, this.artHeight, 0);
+
     if (!this.iMaterial) {
       this.iMaterial = new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide,
@@ -337,6 +355,7 @@ class Frame {
       this.group.remove(this.frameMesh);
     }
     this.artMesh = new THREE.Mesh(artPlane, this.iMaterial);
+    this.artMesh.file = file;
     this.artMesh.name = "artMesh";
     this.artMesh.getWallData = this.getWallData;
     // this.artMesh.rescale = this.rescale;
@@ -371,6 +390,7 @@ class Frame {
   };
 
   setFrameColor({ selectedTile }) {
+    this.selectedTile = selectedTile;
     if (selectedTile.color) {
       this.fmaterial.map = null;
       this.fmaterial.needsUpdate = true;

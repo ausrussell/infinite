@@ -59,7 +59,7 @@ class Builder extends Component {
     this.transformDirectionVector = new THREE.Vector3();
     this.transformDirectionRay = new THREE.Raycaster();
 
-    this.gltfExporter = new GLTFExporter();
+    // this.gltfExporter = new GLTFExporter();
   }
   componentDidMount() {
     this.setUpScene();
@@ -248,21 +248,23 @@ class Builder extends Component {
   };
 
   saveGallery = () => {
-    console.log("wall entities", this.state.wallEntities);
     this.galleryData = {};
     this.galleryData.name = this.state.galleryTitle;
     this.galleryData.nameEncoded = encodeURIComponent(this.state.galleryTitle);
+    console.log("saveGallery galleryData", this.galleryData);
 
-    this.gltfExporter.parse(this.scene, gltf => {
-      this.props.firebase.storeGalleryGltf(this.galleryData, gltf);
-    });
-
-    // debugger;
-    return;
+    // this.gltfExporter.parse(this.scene, gltf => {
+    //   console.log("this.scene", this.scene);
+    //   console.log("this.gltf", gltf);
+    //   this.props.firebase.storeGalleryGltf(this.galleryData, gltf);
+    // });
+    // return;
     // this.makeGallerySave()
 
     this.galleryData.floorplan = this.state.floorplan;
+    this.galleryData.floor = this.floor.getExport();
     this.galleryData.wallData = [];
+    this.galleryData.walls = [];
 
     this.state.wallEntities.forEach(item => {
       const wall = (({ col, row, pos, height, opacity }) => ({
@@ -272,69 +274,77 @@ class Builder extends Component {
         height,
         opacity
       }))(item);
-      wall.sides = {};
-      this.framesToSave = [];
-      this.galleryData.wallData.push(wall);
-      this.state.wallEntities.forEach((item, wallIndex) => {
-        const wall = (({ col, row, pos, height, opacity }) => ({
-          col,
-          row,
-          pos,
-          height,
-          opacity
-        }))(item);
-
-        Object.entries(item.sides).forEach((value, index) => {
-          const side = value[1];
-
-          console.log("sides", side, index);
-          const sideFrames = side.frames;
-          sideFrames.forEach((item, wallIndex) => {
-            this.framesToSave.push(item);
-            console.log("item", item);
-          });
-          console.log(value[0]);
-          // wall.sides[value[0]] = frames;
-        });
-
-        // console.log("this.scene for export", this.scene);
-      });
+      // const wall = { front: null, back: null };
+      // this.state.wallEntities.forEach((item, wallIndex) => {
+      //   const wall = (({ col, row, pos, height, opacity }) => ({
+      //     col,
+      //     row,
+      //     pos,
+      //     height,
+      //     opacity
+      //   }))(item);
+      // wall.sides = {};
+      // Object.entries(item.sides).forEach((value, index) => {
+      //   const side = value[1];
+      //   const framesToSave = [];
+      //
+      //   console.log("sides", side, index);
+      //   const sideFrames = side.frames;
+      //   sideFrames.forEach((item, wallIndex) => {
+      //     // this.framesToSave.push(item);
+      //     console.log("item", item);
+      //     // const { group, artMesh, frameMesh } = item;
+      //     // const frameData = {
+      //     //   group: group.position,
+      //     //   artMesh: artMesh,
+      //     //   frameMesh: frameMesh
+      //     // };
+      //     const frameData = item.getExport();
+      //
+      //     framesToSave.push(JSON.stringify(frameData));
+      //   });
+      //   console.log(value[0]);
+      //
+      //   wall.sides[value[0]] = framesToSave;
+      // });
+      // this.galleryData.wallData.push(wall);
+      this.galleryData.walls.push(item.getExport());
+      // console.log("this.scene for export", this.scene);
+      // });
     });
-    console.log("finished loops galleryData", this.galleryData);
-    console.log("this.framesToSave", this.framesToSave);
-    this.framesToResolve = [];
-    this.framesToSave.forEach((item, index2) => {
-      this.gltfExporter.parse(item.group, gltf => {
-        // gltf.accessors.forEach(item => (item.byteOffset = 0));
-        gltf = JSON.parse(
-          JSON.stringify(gltf, function(k, v) {
-            if (v === undefined) {
-              return null;
-            }
-            return v;
-          })
-        );
-        this.framesToSave[index2] = { gltf: gltf };
-        this.framesToResolve.push(Promise.resolve(gltf));
-        if (this.framesToSave.length === this.framesToResolve.length) {
-          Promise.all(this.framesToResolve).then(
-            this.makeGalleryDbSave.bind(this)
-          );
-        }
-      });
-
-      // this.props.firebase.storeGallery(galleryData);
-    });
+    this.makeGalleryDbSave();
+    // return;
+    // console.log("finished loops galleryData", this.galleryData);
+    // console.log("this.framesToSave", this.framesToSave);
+    // this.framesToResolve = [];
+    // this.framesToSave.forEach((item, index2) => {
+    //   this.gltfExporter.parse(item.group, gltf => {
+    //     // gltf.accessors.forEach(item => (item.byteOffset = 0));
+    //     gltf = JSON.parse(
+    //       JSON.stringify(gltf, function(k, v) {
+    //         if (v === undefined) {
+    //           return null;
+    //         }
+    //         return v;
+    //       })
+    //     );
+    //     this.framesToSave[index2] = { gltf: gltf };
+    //     this.framesToResolve.push(Promise.resolve(gltf));
+    //     if (this.framesToSave.length === this.framesToResolve.length) {
+    //       Promise.all(this.framesToResolve).then(
+    //         this.makeGalleryDbSave.bind(this)
+    //       );
+    //     }
+    //   });
+    //
+    //   // this.props.firebase.storeGallery(galleryData);
+    // });
     // this.props.firebase.storeGallery(galleryData);
   };
 
-  makeGalleryDbSave(galleryData) {
-    this.galleryData.frameGroups = this.framesToSave;
-    console.log(
-      "makeGalleryDbSave this.framesToSave",
-      this.galleryData,
-      this.framesToSave
-    );
+  makeGalleryDbSave() {
+    // this.galleryData.frameGroups = this.framesToSave;
+    console.log("makeGalleryDbSave this.framesToSave", this.galleryData);
     this.props.firebase.storeGallery(this.galleryData);
   }
 

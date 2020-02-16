@@ -5,6 +5,7 @@ export default class Floor {
   constructor(builder) {
     this.builder = builder;
     this.addFloorMesh();
+    this.export = {};
   }
   // setScene(scene) {
   //   this.scene = scene;
@@ -17,12 +18,6 @@ export default class Floor {
       this.builder.gridWidth,
       this.builder.gridDepth
     );
-    // debugger;
-    // this.floorMaterial = new THREE.MeshLambertMaterial({
-    //   //MeshStandardMaterial
-    //   color: "#ffffff",
-    //   side: THREE.DoubleSide
-    // });
 
     this.floorMaterial = new THREE.MeshStandardMaterial({
       roughness: 0.8,
@@ -94,6 +89,8 @@ export default class Floor {
   };
 
   floorTileCallback = item => {
+    console.log("floorTileCallback item", item);
+    this.export = item;
     console.log("floor tile", item);
     if (item.color) {
       this.floorMaterial.map = null;
@@ -120,4 +117,6 @@ export default class Floor {
       );
     }
   };
+
+  getExport = () => this.export;
 }
