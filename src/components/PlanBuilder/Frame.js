@@ -36,8 +36,8 @@ class Frame {
     this.export.frame = this.selectedTile;
     this.export.art = {
       file: this.artMesh.file, //iMaterial.map,
-      width: this.artMesh.geometry.parameters.width,
-      height: this.artMesh.geometry.parameters.height
+      width: this.artMesh.geometry.parameters.width * this.artMesh.scale.x,
+      height: this.artMesh.geometry.parameters.height * this.artMesh.scale.y
     };
 
     return this.export;

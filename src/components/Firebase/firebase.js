@@ -112,14 +112,26 @@ class Firebase {
     const galleryRef = this.database.ref("galleries");
     galleryRef
       .orderByChild("name")
-      .equalTo(name)
+      .equalTo(name.replace("_", " "))
       .on("value", callback);
+  };
+
+  getGalleryById = id => {
+    console.log("getGalleryById", id);
+    const galleryRef = this.database.ref("galleries/" + id);
+    return galleryRef;
   };
 
   getGalleryList = callback => {
     const galleryRef = this.database.ref("galleries");
     galleryRef.orderByChild("name").on("value", callback);
     console.log("getGalleryList");
+  };
+
+  getGalleryEditList = callback => {
+    const galleryRef = this.database.ref("galleries");
+    galleryRef.orderByChild("name").on("value", callback); //need to add query by user
+    console.log("getGalleryEditList");
   };
 
   removePlan = key => {

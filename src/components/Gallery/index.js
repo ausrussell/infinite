@@ -24,6 +24,8 @@ import GeneralLight from "../PlanBuilder/GeneralLight";
 import FrameDisplayObject from "./FrameDisplayObject";
 // import GLTFLoader from "three-gltf-loader";
 import SceneLoader from "./SceneLoader";
+const wallWidth = 20;
+
 class Gallery extends Component {
   state = {
     wallOver: {},
@@ -39,10 +41,13 @@ class Gallery extends Component {
     // debugger;
     this.walls = props.walls;
     this.wallHeight = 60;
-    this.gridWidth = 680;
 
     this.voxelsX = 14;
     this.voxelsY = 10;
+    this.gridWidth = this.voxelsX * wallWidth;
+
+    this.gridDepth = this.voxelsY * wallWidth;
+
     console.log(this.walls, this.voxelsX);
     this.clock = new THREE.Clock();
     this.frameObjects = [];
@@ -145,50 +150,6 @@ class Gallery extends Component {
     };
     this.sceneLoader = new SceneLoader(options);
     this.sceneLoader.renderData();
-    // console.log("this.galleryData.galleryRef", this.galleryData.galleryRef);
-    // this.loader.load(
-    //   // resource URL
-    //   this.galleryData.galleryRef,
-    //   // called when the resource is loaded
-    //   gltf => {
-    //     console.log("gltf", gltf);
-    //     // gltf.scene.traverse(child => {
-    //     gltf.scene.children.forEach(child => {
-    //       console.log("child", child);
-    //       // if (child.name === "wallMesh" || child.name === "artHolder")
-    //       this.scene.add(child);
-    //     });
-    //     // this.gltfScene = gltf.scene;
-    //     // this.scene.add(gltf.scene);
-    //     this.scene.updateMatrixWorld(true);
-    //     // console.log("gltf.scene", gltf.scene);
-    //     // console.log("this.scene", this.scene);
-    //     //
-    //     // gltf.scene.children.forEach(item => {
-    //     //   console.log("child item", item);
-    //     //   // const anyWallMesh = this.isWallMesh(item);
-    //     //   // console.log("anyWallMesh", anyWallMesh);
-    //     //   //
-    //     //   // anyWallMesh &&
-    //     //   // this.wallMeshes.push(item);
-    //     // });
-    //     // console.log("this.wallMeshes", this.wallMeshes);
-    //
-    //     // gltf.animations; // Array<THREE.AnimationClip>
-    //     // gltf.scene; // THREE.Scene
-    //     // gltf.scenes; // Array<THREE.Scene>
-    //     // gltf.cameras; // Array<THREE.Camera>
-    //     // gltf.asset; // Object
-    //   },
-    //   // called while loading is progressing
-    //   function(xhr) {
-    //     console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-    //   },
-    //   // called when loading has errors
-    //   function(error) {
-    //     console.log("An error happened", error);
-    //   }
-    // );
   }
   setCamera() {
     this.camera.position.z = 350;

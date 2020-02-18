@@ -291,7 +291,6 @@ class FlaneurControls {
 
     // If our ray hit a collidable object, return true
     if (this.builder.rayIntersect(rayCaster, this.collisionDistance)) {
-      // debugger;
       console.log("flaneur collide");
       return true;
     } else {
@@ -450,8 +449,8 @@ class FlaneurControls {
     this.clickFloorPlane = new THREE.Mesh(
       clickFloorPlaneGeo,
       new THREE.MeshStandardMaterial({
-        visible: false
-        // color: 0xf1f2ff
+        // visible: false
+        color: 0xf10000
       })
     );
     this.clickFloorPlane.translateY(0.1);
@@ -464,7 +463,7 @@ class FlaneurControls {
     const footGeo = new THREE.PlaneBufferGeometry(20, 20);
     footGeo.rotateX(-Math.PI / 2);
     const footHoverMaterial = new THREE.MeshBasicMaterial({
-      // color: 0xfefaf1,
+      color: 0xfefaf1,
 
       opacity: 0.5,
       transparent: true,
@@ -528,15 +527,17 @@ class FlaneurControls {
     } else {
       collidableObjects = this.builder.wallEntities.map(item => item.getMesh());
     }
-    // console.log("collidableObjects", collidableObjects);
-    // let all = collidableObjects.concat(this.builder.scene.children);
-    let all = collidableObjects;
+    console.log("collidableObjects", collidableObjects);
+    let all = collidableObjects.concat(this.builder.scene.children);
+    // let all = collidableObjects;
     // console.log("all", all);
-    // debugger;
-    const intersectedAll = this.raycaster.intersectObjects(collidableObjects);
+    const intersectedAll = this.raycaster.intersectObjects(all); //collidableObjects
+    console.log("intersectedAll", intersectedAll);
     const intersected0 = intersectedAll[0];
-    console.log("intersected0", intersected0);
+    // console.log("intersected0", intersected0.object.name);
+
     if (!intersected0) return intersect;
+    console.log("intersected0", intersected0.object.name);
 
     switch (intersected0.object.name) {
       case "footHover":
@@ -556,8 +557,10 @@ class FlaneurControls {
   }
 
   checkForFloorHover() {
+    console.log("checkForFloorHover");
     this.builder.scene.remove(this.footstepsHoverMesh);
     const intersect = this.checkForIntersecting();
+    console.log("checkForFloorHover intersect", intersect);
     if (intersect.clickFloorPlane) {
       if (!this.builder.scene.getObjectByName("footHover")) {
         this.builder.scene.add(this.footstepsHoverMesh);

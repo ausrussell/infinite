@@ -1,13 +1,10 @@
 import React, { Component } from "react";
 
 import { withFirebase } from "../Firebase";
-import { Row, Col, Card } from "antd";
+// import { Row, Col, Card } from "antd";
 
 const GalleryListItem = props => {
   console.log("props.data", props.data);
-  // const val = data.val();
-  // const gallery = data.val();
-  console.log("GalleryListItem", props.data.val());
   const galleryData = props.data.val();
   const { key } = props.data;
   console.log("key, galleryData", key, galleryData);

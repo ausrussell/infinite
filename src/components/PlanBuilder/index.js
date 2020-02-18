@@ -26,6 +26,8 @@ import Draggable from "./Draggable";
 
 import GalleryTitle from "./GalleryTitle";
 
+import GalleryEditDropdown from "../Gallery/GalleryEditDropdown";
+
 const wallWidth = 20;
 
 const degreesToRadians = degrees => {
@@ -247,20 +249,99 @@ class Builder extends Component {
     this.setState({ galleryTitle: target.value });
   };
 
+  onEditDropdownChangeHandler = value => {
+    console.log("onEditDropdownChangeHandler", value);
+    const { floorplan } = value;
+    // debugger;
+    this.setState({ floorplan: floorplan.data });
+    this.floorPlan = floorplan.data;
+    // disposeHierarchy(this.scene, () => this.loadGalleryToEdit());
+    this.removeWalls();
+    // this.loadGalleryToEdit();
+  };
+
+  loadGalleryToEdit() {
+    this.setWalls();
+    this.setFloor();
+    // this.addHelperGrid();
+    // this.renderRenderer();
+    this.animate();
+    this.initialWallBuild();
+  }
+
+  removeWalls() {
+    console.log("before dispose", this.scene);
+
+    this.disposeHierarchy(this.scene, this.disposeCallback);
+    console.log("after dispose", this.scene);
+    // this.wallMeshes.forEach(item => {
+    //   console.log("wallMeshes", item);
+    //   item.dispose();
+    //   // this.disposeHierarchy(item.parent, this.disposeCallback);
+    // });
+  }
+  disposeHierarchy(node, callback) {
+    console.log("disposeHierarchy", node);
+    // debugger;
+
+    for (var i = node.children.length - 1; i >= 0; i--) {
+      var child = node.children[i];
+      this.disposeHierarchy(child, this.disposeNode);
+      callback(child);
+    }
+  }
+
+  disposeNode(parentObject) {
+    console.log("disposeNode", parentObject);
+    parentObject.traverse(function(node) {
+      if (node instanceof THREE.Mesh) {
+        console.log("node to dispose", node);
+        if (node.geometry) {
+          node.geometry.dispose();
+        }
+
+        if (node.material) {
+          console.log("node.material", node.material);
+          if (
+            node.material instanceof THREE.MeshFaceMaterial ||
+            node.material instanceof THREE.MultiMaterial
+          ) {
+            node.material.materials.forEach(function(mtrl, idx) {
+              if (mtrl.map) mtrl.map.dispose();
+              if (mtrl.lightMap) mtrl.lightMap.dispose();
+              if (mtrl.bumpMap) mtrl.bumpMap.dispose();
+              if (mtrl.normalMap) mtrl.normalMap.dispose();
+              if (mtrl.specularMap) mtrl.specularMap.dispose();
+              if (mtrl.envMap) mtrl.envMap.dispose();
+
+              mtrl.dispose(); // disposes any programs associated with the material
+            });
+          } else {
+            if (node.material.map) node.material.map.dispose();
+            if (node.material.lightMap) node.material.lightMap.dispose();
+            if (node.material.bumpMap) node.material.bumpMap.dispose();
+            if (node.material.normalMap) node.material.normalMap.dispose();
+            if (node.material.specularMap) node.material.specularMap.dispose();
+            if (node.material.envMap) node.material.envMap.dispose();
+
+            node.material.dispose(); // disposes any programs associated with the material
+          }
+        }
+      }
+    });
+  }
+  disposeCallback = item => {
+    console.log("disposeCallback", item);
+    item.remove();
+  };
+
   saveGallery = () => {
     this.galleryData = {};
     this.galleryData.name = this.state.galleryTitle;
-    this.galleryData.nameEncoded = encodeURIComponent(this.state.galleryTitle);
+    this.galleryData.nameEncoded = encodeURIComponent(
+      this.state.galleryTitle.replace(" ", "_")
+    );
     console.log("saveGallery galleryData", this.galleryData);
-
-    // this.gltfExporter.parse(this.scene, gltf => {
-    //   console.log("this.scene", this.scene);
-    //   console.log("this.gltf", gltf);
-    //   this.props.firebase.storeGalleryGltf(this.galleryData, gltf);
-    // });
-    // return;
-    // this.makeGallerySave()
-
     this.galleryData.floorplan = this.state.floorplan;
     this.galleryData.floor = this.floor.getExport();
     this.galleryData.wallData = [];
@@ -546,7 +627,7 @@ class Builder extends Component {
       // intersect &&
       //   console.log("intersect.object.name", intersect, intersect.object.name);
     });
-    // if (canMove !== fourCornersAr.length) debugger;
+    // if (canMove !== fourCornersAr.length)
     return canMove === fourCornersAr.length;
   };
 
@@ -722,6 +803,7 @@ class Builder extends Component {
   }
 
   initialWallBuild() {
+    console.log("initialWallBuild this.wallEntities", this.wallEntities);
     this.wallEntities.forEach((item, index) => item.initialAnimateBuild(index));
     this.wallMeshes = this.wallEntities.map(item => item.getMesh()); //used for raycaster, needs to occur after rendering
   }
@@ -807,27 +889,27 @@ class Builder extends Component {
     let floors = {
       0: {
         name: "Art",
-        y: 470,
+        y: 0,
         floorComponent: VaultFloor,
         refPath: "users/" + this.props.firebase.currentUID + "/art",
-        level: 2,
+        level: 0,
         tileCallback: this.artClickHandler.bind(this),
         draggable: true
       },
       1: {
         name: "Frames",
-        y: 0,
+        y: 235,
         floorComponent: VaultFloor,
         refPath: "master/frametiles",
-        level: 0,
+        level: 1,
         tileCallback: this.frameClickHandler.bind(this) //to do
       },
       2: {
         name: "Floor surfaces",
-        y: 235,
+        y: 470,
         floorComponent: VaultFloor,
         refPath: "master/floortiles",
-        level: 1,
+        level: 2,
         tileCallback: this.floorTileCallback.bind(this)
       }
     };
@@ -854,6 +936,8 @@ class Builder extends Component {
             content={this.state.galleryTitle}
             onTitleChangeHandler={this.onTitleChangeHandler}
           />
+          Edit::{" "}
+          <GalleryEditDropdown callback={this.onEditDropdownChangeHandler} />
           <SaveButton onClick={this.saveGallery} />
         </div>
         <h3>Floorplan: {this.state.floorplan && this.state.floorplan.title}</h3>

@@ -18,11 +18,6 @@ class SceneLoader {
     this.renderWalls();
   }
   renderFloor() {
-    // const options = {
-    //   scene: this.scene,
-    //   floorItem: this.sceneData.floor,
-    //   builder: this
-    // };
     this.floor = new FloorDisplay(this);
     this.floor.renderFloor();
   }
