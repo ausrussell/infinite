@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import Animate from "../../Helpers/animate";
 
 class Frame {
   constructor(props, side = "front") {
@@ -13,7 +14,7 @@ class Frame {
     this.maxFrameWidth = this.wallWidth * 0.8;
     this.maxFrameHeight = wallHeight * 0.8;
     this.hasArt = this.wall.sides[side].hasArt;
-    this.loader = new THREE.TextureLoader();
+    this.textureLoader = new THREE.TextureLoader();
     this.side = side;
     this.offset = new THREE.Vector3();
     this.group = new THREE.Group();
@@ -44,11 +45,11 @@ class Frame {
   }
 
   setDefaultFrameMaterial() {
-    // const texture1 = this.loader.load("../textures/wood/wood3.png");
+    // const texture1 = this.textureLoader.load("../textures/wood/wood3.png");
     this.fmaterial = new THREE.MeshLambertMaterial({
       color: 0x666666,
-      side: THREE.DoubleSide
-      // transparent: true,
+      side: THREE.DoubleSide,
+      transparent: true
       // map: texture1
     });
   }
@@ -170,7 +171,7 @@ class Frame {
       bevelSegments: 8
     };
 
-    console.log("ExtrudeBufferGeometry", shape, extrudeSettings);
+    //console.log("ExtrudeBufferGeometry", shape, extrudeSettings);
 
     // __arcLengthDivisions: (...)
     // type: "Shape"
@@ -251,7 +252,7 @@ class Frame {
     console.log("this.artMesh.position", this.artMesh.position);
     console.log("this.frameMesh.position", this.frameMesh.position);
   }
-  showFrameMesh() {
+  showFrameMesh(opacity = 1) {
     // this.frameMesh.material.transparent = false;
     this.frameMesh.material.opacity = 1;
   }
@@ -303,6 +304,69 @@ class Frame {
         }
       );
     }
+  }
+
+  setGroup(groupPosition) {
+    this.wall.wallGroup.add(this.group);
+    this.group.position.set(groupPosition.x, groupPosition.y, 0);
+  }
+
+  setArt(art) {
+    console.log("art", art);
+    const texture = this.textureLoader.load(art.file);
+    const artPlane = new THREE.PlaneGeometry(art.width, art.height, 0);
+    this.iMaterial = new THREE.MeshBasicMaterial({
+      side: THREE.DoubleSide,
+      map: texture,
+      opacity: 0,
+      transparent: true
+    });
+    this.artMesh = new THREE.Mesh(artPlane, this.iMaterial);
+    this.artMesh.translateZ(this.wallDepth);
+    this.group.add(this.artMesh);
+    if (this.side === "back") this.group.rotateY(Math.PI);
+  }
+
+  setFrame(frame) {
+    console.log("frame", frame);
+    this.setFrameMesh(this.artMesh.geometry);
+    this.frameMesh.material.opacity = 0;
+    console.log("setFrame this.frameMesh", this.frameMesh);
+    if (frame.color) {
+      this.fmaterial.map = null;
+      this.fmaterial.needsUpdate = true;
+      this.fmaterial.color.set(frame.color);
+    } else {
+      // loader.crossOrigin = "";
+      this.textureLoader.load(frame.url, texture => {
+        console.log("frame.url", frame.url);
+        this.loadHandler(texture);
+      });
+    }
+    this.group.add(this.frameMesh);
+  }
+
+  fadeFrameIn() {
+    const fadeAni = new Animate({
+      duration: 450,
+      timing: "circ",
+      draw: progress => this.fadingIn(progress)
+    });
+
+    fadeAni.animate(performance.now());
+  }
+  fadingIn = progress => {
+    progress += 0.01;
+    this.show(progress);
+    if (this.frameMesh) this.frameMesh.material.opacity = progress;
+  };
+
+  addFrameFromData(item) {
+    console.log("addFrameFromData", item);
+    const { groupPosition, art, frame } = item;
+    this.setGroup(groupPosition);
+    this.setArt(art);
+    frame && this.setFrame(frame);
   }
 
   fitToFrame(w, h, fitW, fitH) {
@@ -375,10 +439,6 @@ class Frame {
     }
 
     this.wall.builder.setSceneMeshes(); //maybe update method in builder
-
-    // console.log("this.group.position", this.group.position);
-    // console.log("this.artMesh.position", this.artMesh.position);
-    // console.log("this.frameMesh.position", this.frameMesh.position);
   }
 
   loadHandler = texture => {
@@ -402,15 +462,9 @@ class Frame {
     }
   }
   show(opacity = 1) {
-    console.log("show this.artMesh.material this", this);
-
-    console.log(
-      "show this.artMesh.material this.artMesh.material",
-      this.artMesh.material
-    );
     this.artMesh.material.opacity = opacity;
-    // this.artMesh.material.opacity = 0.5;
   }
+
   hide() {
     this.mesh.material.opacity = 0;
   }

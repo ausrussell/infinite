@@ -251,89 +251,41 @@ class Builder extends Component {
 
   onEditDropdownChangeHandler = value => {
     console.log("onEditDropdownChangeHandler", value);
-    const { floorplan } = value;
-    // debugger;
-    this.setState({ floorplan: floorplan.data });
+    const { name, floorplan, walls } = value;
+    this.setState({ galleryTitle: name, floorplan: floorplan.data });
     this.floorPlan = floorplan.data;
     // disposeHierarchy(this.scene, () => this.loadGalleryToEdit());
     this.removeWalls();
+    this.setEditWalls(walls);
+    // this.animate();
+    this.initialWallBuild(this.fadeInArt);
     // this.loadGalleryToEdit();
   };
 
-  loadGalleryToEdit() {
-    this.setWalls();
-    this.setFloor();
-    // this.addHelperGrid();
-    // this.renderRenderer();
-    this.animate();
-    this.initialWallBuild();
-  }
+  fadeInArt = index => {
+    this.wallEntities[index].fadeInArt();
+  };
+
+  // loadGalleryToEdit() {
+  //   this.setWalls();
+  //   this.setFloor();
+  //   // this.addHelperGrid();
+  //   // this.renderRenderer();
+  //   this.animate();
+  //   this.initialWallBuild();
+  // }
 
   removeWalls() {
     console.log("before dispose", this.scene);
 
-    this.disposeHierarchy(this.scene, this.disposeCallback);
+    // this.disposeHierarchy(this.scene, this.disposeCallback);
     console.log("after dispose", this.scene);
-    // this.wallMeshes.forEach(item => {
-    //   console.log("wallMeshes", item);
-    //   item.dispose();
-    //   // this.disposeHierarchy(item.parent, this.disposeCallback);
-    // });
-  }
-  disposeHierarchy(node, callback) {
-    console.log("disposeHierarchy", node);
-    // debugger;
-
-    for (var i = node.children.length - 1; i >= 0; i--) {
-      var child = node.children[i];
-      this.disposeHierarchy(child, this.disposeNode);
-      callback(child);
-    }
-  }
-
-  disposeNode(parentObject) {
-    console.log("disposeNode", parentObject);
-    parentObject.traverse(function(node) {
-      if (node instanceof THREE.Mesh) {
-        console.log("node to dispose", node);
-        if (node.geometry) {
-          node.geometry.dispose();
-        }
-
-        if (node.material) {
-          console.log("node.material", node.material);
-          if (
-            node.material instanceof THREE.MeshFaceMaterial ||
-            node.material instanceof THREE.MultiMaterial
-          ) {
-            node.material.materials.forEach(function(mtrl, idx) {
-              if (mtrl.map) mtrl.map.dispose();
-              if (mtrl.lightMap) mtrl.lightMap.dispose();
-              if (mtrl.bumpMap) mtrl.bumpMap.dispose();
-              if (mtrl.normalMap) mtrl.normalMap.dispose();
-              if (mtrl.specularMap) mtrl.specularMap.dispose();
-              if (mtrl.envMap) mtrl.envMap.dispose();
-
-              mtrl.dispose(); // disposes any programs associated with the material
-            });
-          } else {
-            if (node.material.map) node.material.map.dispose();
-            if (node.material.lightMap) node.material.lightMap.dispose();
-            if (node.material.bumpMap) node.material.bumpMap.dispose();
-            if (node.material.normalMap) node.material.normalMap.dispose();
-            if (node.material.specularMap) node.material.specularMap.dispose();
-            if (node.material.envMap) node.material.envMap.dispose();
-
-            node.material.dispose(); // disposes any programs associated with the material
-          }
-        }
-      }
+    this.wallEntities.forEach(item => {
+      // console.log("wallMeshes", item);
+      item.removeGroup();
+      // this.disposeHierarchy(item.parent, this.disposeCallback);
     });
   }
-  disposeCallback = item => {
-    console.log("disposeCallback", item);
-    item.remove();
-  };
 
   saveGallery = () => {
     this.galleryData = {};
@@ -796,15 +748,33 @@ class Builder extends Component {
     this.setState({ wallEntities: this.wallEntities });
   }
 
+  setEditWalls(walls) {
+    this.voxelsX = this.floorPlan.length;
+    this.voxelsY = this.floorPlan[0].length;
+    this.wallEntities = [];
+    walls.forEach(wall => {
+      const { col, row, pos, sides } = wall;
+      const options = { x: col, y: row, pos: pos, builder: this };
+      this.newWall = new WallObject(options);
+      if (sides) this.newWall.addSidesFromData(sides);
+      this.wallEntities = [...this.wallEntities, this.newWall];
+    });
+    this.setState({ wallEntities: this.wallEntities });
+    console.log("this.wallEntities", this.wallEntities);
+  }
+
   setFloor() {
     this.gridWidth = this.voxelsX * wallWidth;
     this.gridDepth = this.voxelsY * wallWidth;
     this.floor = new Floor(this);
   }
 
-  initialWallBuild() {
+  initialWallBuild(done) {
     console.log("initialWallBuild this.wallEntities", this.wallEntities);
-    this.wallEntities.forEach((item, index) => item.initialAnimateBuild(index));
+    this.wallEntities.forEach((item, index) => {
+      console.log("initialWallBuild wall", item, done);
+      item.initialAnimateBuild(index, done);
+    });
     this.wallMeshes = this.wallEntities.map(item => item.getMesh()); //used for raycaster, needs to occur after rendering
   }
 

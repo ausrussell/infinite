@@ -6,7 +6,7 @@ class VaultFloor extends Component {
     tilesData: []
   };
   constructor(props) {
-    console.log("VaultFloor props", props);
+    //console.log("VaultFloor props", props);
     super(props);
     // this.refPath = props.refPath;
     this.tileCallback = props.tileCallback;
@@ -41,7 +41,7 @@ class VaultFloor extends Component {
   };
 
   renderTile(snapshot) {
-    console.log("renderTile(snapshot)", snapshot);
+    //console.log("renderTile(snapshot)", snapshot);
     const tileData = snapshot.val();
     const { url, color } = tileData;
     const { key } = snapshot;
@@ -86,7 +86,7 @@ class VaultFloor extends Component {
 
   render() {
     const { tilesData } = this.state;
-    console.log("tilesData", tilesData, tilesData.length);
+    //console.log("tilesData", tilesData, tilesData.length);
     return (
       <div className="tile-holder">
         {tilesData.length > 0 ? (
@@ -101,7 +101,7 @@ class VaultFloor extends Component {
 
 const Tile = props => {
   const { style, onClick, onMouseDown } = props;
-  console.log("Tile", props);
+  //console.log("Tile", props);
   return (
     <div className="tile" onClick={onClick}>
       <div className="tile-image" style={style} onMouseDown={onMouseDown} />

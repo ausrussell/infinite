@@ -126,12 +126,7 @@ class FlaneurControls {
 
     this.mouseDragOn = true;
     const hoverIntersect = this.checkForIntersecting();
-    console.log("hoverIntersect in mousedown", hoverIntersect);
     if (hoverIntersect.footstepsHover) {
-      console.log(
-        "hoverIntersect.footstepsHover",
-        hoverIntersect.footstepsHover
-      );
       this.moveToDestination();
     }
   };
@@ -164,9 +159,6 @@ class FlaneurControls {
   };
 
   onKeyDown = event => {
-    //event.preventDefault();
-    console.log("flaneur onKeyDown", this.domElement);
-
     switch (event.keyCode) {
       case 38: /*up*/
       case 87:
@@ -291,7 +283,6 @@ class FlaneurControls {
 
     // If our ray hit a collidable object, return true
     if (this.builder.rayIntersect(rayCaster, this.collisionDistance)) {
-      console.log("flaneur collide");
       return true;
     } else {
       return false;
@@ -349,7 +340,6 @@ class FlaneurControls {
     }
   }
   cameraTimer = () => {
-    console.log("cameraTimer");
     this.setOrientation();
     // this.targetSetExternally = true;
     // this.update();
@@ -513,7 +503,6 @@ class FlaneurControls {
     this.moveToDestinationAni.end();
     this.builder.scene.remove(this.footstepsDestinationMesh);
     this.currentDestination = null;
-    console.log("doneMoveToDestination", this.object.position);
   };
 
   checkForIntersecting() {
@@ -527,17 +516,12 @@ class FlaneurControls {
     } else {
       collidableObjects = this.builder.wallEntities.map(item => item.getMesh());
     }
-    console.log("collidableObjects", collidableObjects);
     let all = collidableObjects.concat(this.builder.scene.children);
     // let all = collidableObjects;
-    // console.log("all", all);
     const intersectedAll = this.raycaster.intersectObjects(all); //collidableObjects
-    console.log("intersectedAll", intersectedAll);
     const intersected0 = intersectedAll[0];
-    // console.log("intersected0", intersected0.object.name);
 
     if (!intersected0) return intersect;
-    console.log("intersected0", intersected0.object.name);
 
     switch (intersected0.object.name) {
       case "footHover":
@@ -557,10 +541,10 @@ class FlaneurControls {
   }
 
   checkForFloorHover() {
-    console.log("checkForFloorHover");
+    //console.log("checkForFloorHover");
     this.builder.scene.remove(this.footstepsHoverMesh);
     const intersect = this.checkForIntersecting();
-    console.log("checkForFloorHover intersect", intersect);
+    //console.log("checkForFloorHover intersect", intersect);
     if (intersect.clickFloorPlane) {
       if (!this.builder.scene.getObjectByName("footHover")) {
         this.builder.scene.add(this.footstepsHoverMesh);

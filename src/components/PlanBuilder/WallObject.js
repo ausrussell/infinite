@@ -6,6 +6,7 @@ import Animate from "../../Helpers/animate";
 
 class WallObject {
   constructor(options) {
+    console.log("WallObject", options);
     const { x, y, pos, builder } = options;
     this.col = x;
     this.row = y;
@@ -36,7 +37,7 @@ class WallObject {
       height,
       opacity
     }))(this);
-    console.log("wall this.export", this.export);
+    //console.log("wall this.export", this.export);
   }
 
   addArtToExport() {
@@ -47,16 +48,7 @@ class WallObject {
 
       console.log("sides", side, index);
       const sideFrames = side.frames;
-      sideFrames.forEach((item, wallIndex) => {
-        // this.framesToSave.push(item);
-        // item.getExport();
-        // console.log("item", item);
-        // const { group, artMesh, frameMesh } = item;
-        // const frameData = {
-        //   group: group.position,
-        //   artMesh: artMesh,
-        //   frameMesh: frameMesh
-        // };
+      sideFrames.forEach(item => {
         const frameData = item.getExport();
         framesToSave.push(JSON.stringify(frameData));
       });
@@ -71,10 +63,13 @@ class WallObject {
     return this.export;
   };
 
-  initialAnimateBuild(index) {
+  initialAnimateBuild(index, done) {
     const animationStartDelay =
       this.builder.initialAnimationTime / this.builder.wallEntities.length;
-    setTimeout(() => this.animateWallBuild(), index * animationStartDelay);
+    setTimeout(() => {
+      console.log("start wall ", done);
+      this.animateWallBuild(() => done && done(index));
+    }, index * animationStartDelay);
   }
 
   setXZPos() {
@@ -113,11 +108,12 @@ class WallObject {
     }
   }
 
-  animateWallBuild() {
+  animateWallBuild(done) {
     const wallAni = new Animate({
       duration: 1000,
       timing: "circ",
-      draw: progress => this.drawing(progress)
+      draw: progress => this.drawing(progress),
+      done: done
     });
 
     wallAni.animate(performance.now());
@@ -138,7 +134,7 @@ class WallObject {
     return this.wallMesh;
   }
   dragEnterHandler(side) {
-    console.log("dragEnterHandler", side);
+    //console.log("dragEnterHandler", side);
     this.currentSideOver = this.sides[side];
     this.currentSideOver.wallLight.hoverOn();
     this.wallGroup.add(this.currentSideOver.wallLight.spotLight);
@@ -178,7 +174,7 @@ class WallObject {
       index: 0
     };
     this.sides[side].defaultFrame.setDefaultFrameGroup(options);
-    this.sides[side].frames = [];
+    this.sides[side].frames = []; /// maybe move to constructor
   }
 
   positionMovedHolder(artMesh, side) {
@@ -188,11 +184,11 @@ class WallObject {
     this.sides[side].hasArt = true;
     this.currentSideOver = this.sides[side];
     this.updateWallLight(side);
-    console.log("positionMovedHolder this.wallGroup", this.wallGroup);
-    console.log(
-      "positionMovedHolder this.currentSideOver",
-      this.currentSideOver
-    );
+    //console.log("positionMovedHolder this.wallGroup", this.wallGroup);
+    //console.log(
+    //   "positionMovedHolder this.currentSideOver",
+    //   this.currentSideOver
+    // );
   }
 
   updateWallLight(side) {
@@ -221,6 +217,61 @@ class WallObject {
     );
     this.switchLightOffIfNoArt(side);
   }
+  disposeHierarchy(node, callback) {
+    for (var i = node.children.length - 1; i >= 0; i--) {
+      var child = node.children[i];
+      this.disposeHierarchy(child, this.disposeNode);
+      callback(child);
+    }
+  }
+
+  disposeNode(parentObject) {
+    parentObject.traverse(function(node) {
+      if (node instanceof THREE.Mesh) {
+        if (node.geometry) {
+          node.geometry.dispose();
+        }
+
+        if (node.material) {
+          //console.log("node.material", node.material);
+          if (
+            node.material instanceof THREE.MeshFaceMaterial ||
+            node.material instanceof THREE.MultiMaterial
+          ) {
+            node.material.materials.forEach(function(mtrl, idx) {
+              if (mtrl.map) mtrl.map.dispose();
+              if (mtrl.lightMap) mtrl.lightMap.dispose();
+              if (mtrl.bumpMap) mtrl.bumpMap.dispose();
+              if (mtrl.normalMap) mtrl.normalMap.dispose();
+              if (mtrl.specularMap) mtrl.specularMap.dispose();
+              if (mtrl.envMap) mtrl.envMap.dispose();
+
+              mtrl.dispose(); // disposes any programs associated with the material
+            });
+          } else {
+            if (node.material.map) node.material.map.dispose();
+            if (node.material.lightMap) node.material.lightMap.dispose();
+            if (node.material.bumpMap) node.material.bumpMap.dispose();
+            if (node.material.normalMap) node.material.normalMap.dispose();
+            if (node.material.specularMap) node.material.specularMap.dispose();
+            if (node.material.envMap) node.material.envMap.dispose();
+
+            node.material.dispose(); // disposes any programs associated with the material
+          }
+        }
+      }
+    });
+  }
+  disposeCallback = item => {
+    // console.log("disposeCallback", item);
+    item.remove();
+  };
+  removeGroup() {
+    console.log("removeGroup", this.builder.renderer.info);
+    this.disposeHierarchy(this.wallGroup, this.disposeCallback); //does this dispose save memory??
+    this.builder.scene.remove(this.wallGroup);
+    //console.log("removeGroup after", this.builder.renderer.info);
+  }
   switchLightOffIfNoArt(side) {
     console.log(
       "switchLightOffIfNoArt this.sides[side].frames",
@@ -239,18 +290,17 @@ class WallObject {
     itemData,
     draggableImageRef
   }) {
-    console.log("addImageFile", this.col, side);
     this.builder.scene.updateMatrixWorld(true);
     this.sides[side].hasArt = true;
-    console.log(
-      "addImageFile",
-      this.sides[side].frames,
-      file,
-      side,
-      holderOver,
-      uploadTask,
-      itemData
-    );
+    // console.log(
+    //   "addImageFile",
+    //   this.sides[side].frames,
+    //   file,
+    //   side,
+    //   holderOver,
+    //   uploadTask,
+    //   itemData
+    // );
     // if (holderOver.defaultArtMesh || holderOver.wallOver) {
     this.sides[side].wallLight.hoverOff();
     let index = this.sides[side].frames.push(new Frame(this, side));
@@ -272,6 +322,29 @@ class WallObject {
 
     // this.sides[side].wallLight.hoverOff();
   }
+
+  fadeInArt() {
+    console.log("wall fadeInArt");
+    Object.entries(this.sides).forEach(sideItem => {
+      const side = sideItem[0];
+      this.sides[side].frames.forEach(frame => frame.fadeFrameIn());
+    });
+  }
+
+  addSidesFromData = sides => {
+    console.log("addSideFromData", sides, this);
+    Object.entries(sides).forEach(sideItem => {
+      console.log("in entries loop addSideFromData", sides, this);
+
+      const side = sideItem[0];
+      this.sides[side].frames = [];
+
+      const newFrame = new Frame(this, side);
+      this.sides[side].hasArt = true;
+      this.sides[side].frames.push(newFrame);
+      newFrame.addFrameFromData(JSON.parse(sideItem[1][0]));
+    });
+  };
 }
 
 export default WallObject;
