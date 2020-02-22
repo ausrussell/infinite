@@ -111,7 +111,6 @@ export default class Draggable extends React.Component {
   render() {
     const { children } = this.props;
     const { translateX, translateY, isDragging } = this.state;
-    let newProp = { ref: "newRef" };
     return (
       <Container
         onMouseDown={this.handleMouseDown}

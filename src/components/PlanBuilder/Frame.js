@@ -23,6 +23,8 @@ class Frame {
     this.group.side = this.side;
     this.group.wallPos = this.wall.pos;
     this.group.setFrameColor = frameData => this.setFrameColor(frameData);
+    this.frameData = { color: 0x666666 }; //default frame color
+
     this.frameWidth = 1;
     this.export = {};
     // console.log("Frame constructor", this.wall, this.wall.col, this.side);
@@ -34,20 +36,19 @@ class Frame {
     // exportData.frame ={
     //
     // }
-    this.export.frame = this.selectedTile;
+    this.export.frame = this.frameData;
     this.export.art = {
       file: this.artMesh.file, //iMaterial.map,
       width: this.artMesh.geometry.parameters.width * this.artMesh.scale.x,
       height: this.artMesh.geometry.parameters.height * this.artMesh.scale.y
     };
-
     return this.export;
   }
 
   setDefaultFrameMaterial() {
     // const texture1 = this.textureLoader.load("../textures/wood/wood3.png");
     this.fmaterial = new THREE.MeshLambertMaterial({
-      color: 0x666666,
+      color: this.frameData.color,
       side: THREE.DoubleSide,
       transparent: true
       // map: texture1
@@ -81,6 +82,7 @@ class Frame {
   }
 
   setFrameMesh(plane) {
+    console.log("setFrameMesh", this.frameData);
     const imageWidth = plane.parameters.width * this.artMesh.scale.x;
     const imageHeight = plane.parameters.height * this.artMesh.scale.y;
     // console.log("imageWidth", imageWidth, this.artMesh.scale.x);
@@ -92,6 +94,8 @@ class Frame {
     this.frameMesh = mesh;
     this.frameMesh.name = "frameMesh";
     this.setFramePosition();
+    console.log("setFrameMesh", this.frameData);
+
     return mesh;
   }
 
@@ -147,14 +151,7 @@ class Frame {
 
     const hole = new THREE.Shape();
 
-    // hole.moveTo(this.frameWidth, this.frameWidth);
-    // hole.lineTo(this.frameWidth, imageHeight - this.frameWidth);
-    // hole.lineTo(imageWidth - this.frameWidth, imageHeight - this.frameWidth);
-    // hole.lineTo(imageWidth - this.frameWidth, this.frameWidth);
-    // hole.lineTo(this.frameWidth, this.frameWidth);
-
     hole.moveTo(0, 0);
-
     hole.lineTo(0, imageHeight);
     hole.lineTo(imageWidth, imageHeight);
     hole.lineTo(imageWidth, 0);
@@ -194,9 +191,12 @@ class Frame {
     );
   }
   setArtMesh(artMesh) {
+    //only used by positionMovedHolder in WallObject
     console.log("setArtMesh", this.wall.col);
     this.artMesh = artMesh;
     this.oldGroup = artMesh.parent;
+    this.frameData = this.oldGroup.holderClass.frameData;
+
     // this.group.holderClass = this;//??
     this.fmaterial = this.oldGroup.holderClass.fmaterial;
     this.frameMesh = this.oldGroup.children.find(
@@ -292,17 +292,26 @@ class Frame {
         image: image,
         holder: holder
       };
+      const next = snapshot => {
+        // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+        var progress = snapshot.bytesTransferred / snapshot.totalBytes;
+        if (this.artMesh) this.show(progress);
+        console.log("Upload is " + progress + "% done");
+        console.log("snapshot", snapshot.ref);
+      };
+
       image.onload = image => this.imageLoadedHandler(options);
       console.log("show this.artMesh", this.artMesh);
-      uploadTask.on(
-        "state_changed", // or 'state_changed'
-        snapshot => {
-          // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-          var progress = snapshot.bytesTransferred / snapshot.totalBytes;
-          if (this.artMesh) this.show(progress);
-          console.log("Upload is " + progress + "% done");
-        }
-      );
+      uploadTask.on("state_changed", {
+        next: next
+        // complete: complete
+      });
+      uploadTask.then(snapshot => {
+        console.log("uploaded file", snapshot);
+        uploadTask.snapshot.ref.getDownloadURL().then(downloadURL => {
+          this.artMesh.file = downloadURL;
+        });
+      });
     }
   }
 
@@ -322,6 +331,8 @@ class Frame {
       transparent: true
     });
     this.artMesh = new THREE.Mesh(artPlane, this.iMaterial);
+    this.artMesh.name = "artMesh";
+    this.artMesh.file = art.file;
     this.artMesh.translateZ(this.wallDepth);
     this.group.add(this.artMesh);
     if (this.side === "back") this.group.rotateY(Math.PI);
@@ -329,6 +340,7 @@ class Frame {
 
   setFrame(frame) {
     console.log("frame", frame);
+    this.frameData = frame;
     this.setFrameMesh(this.artMesh.geometry);
     this.frameMesh.material.opacity = 0;
     console.log("setFrame this.frameMesh", this.frameMesh);
@@ -366,7 +378,7 @@ class Frame {
     const { groupPosition, art, frame } = item;
     this.setGroup(groupPosition);
     this.setArt(art);
-    frame && this.setFrame(frame);
+    this.setFrame(frame);
   }
 
   fitToFrame(w, h, fitW, fitH) {
@@ -450,15 +462,15 @@ class Frame {
   };
 
   setFrameColor({ selectedTile }) {
-    this.selectedTile = selectedTile;
-    if (selectedTile.color) {
+    this.frameData = selectedTile;
+    if (this.frameData.color) {
       this.fmaterial.map = null;
       this.fmaterial.needsUpdate = true;
-      this.fmaterial.color.set(selectedTile.color);
+      this.fmaterial.color.set(this.frameData.color);
     } else {
       var loader = new THREE.TextureLoader();
       // loader.crossOrigin = "";
-      loader.load(selectedTile.url, texture => this.loadHandler(texture));
+      loader.load(this.frameData.url, texture => this.loadHandler(texture));
     }
   }
   show(opacity = 1) {

@@ -6,7 +6,7 @@ class VaultFloor extends Component {
     tilesData: []
   };
   constructor(props) {
-    //console.log("VaultFloor props", props);
+    // console.log("VaultFloor props", props);
     super(props);
     // this.refPath = props.refPath;
     this.tileCallback = props.tileCallback;
@@ -36,7 +36,6 @@ class VaultFloor extends Component {
   };
 
   tileClickHandler = (item, tile) => {
-    console.log("item", item, tile);
     this.tileCallback(item, tile);
   };
 

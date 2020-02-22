@@ -7,7 +7,7 @@ const GalleryEditListItem = props => {
   const galleryData = props.data.val();
   const { key } = props.data;
   console.log("key, galleryData", key, galleryData);
-  const { name, nameEncoded } = galleryData;
+  const { name } = galleryData;
   return <option value={key}>{name}</option>;
 };
 

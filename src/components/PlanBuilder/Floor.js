@@ -32,8 +32,6 @@ export default class Floor {
     // this.floorMesh.receiveShadow = true;
     this.floorMesh.rotateX(-Math.PI / 2);
     console.log("this.floorMesh", this.floorMesh);
-    // this.scene = this.builder.scene;
-
     this.builder.scene.add(this.floorMesh);
   }
 

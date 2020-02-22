@@ -112,7 +112,7 @@ const Tile = props => {
   console.log("add this tile", props);
   // this.props.firebase.addFloorTile(props.item);
 
-  const { color, url, type } = props.item;
+  const { color, url } = props.item;
 
   const style = {
     backgroundColor: color,

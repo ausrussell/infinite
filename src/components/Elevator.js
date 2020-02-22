@@ -16,9 +16,6 @@ class FloorWrapper extends Component {
     );
   }
 }
-const DragMe = () => {
-  return <div> returned drag me</div>;
-};
 
 class Elevator extends PureComponent {
   state = {
@@ -51,18 +48,7 @@ class Elevator extends PureComponent {
 
   render() {
     const vaultOpen = this.state.vaultOpen;
-    const styles = {
-      doors: {
-        opacity: vaultOpen ? 1 : 0,
-        width: vaultOpen ? "100%" : "0%",
-        color: "#fff"
-      }
-    };
-    // <FloorWrapper title="Artworks">
-    //   <ArtFloor />
-    // </FloorWrapper>;
 
-    //{props.y}
     const y = this.el.current ? this.el.current.scrollTop : 0;
     return (
       <div className={`vault-container ${vaultOpen ? "open" : "closed"}`}>

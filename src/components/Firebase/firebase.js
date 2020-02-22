@@ -155,6 +155,7 @@ class Firebase {
     this.userFloorplansRef.off();
   }
   getTiles = (refPath, callback) => {
+    console.log("getTiles", refPath);
     this.newArtRef = this.database.ref(refPath);
     return this.newArtRef.on("value", callback);
   };

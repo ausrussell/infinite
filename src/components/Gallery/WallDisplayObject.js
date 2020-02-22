@@ -67,19 +67,11 @@ class WallDisplayObject {
       this.wallGroup.translateZ(this.wallWidth / 2);
       this.wallGroup.rotateY(Math.PI / 2);
     }
-    console.log('this.sides["front"].length', this.sides);
-    if (this.sides["front"]) {
-      this.renderSides();
-    }
+    this.renderSides();
   }
 
   renderSides() {
-    console.log(
-      "renderSides",
-      this.col,
-      this.row,
-      this.sides && this.sides["front"]
-    );
+    console.log("renderSides", this.col, this.row, this.sides);
     Object.keys(this.sides).forEach(side => this.artForSide(side));
   }
 

@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import * as THREE from "three";
-import GLTFExporter from "three-gltf-exporter";
 import Uploader from "../Uploader";
 import "../../css/builder.css";
 // import { withFirebase } from "../Firebase";
@@ -10,7 +9,7 @@ import GeneralLight from "./GeneralLight";
 import { withAuthentication } from "../Session";
 import { withFirebase } from "../Firebase";
 
-import TilesFloor, { floorData } from "./TilesFloor";
+// import TilesFloor, { floorData } from "./TilesFloor";
 
 import VaultFloor from "./VaultFloor";
 
@@ -251,14 +250,25 @@ class Builder extends Component {
 
   onEditDropdownChangeHandler = value => {
     console.log("onEditDropdownChangeHandler", value);
+
     const { name, floorplan, walls } = value;
-    this.setState({ galleryTitle: name, floorplan: floorplan.data });
+    this.setState({ galleryTitle: name, floorplan: floorplan });
     this.floorPlan = floorplan.data;
     // disposeHierarchy(this.scene, () => this.loadGalleryToEdit());
+    //need to check if need initial setup
     this.removeWalls();
+
     this.setEditWalls(walls);
-    // this.animate();
+    // this.setFloor(); //move to didMount... but needs to be after editWalls // remove previous
+
+    this.animate();
     this.initialWallBuild(this.fadeInArt);
+    this.setupListeners();
+    this.initialCameraAnimation();
+
+    this.setSceneMeshes();
+    // this.addTransformControls();
+
     // this.loadGalleryToEdit();
   };
 
@@ -276,15 +286,10 @@ class Builder extends Component {
   // }
 
   removeWalls() {
-    console.log("before dispose", this.scene);
-
-    // this.disposeHierarchy(this.scene, this.disposeCallback);
-    console.log("after dispose", this.scene);
-    this.wallEntities.forEach(item => {
-      // console.log("wallMeshes", item);
-      item.removeGroup();
-      // this.disposeHierarchy(item.parent, this.disposeCallback);
-    });
+    if (this.wallEntities)
+      this.wallEntities.forEach(item => {
+        item.removeGroup();
+      });
   }
 
   saveGallery = () => {
@@ -294,85 +299,16 @@ class Builder extends Component {
       this.state.galleryTitle.replace(" ", "_")
     );
     console.log("saveGallery galleryData", this.galleryData);
+    debugger;
     this.galleryData.floorplan = this.state.floorplan;
     this.galleryData.floor = this.floor.getExport();
     this.galleryData.wallData = [];
     this.galleryData.walls = [];
 
     this.state.wallEntities.forEach(item => {
-      const wall = (({ col, row, pos, height, opacity }) => ({
-        col,
-        row,
-        pos,
-        height,
-        opacity
-      }))(item);
-      // const wall = { front: null, back: null };
-      // this.state.wallEntities.forEach((item, wallIndex) => {
-      //   const wall = (({ col, row, pos, height, opacity }) => ({
-      //     col,
-      //     row,
-      //     pos,
-      //     height,
-      //     opacity
-      //   }))(item);
-      // wall.sides = {};
-      // Object.entries(item.sides).forEach((value, index) => {
-      //   const side = value[1];
-      //   const framesToSave = [];
-      //
-      //   console.log("sides", side, index);
-      //   const sideFrames = side.frames;
-      //   sideFrames.forEach((item, wallIndex) => {
-      //     // this.framesToSave.push(item);
-      //     console.log("item", item);
-      //     // const { group, artMesh, frameMesh } = item;
-      //     // const frameData = {
-      //     //   group: group.position,
-      //     //   artMesh: artMesh,
-      //     //   frameMesh: frameMesh
-      //     // };
-      //     const frameData = item.getExport();
-      //
-      //     framesToSave.push(JSON.stringify(frameData));
-      //   });
-      //   console.log(value[0]);
-      //
-      //   wall.sides[value[0]] = framesToSave;
-      // });
-      // this.galleryData.wallData.push(wall);
       this.galleryData.walls.push(item.getExport());
-      // console.log("this.scene for export", this.scene);
-      // });
     });
     this.makeGalleryDbSave();
-    // return;
-    // console.log("finished loops galleryData", this.galleryData);
-    // console.log("this.framesToSave", this.framesToSave);
-    // this.framesToResolve = [];
-    // this.framesToSave.forEach((item, index2) => {
-    //   this.gltfExporter.parse(item.group, gltf => {
-    //     // gltf.accessors.forEach(item => (item.byteOffset = 0));
-    //     gltf = JSON.parse(
-    //       JSON.stringify(gltf, function(k, v) {
-    //         if (v === undefined) {
-    //           return null;
-    //         }
-    //         return v;
-    //       })
-    //     );
-    //     this.framesToSave[index2] = { gltf: gltf };
-    //     this.framesToResolve.push(Promise.resolve(gltf));
-    //     if (this.framesToSave.length === this.framesToResolve.length) {
-    //       Promise.all(this.framesToResolve).then(
-    //         this.makeGalleryDbSave.bind(this)
-    //       );
-    //     }
-    //   });
-    //
-    //   // this.props.firebase.storeGallery(galleryData);
-    // });
-    // this.props.firebase.storeGallery(galleryData);
   };
 
   makeGalleryDbSave() {
@@ -410,7 +346,7 @@ class Builder extends Component {
   }
 
   resetScaledArt() {
-    this.activeArtMesh.parent.holderClass.rescale();
+    this.activeArtMesh.parent.holderClass.rescale(); /// need to fix export for rescale
     this.objectChanged = false;
   }
 
@@ -593,7 +529,7 @@ class Builder extends Component {
     this.raycaster.setFromCamera(this.mouse, this.camera);
 
     const intersects = this.rayIntersectObject(this.raycaster, 1000);
-    // console.log("checkForIntersecting intersects", intersects);
+    console.log("checkForIntersecting intersects", intersects);
     if (!intersects) {
       // console.log("no intersects");
       return false;
@@ -655,8 +591,11 @@ class Builder extends Component {
     this.renderer.setSize(width, height);
     this.mount.appendChild(this.renderer.domElement);
     this.addLight();
-
+    this.addBox();
     this.renderer.render(this.scene, this.camera);
+    // this.camera.position.z = 5;
+    this.setFloor(); //move to didMount... but needs to be after editWalls // remove previous
+    this.addTransformControls();
   }
 
   setupFlaneurControls() {
@@ -718,15 +657,15 @@ class Builder extends Component {
     this.floorPlan = floorSnapshot.data;
     this.setState({ floorplan: floorSnapshot });
     this.setWalls();
-    this.setFloor();
+    // this.setFloor();
     // this.addHelperGrid();
-    // this.renderRenderer();
+
     this.animate();
     this.initialWallBuild();
     this.setupListeners();
     this.initialCameraAnimation();
     this.setSceneMeshes();
-    this.addTransformControls();
+    // this.addTransformControls();
   };
 
   //set objects
@@ -764,6 +703,10 @@ class Builder extends Component {
   }
 
   setFloor() {
+    if (!this.voxelsX) {
+      this.voxelsX = 16;
+      this.voxelsY = 12;
+    }
     this.gridWidth = this.voxelsX * wallWidth;
     this.gridDepth = this.voxelsY * wallWidth;
     this.floor = new Floor(this);
@@ -808,13 +751,13 @@ class Builder extends Component {
   rayIntersectOptions({ origin, direction, includes, distance }) {
     this.scene.updateMatrixWorld();
     this.raycaster.set(origin, direction);
-
-    let transformDirectionArrow = new THREE.ArrowHelper(
-      direction,
-      origin,
-      10,
-      Math.random() * 0xffffff
-    );
+    //uncomment these lines for help
+    // let transformDirectionArrow = new THREE.ArrowHelper(
+    //   direction,
+    //   origin,
+    //   10,
+    //   Math.random() * 0xffffff
+    // );
     // this.scene.add(transformDirectionArrow);
 
     let all = this.raycaster.intersectObjects(this.meshesInScene);
@@ -898,7 +841,7 @@ class Builder extends Component {
   }
   // (<Draggable><DraggableVaultElement /></<Draggable>)
   render() {
-    console.log("render planner", this.state.draggableVaultElement);
+    // console.log("render planner", this.state.draggableVaultElement);
     return (
       <ErrorBoundary>
         <div className="floorplan-title">
@@ -953,7 +896,7 @@ const SaveButton = props => {
 
 const DraggableVaultElement = React.forwardRef((props, ref) => (
   <div className="draggable-vault-element">
-    <img src={props.imgSrc} style={{ width: "140px" }} ref={ref} />
+    <img src={props.imgSrc} style={{ width: "140px" }} ref={ref} alt="" />
   </div>
 ));
 
