@@ -5,7 +5,7 @@ export default class Floor {
   constructor(builder) {
     this.builder = builder;
     this.addFloorMesh();
-    this.export = {};
+    this.export = { color: 0xf8f1f0 };
   }
   // setScene(scene) {
   //   this.scene = scene;

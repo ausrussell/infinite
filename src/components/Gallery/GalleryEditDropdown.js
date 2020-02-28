@@ -38,16 +38,23 @@ class GalleryEditDropdown extends Component {
     console.log("Galleries plansCallback", list);
   };
 
-  getGalleryData(value) {
-    this.props.firebase.getGalleryById(value).on("value", snapshot => {
+  getGalleryData(id) {
+    console.log("onChange getGalleryData", id, this.currentId);
+    if (this.currentId === id) return;
+    this.props.firebase.getGalleryById(id).on("value", snapshot => {
       console.log("getGalleryData", snapshot.val());
-      this.callback(snapshot.val());
+      console.log("onChange getGalleryById", id, this.currentId);
+      if (this.currentId !== id) {
+        this.callback(snapshot.val(), id);
+        this.currentId = id;
+      }
     });
     // .then(data => this.callback(data))
   }
   render() {
     return (
       <select onChange={({ target }) => this.getGalleryData(target.value)}>
+        <option value={0}>Select a Gallery to edit</option>
         {this.state.galleriesList.map(data => (
           <GalleryEditListItem data={data} key={data.key} />
         ))}

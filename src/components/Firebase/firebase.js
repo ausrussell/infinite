@@ -76,10 +76,17 @@ class Firebase {
     return newPostRef.getKey();
   };
 
-  storeGallery = galleryData => {
-    debugger;
-    const newGalleryRef = this.database.ref("galleries").push();
-    newGalleryRef.set(galleryData);
+  storeGallery = (galleryData, id) => {
+    // debugger;
+    let galleryRef;
+    if (id) {
+      galleryRef = this.database.ref("galleries/" + id);
+      galleryRef.update(galleryData);
+    } else {
+      galleryRef = this.database.ref("galleries").push();
+      galleryRef.set(galleryData);
+    }
+    return galleryRef;
   };
 
   storeGalleryGltf(galleryData, scene) {
@@ -110,11 +117,13 @@ class Firebase {
   getGalleryByName = (name, callback) => {
     console.log("getGalleryByName", name);
     const galleryRef = this.database.ref("galleries");
-    galleryRef
-      .orderByChild("name")
-      .equalTo(name.replace("_", " "))
-      .on("value", callback);
+    return galleryRef.orderByChild("name").equalTo(name.replace("_", " "));
+    // .on("value", callback);
   };
+
+  detachRefListener(ref) {
+    ref.off();
+  }
 
   getGalleryById = id => {
     console.log("getGalleryById", id);

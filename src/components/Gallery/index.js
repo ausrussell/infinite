@@ -1,15 +1,14 @@
 import React, { Component } from "react";
 import * as THREE from "three";
-import Uploader from "../Uploader";
 import "../../css/builder.css";
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
-  Link,
-  useParams,
-  useRouteMatch
-} from "react-router-dom";
+// import {
+//   BrowserRouter as Router,
+//   Switch,
+//   Route,
+//   Link,
+//   useParams,
+//   useRouteMatch
+// } from "react-router-dom";
 import { withAuthentication } from "../Session";
 import { withFirebase } from "../Firebase";
 import FlaneurControls from "../PlanBuilder/FlaneurControls";
@@ -58,10 +57,15 @@ class Gallery extends Component {
   componentDidMount() {
     console.log("Gallery this.props", this.props);
     this.setUpScene();
-    this.props.firebase.getGalleryByName(
-      this.props.match.params.galleryName,
-      this.processGallery
+    this.galleryRef = this.props.firebase.getGalleryByName(
+      this.props.match.params.galleryName
     );
+    this.galleryRef.on("value", this.processGallery);
+  }
+
+  componentWillUnmount() {
+    console.log("unmount");
+    this.props.firebase.detachRefListener(this.galleryRef);
   }
 
   setupListeners() {

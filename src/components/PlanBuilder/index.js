@@ -219,14 +219,32 @@ class Builder extends Component {
     this.dragging = true;
   }
 
+  // attachTransform() {
+  //   this.transformControls.showZ = false;
+  //   this.transformControls.showX = true;
+  //   this.transformControls.showY = true;
+  //   this.transformControls.attach(artMesh);
+  //   this.activeArtMesh = artMesh;
+  // }
+
   hoverArtMesh(artMesh) {
+    // return;
     console.log("hoverArtMesh", artMesh, this.dragging);
     if (!this.dragging) {
       // this.setSceneMeshes();
+
+      // this.transformControls.showZ = false;
+      // this.transformControls.showX = true;
+      // this.transformControls.showY = true;
+      // this.transformControls.attach(artMesh);
+      // this.activeArtMesh = artMesh;
+
       this.transformControls.showZ = artMesh.parent.wallPos === 0;
       this.transformControls.showX = artMesh.parent.wallPos === 1;
       this.transformControls.attach(artMesh);
       this.activeArtMesh = artMesh;
+
+      this.transformControls2.setSpace("world");
 
       this.transformControls2.showZ = artMesh.parent.wallPos === 0;
       this.transformControls2.showX = artMesh.parent.wallPos === 1;
@@ -248,29 +266,32 @@ class Builder extends Component {
     this.setState({ galleryTitle: target.value });
   };
 
-  onEditDropdownChangeHandler = value => {
+  onEditDropdownChangeHandler = (value, id) => {
     console.log("onEditDropdownChangeHandler", value);
+    // if (this.editGalleryId === id) return;
+    this.editGalleryId = id;
+    console.log("this.editGalleryId", this.editGalleryId);
 
-    const { name, floorplan, walls } = value;
+    const { name, floorplan, walls, floor } = value;
     this.setState({ galleryTitle: name, floorplan: floorplan });
+
     this.floorPlan = floorplan.data;
     // disposeHierarchy(this.scene, () => this.loadGalleryToEdit());
     //need to check if need initial setup
+    this.setEditFloor(floor);
     this.removeWalls();
-
     this.setEditWalls(walls);
-    // this.setFloor(); //move to didMount... but needs to be after editWalls // remove previous
 
     this.animate();
     this.initialWallBuild(this.fadeInArt);
     this.setupListeners();
     this.initialCameraAnimation();
-
     this.setSceneMeshes();
-    // this.addTransformControls();
-
     // this.loadGalleryToEdit();
   };
+  setEditFloor(item) {
+    this.floor.floorTileCallback(item);
+  }
 
   fadeInArt = index => {
     this.wallEntities[index].fadeInArt();
@@ -314,7 +335,7 @@ class Builder extends Component {
   makeGalleryDbSave() {
     // this.galleryData.frameGroups = this.framesToSave;
     console.log("makeGalleryDbSave this.framesToSave", this.galleryData);
-    this.props.firebase.storeGallery(this.galleryData);
+    this.props.firebase.storeGallery(this.galleryData, this.editGalleryId);
   }
 
   resetTranslatedArt() {
@@ -529,7 +550,7 @@ class Builder extends Component {
     this.raycaster.setFromCamera(this.mouse, this.camera);
 
     const intersects = this.rayIntersectObject(this.raycaster, 1000);
-    console.log("checkForIntersecting intersects", intersects);
+    // console.log("checkForIntersecting intersects", intersects);
     if (!intersects) {
       // console.log("no intersects");
       return false;
@@ -853,7 +874,9 @@ class Builder extends Component {
           <GalleryEditDropdown callback={this.onEditDropdownChangeHandler} />
           <SaveButton onClick={this.saveGallery} />
         </div>
-        <h3>Floorplan: {this.state.floorplan && this.state.floorplan.title}</h3>
+        <h3 className="floorplan-title">
+          Floorplan: {this.state.floorplan && this.state.floorplan.title}
+        </h3>
         <MainCanvas refer={mount => (this.mount = mount)} />
         {this.state.draggableVaultElementActive && (
           <Draggable

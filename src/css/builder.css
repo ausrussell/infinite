@@ -5,6 +5,10 @@ body {
   position: relative;
 }
 
+.floorplan-title {
+  position: absolute;
+}
+
 .tile-holder {
   display: flex;
   overflow: auto;
@@ -36,6 +40,11 @@ body {
   height: 120px;
   width: 100%;
   border-top: 1px solid rgb(55, 71, 79);
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -o-user-select: none;
+  user-select: none;
 }
 
 .vault-floor-empty {

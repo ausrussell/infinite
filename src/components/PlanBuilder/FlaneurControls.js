@@ -439,8 +439,8 @@ class FlaneurControls {
     this.clickFloorPlane = new THREE.Mesh(
       clickFloorPlaneGeo,
       new THREE.MeshStandardMaterial({
-        // visible: false
-        color: 0xf10000
+        visible: false
+        // color: 0xf10000
       })
     );
     this.clickFloorPlane.translateY(0.1);

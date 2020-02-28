@@ -29,9 +29,9 @@ const AppAuth = () => {
   const { Header } = Layout; //Footer, Sider, Content
 
   //<div className="desk-container"></div>
+  //      <Header>Header</Header>
   return (
     <Layout style={{ backgroundColor: "#37474F" }}>
-      <Header>Header</Header>
       <Router>
         <Navigation />
         <Route path={`${ROUTES.GALLERY}/:galleryName`} component={Gallery} />
