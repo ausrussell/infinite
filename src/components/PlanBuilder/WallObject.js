@@ -91,6 +91,7 @@ class WallObject {
       transparent: true
     });
     this.wallMesh = new THREE.Mesh(geometry, this.wallMaterial);
+    this.wallMesh.castShadow = true;
     this.wallMesh.name = "wallMesh";
     this.wallGroup = new THREE.Group();
     this.wallGroup.receiveShadow = true;
@@ -194,6 +195,19 @@ class WallObject {
   updateWallLight(side) {
     if (this.sides[side].hasArt) {
       this.wallGroup.add(this.sides[side].wallLight.spotLight);
+      console.log(
+        "this.sides[side].wallLight.spotLight",
+        this.sides[side].wallLight.spotLight.getWorldPosition()
+      );
+      this.wallGroup.updateMatrixWorld();
+      // this.sides[side].wallLight.spotLight.children[0].lookAt(
+      //   // this.wallGroup.getWorldPosition()
+      //
+      //   100,
+      //   60,
+      //   0
+      // );
+      // debugger;
       this.sides[side].wallLight.switchOn();
     } else {
       this.wallGroup.remove(this.sides[side].wallLight.spotLight);
@@ -324,7 +338,7 @@ class WallObject {
   }
 
   fadeInArt() {
-    console.log("wall fadeInArt");
+    // console.log("wall fadeInArt");
     Object.entries(this.sides).forEach(sideItem => {
       const side = sideItem[0];
       this.sides[side].frames.forEach(frame => frame.fadeFrameIn());
@@ -332,7 +346,7 @@ class WallObject {
   }
 
   addSidesFromData = sides => {
-    console.log("addSideFromData", sides, this);
+    // console.log("addSideFromData", sides, this);
     Object.entries(sides).forEach(sideItem => {
       console.log("in entries loop addSideFromData", sides, this);
 

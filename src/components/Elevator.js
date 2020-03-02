@@ -41,6 +41,8 @@ class Elevator extends PureComponent {
   handleFloorClick = floorNo => {
     console.log("set y", floorNo);
     this.setState({ y: this.floors[floorNo].y, currentFloor: floorNo });
+    if (this.floors[floorNo].floorCalledCallback)
+      this.floors[floorNo].floorCalledCallback(this.floorComponentsInstances);
   };
   // User interaction should stop animation in order to prevent scroll-hijacking
   // Doing this on onWheel isn't enough, but just to illustrate ...
@@ -50,6 +52,18 @@ class Elevator extends PureComponent {
     const vaultOpen = this.state.vaultOpen;
 
     const y = this.el.current ? this.el.current.scrollTop : 0;
+    this.floorComponentsInstances = [];
+
+    // this.floorComponents = Object.values(this.props.floors).map(floor => {
+    //   const floorComponentsInstance = floor.floorComponent(floor);
+    //   console.log("floorComponentsInstance", floorComponentsInstance);
+    //   return (
+    //     <FloorWrapper title={floor.name} key={floor.level}>
+    //       {floorComponentsInstance}
+    //     </FloorWrapper>
+    //   );
+    // });
+    // console.log();
     return (
       <div className={`vault-container ${vaultOpen ? "open" : "closed"}`}>
         <div draggable="true">{this.state.draggable}</div>
@@ -71,9 +85,13 @@ class Elevator extends PureComponent {
                   scrollTop={props.y}
                 >
                   {Object.values(this.props.floors).map(floor => {
+                    // const floorInstance = floor.floorComponent instanceof Function;
+                    // this.floorComponentsInstances.push(floorInstance);
                     return (
                       <FloorWrapper title={floor.name} key={floor.level}>
-                        {floor.floorComponent(floor)}
+                        {floor.floorComponent instanceof Function
+                          ? floor.floorComponent(floor)
+                          : floor.floorComponent}
                       </FloorWrapper>
                     );
                   })}

@@ -8,10 +8,12 @@ import FlaneurControls from "./FlaneurControls";
 import GeneralLight from "./GeneralLight";
 import { withAuthentication } from "../Session";
 import { withFirebase } from "../Firebase";
+import * as Stats from "stats-js";
 
 // import TilesFloor, { floorData } from "./TilesFloor";
 
 import VaultFloor from "./VaultFloor";
+import LightFloor from "./LightFloor";
 
 import Floor from "./Floor";
 
@@ -42,7 +44,8 @@ class Builder extends Component {
     authUser: null,
     draggableVaultElementActive: null,
     draggableVaultItem: null,
-    galleryTitle: ""
+    galleryTitle: "",
+    selectedSpotlight: null
   };
   constructor(props) {
     super(props);
@@ -59,10 +62,11 @@ class Builder extends Component {
     this.transformOriginVector_temp = new THREE.Vector3();
     this.transformDirectionVector = new THREE.Vector3();
     this.transformDirectionRay = new THREE.Raycaster();
-
+    this.lights = [];
     // this.gltfExporter = new GLTFExporter();
   }
   componentDidMount() {
+    this.setupStats();
     this.setUpScene();
     // this.processFloorplan();
   }
@@ -79,7 +83,11 @@ class Builder extends Component {
       this.floorplanProcessed = true;
     }
   }
-
+  setupStats() {
+    this.stats = new Stats();
+    this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+    document.body.appendChild(this.stats.dom);
+  }
   setUpGui() {
     var controls = new function() {
       this.fov = 45;
@@ -117,16 +125,23 @@ class Builder extends Component {
     if (intersectedData) {
       let artHolder;
       if (intersectedData.artMesh || intersectedData.frameMesh) {
-        for (var key in intersectedData) {
+        let key;
+        for (key in intersectedData) {
           artHolder = intersectedData[key].parent;
         }
       }
+
       if (this.state.selectedTile && artHolder) {
         console.log("selectedTile", this.state.selectedTile);
         const frameData = {
           selectedTile: this.state.selectedTile
         };
         artHolder.setFrameColor(frameData);
+      }
+
+      if (intersectedData.LightConeHelper) {
+        // e.stopPropagation();
+        this.lightConeHelperSelected(intersectedData.LightConeHelper);
       }
     }
   }
@@ -256,9 +271,28 @@ class Builder extends Component {
 
   unhoverArtMesh(artMesh) {
     if (!this.transformControls.dragging && !this.transformControls2.dragging) {
-      this.transformControls.detach();
-      this.transformControls2.detach();
+      this.detachTransformControls();
       this.activeArtMesh = null;
+    }
+  }
+  deselectSpotlight() {
+    this.transformControls.setMode("translate");
+    this.setState({ selectedSpotlight: null });
+
+    this.detachTransformControls();
+    this.dragging = false;
+  }
+
+  detachTransformControls() {
+    this.transformControls.detach();
+    this.transformControls2.detach();
+  }
+
+  transformObjectChangeHandler() {
+    console.log("transformObjectChangeHandler");
+    if (!this.objectChanged && this.activeArtMesh) {
+      this.objectChanged = true;
+      this.activeArtMesh.parent.holderClass.removeArtFrame();
     }
   }
 
@@ -288,6 +322,29 @@ class Builder extends Component {
     this.initialCameraAnimation();
     this.setSceneMeshes();
     // this.loadGalleryToEdit();
+  };
+
+  lightConeHelperSelected(helper) {
+    this.transformingMesh = helper;
+    this.dragging = true;
+    this.setState({ selectedSpotlight: helper });
+    // debugger;
+    this.transformControlsForMesh().attach(helper);
+    // window.addEventListener("mousedown", this.lightHelperMousedownHandler);
+  }
+  lightHelperMousedownHandler = () => {
+    console.log("lightHelperMousedownHandler");
+    this.detachTransformControls();
+  };
+
+  transformControlsForMesh = () => {
+    const meshName = this.transformingMesh.name;
+    if (meshName === "LightConeHelper") {
+      this.transformControls.showZ = true;
+      this.transformControls.showX = true;
+      this.transformControls.showX = true;
+    }
+    return this.transformControls;
   };
   setEditFloor(item) {
     this.floor.floorTileCallback(item);
@@ -336,6 +393,11 @@ class Builder extends Component {
     // this.galleryData.frameGroups = this.framesToSave;
     console.log("makeGalleryDbSave this.framesToSave", this.galleryData);
     this.props.firebase.storeGallery(this.galleryData, this.editGalleryId);
+  }
+
+  addLightToArray(light) {
+    this.lights.push(light);
+    console.log("this.lights", this.lights);
   }
 
   resetTranslatedArt() {
@@ -405,13 +467,6 @@ class Builder extends Component {
     };
 
     return intersectedData;
-  }
-
-  transformObjectChangeHandler() {
-    if (!this.objectChanged) {
-      this.objectChanged = true;
-      this.activeArtMesh.parent.holderClass.removeArtFrame();
-    }
   }
 
   addTransformControls() {
@@ -545,8 +600,8 @@ class Builder extends Component {
   }
 
   checkForIntersecting(options) {
-    this.camera.updateMatrixWorld();
-    this.scene.updateMatrixWorld();
+    // this.camera.updateMatrixWorld();
+    // this.scene.updateMatrixWorld();
     this.raycaster.setFromCamera(this.mouse, this.camera);
 
     const intersects = this.rayIntersectObject(this.raycaster, 1000);
@@ -559,7 +614,13 @@ class Builder extends Component {
     let intersectedData = {};
 
     let intersect0 = intersects.object;
+
     if (intersect0.name === "artMesh" || intersect0.name === "defaultArtMesh") {
+      this.hoverOverObject = intersect0;
+      intersectedData[intersect0.name] = intersect0;
+    }
+
+    if (intersect0.name === "LightConeHelper") {
       this.hoverOverObject = intersect0;
       intersectedData[intersect0.name] = intersect0;
     }
@@ -607,12 +668,14 @@ class Builder extends Component {
     this.camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
     this.renderer = new THREE.WebGLRenderer({
       antialias: true
+      // shadowMapEnabled: true
     });
+    // this.renderer.shadowMap.enabled = true;
 
     this.renderer.setSize(width, height);
     this.mount.appendChild(this.renderer.domElement);
     this.addLight();
-    this.addBox();
+    // this.addBox();
     this.renderer.render(this.scene, this.camera);
     // this.camera.position.z = 5;
     this.setFloor(); //move to didMount... but needs to be after editWalls // remove previous
@@ -812,7 +875,8 @@ class Builder extends Component {
           (node.object.name === "artMesh" ||
             node.object.name === "wallMesh" ||
             node.object.name === "defaultArtMesh" ||
-            node.object.name === "frameMesh")
+            node.object.name === "frameMesh" ||
+            node.object.name === "LightConeHelper")
       );
     }
 
@@ -820,6 +884,9 @@ class Builder extends Component {
   }
 
   getElevatorFloors() {
+    this.lightFloor = (
+      <LightFloor selectedSpotlight={this.state.selectedSpotlight} />
+    );
     let floors = {
       0: {
         name: "Art",
@@ -839,16 +906,35 @@ class Builder extends Component {
         tileCallback: this.frameClickHandler.bind(this) //to do
       },
       2: {
-        name: "Floor surfaces",
+        name: "Floors",
         y: 470,
         floorComponent: VaultFloor,
         refPath: "master/floortiles",
         level: 2,
         tileCallback: this.floorTileCallback.bind(this)
+      },
+      3: {
+        name: "Lights",
+        y: 705,
+        floorComponent: this.lightFloor,
+        refPath: "master/floortiles",
+        level: 3,
+        floorCalledCallback: this.lightFloorCalledCallback.bind(this)
       }
     };
     return floors;
   }
+
+  lightFloorCalledCallback = floor => {
+    console.log("floor", floor);
+    // floor[4].test();
+    // this.setState({ selectedSpotlight: "hey" });
+    console.log("this.lights", this.lights);
+    this.lights.forEach(light => {
+      light.displayHelper();
+    });
+    // debugger;
+  };
 
   animate() {
     if (this.flaneurControls) {
@@ -858,7 +944,7 @@ class Builder extends Component {
 
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(() => this.animate());
-    // this.props.stats.update();
+    this.stats && this.stats.update();
   }
   // (<Draggable><DraggableVaultElement /></<Draggable>)
   render() {

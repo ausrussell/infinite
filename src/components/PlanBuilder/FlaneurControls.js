@@ -574,7 +574,7 @@ class FlaneurControls {
 
   getFootAngle(destination) {
     const cameraVector = this.object.position;
-    var dirToCamera = this.object.position.clone().sub(destination);
+    // var dirToCamera = this.object.position.clone().sub(destination);
     var dir = new THREE.Vector3(); // create once an reuse it
 
     dir.subVectors(this.object.position, destination).normalize();
