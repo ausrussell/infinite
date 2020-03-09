@@ -1,13 +1,47 @@
 import React, { Component, useState } from "react";
 import { withFirebase } from "../Firebase";
-import { ChromePicker } from "react-color";
-import { Slider, Row, Col } from "antd";
+import { CompactPicker } from "react-color";
+import { Slider, Row, Col, Button } from "antd";
+
+const GeneralLightControls = props => {
+  const generalLight = props.generalLight;
+  console.log("generalLight", generalLight);
+  // if (!generalLight) return null; //should get changed when working out general Lights
+
+  const [intensity, setIntensity] = useState(generalLight.intensity * 100);
+  const [color, setColor] = useState("#ffffff");
+  generalLight.intensity = intensity / 100;
+  generalLight.color.set(color);
+
+  const handleChangeComplete = color => {
+    console.log("color", color);
+    setColor(color.hex);
+  };
+  return (
+    <Row gutter={16}>
+      <Col className="gutter-inner-row" span={12}>
+        <div className="control-item">
+          <div className="control-slider">
+            <div className="control-item-name">Intensity</div>
+            <div className="control-slider-control">
+              <Slider {...props} onChange={setIntensity} value={intensity} />
+            </div>
+          </div>
+        </div>
+      </Col>
+      <Col className="gutter-inner-row" span={12}>
+        <CompactPicker color={color} onChangeComplete={handleChangeComplete} />
+      </Col>
+    </Row>
+  );
+};
 
 const SpotlightControls = props => {
-  console.log("SpotlightControls", props);
   const selectedSpotlight = props.selectedSpotlight.children[0];
-  const [intensity, setIntensity] = useState(80);
+  const controllerClass = props.selectedSpotlight.controllerClass;
+  const [intensity, setIntensity] = useState(selectedSpotlight.intensity * 100);
   const [color, setColor] = useState("#ffffff");
+  // const [transform, setTransform] = useState("translate");
 
   selectedSpotlight.intensity = intensity / 100;
 
@@ -17,32 +51,45 @@ const SpotlightControls = props => {
     setColor(color.hex);
   };
 
-  // setIntensity = e => {
-  //   this.setState({ intensity: e.target.value });
-  // };
-  // use 'change' instead to see the difference in response
-  // <input
-  //   type="range"
-  //   min="0"
-  //   max="100"
-  //   value={intensity}
-  //   step="1"
-  //   name="intensity"
-  //   onChange={e => setIntensity(e.target.value)}
-  // />
-  // <output>{intensity}</output>
+  const transformClickHandler = e => {
+    console.log("transformClickHandler", e, e.target.id);
+    console.log("controller", props.selectedSpotlight.controllerClass);
+    controllerClass.setTransformMode(e.target.id);
+  };
+
+  const desectClickHandler = () => {
+    controllerClass.deselectSpotlight();
+  };
   return (
     <Row gutter={16}>
-      <Col className="gutter-row" span={12}>
-        <Slider {...props} onChange={setIntensity} value={intensity} />
+      <Col className="gutter-inner-row" span={12}>
+        <div className="control-item">
+          <div className="control-slider">
+            <div className="control-item-name">Intensity</div>
+            <div className="control-slider-control">
+              <Slider {...props} onChange={setIntensity} value={intensity} />
+            </div>
+          </div>
+        </div>
+        <div className="control-item">
+          <Button id="translate" onClick={transformClickHandler}>
+            Move (z)
+          </Button>
+          <Button id="rotate" onClick={transformClickHandler}>
+            Rotate (x)
+          </Button>
+        </div>
+        <div className="control-item">
+          <Button id="remove" onClick={desectClickHandler}>
+            Deselect (Enter)
+          </Button>
+          <Button id="remove" onClick={transformClickHandler}>
+            Remove
+          </Button>
+        </div>
       </Col>
-      <Col className="gutter-row" span={12}>
-        <ChromePicker
-          color={color}
-          onChangeComplete={handleChangeComplete}
-          disableAlpha={true}
-        />
-        <output>{color}</output>
+      <Col className="gutter-inner-row" span={12}>
+        <CompactPicker color={color} onChangeComplete={handleChangeComplete} />
       </Col>
     </Row>
   );
@@ -55,6 +102,7 @@ class LightFloor extends Component {
   constructor(props) {
     // console.log("VaultFloor props", props);
     super(props);
+    this.generalLight = props.generalLight;
     console.log("LightFloor props", props);
   }
   componentDidMount() {
@@ -78,21 +126,29 @@ class LightFloor extends Component {
     //console.log("tilesData", tilesData, tilesData.length);
     const { selectedSpotlight } = this.state;
     // const style = { background: '#0092ff', padding: '8px 0' };
+    // <div className="spotlight-controls-holder">
+    //   <h3>Spotlights</h3>
+    //   <div className="spotlight-controls-holder">
+    //     Click a cone to alter a spotLight
+    //   </div>
+    // </div>
     return (
-      <Row gutter={16}>
-        <Col className="gutter-row" span={8}>
-          <div className="spotlight-controls-holder">
+      <Row gutter={16} className="lights-gutter-row">
+        <Col className="gutter-row" span={12}>
+          <div className="gutter-box">
             <h3>Spotlights</h3>
-            <div className="spotlight-controls-holder">
-              Click a cone to alter a spotLight
-              {selectedSpotlight && (
-                <SpotlightControls selectedSpotlight={selectedSpotlight} />
-              )}
-            </div>
+            {selectedSpotlight ? (
+              <SpotlightControls selectedSpotlight={selectedSpotlight} />
+            ) : (
+              <h2> Click a cone to alter a spotLight</h2>
+            )}
           </div>
         </Col>
-        <Col className="gutter-row" span={8}>
-          <h3>General Lighting</h3>
+        <Col className="gutter-row" span={12}>
+          <div className="gutter-box">
+            <h3>General Lighting</h3>
+            <GeneralLightControls generalLight={this.generalLight} />
+          </div>
         </Col>
       </Row>
     );

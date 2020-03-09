@@ -9,7 +9,7 @@ class WallLight {
     this.spotLight = new THREE.SpotLight(this.spotLightColor);
     // this.spotLight.castShadow = true;
     this.spotLight.shadow.camera.near = 1;
-    this.spotLight.shadow.camera.far = 1000;
+    this.spotLight.shadow.camera.far = 500;
     this.spotLight.angle = 0.4;
     this.spotLight.intensity = 0.2;
     this.spotLight.distance = 0;
@@ -39,12 +39,12 @@ class WallLight {
     var geometry = new THREE.ConeGeometry(5, 20, 32);
     geometry.rotateX(Math.PI / 2);
     geometry.rotateY(Math.PI);
-    var material = new THREE.MeshNormalMaterial({
-      color: 0xffff00,
+    this.coneMaterial = new THREE.MeshBasicMaterial({
+      color: 0xcfccee,
       transparent: true,
       opacity: 0.5
     });
-    this.coneHelper = new THREE.Mesh(geometry, material);
+    this.coneHelper = new THREE.Mesh(geometry, this.coneMaterial);
     // this.coneHelper.visible = false;
     this.coneHelper.name = "LightConeHelper";
     this.coneHelper.controllerClass = this;
@@ -52,7 +52,7 @@ class WallLight {
     var helperTargetGeometry = new THREE.SphereGeometry(3);
 
     var helperTargetMaterial = new THREE.MeshNormalMaterial({
-      color: 0xffff00,
+      color: 0xcfccee,
       transparent: true,
       opacity: 0.5
     });
@@ -112,9 +112,6 @@ class WallLight {
     }
   }
   displayHelper() {
-    // this.setConeHelper();
-    // this.spotLight.add(this.coneHelper);
-    // this.wall.builder.scene.add(this.spotLightHelper);
     this.wall.builder.scene.add(this.helperTarget);
 
     this.wall.builder.scene.add(this.coneHelper);
@@ -154,15 +151,19 @@ class WallLight {
     // this.wall.builder.scene.add(this.spotLightHelper);
     this.addLightEditListeners();
   }
+  selectHandler() {
+    this.coneMaterial.color.set(0x9999ff);
+    this.coneMaterial.opacity = 0.75;
+  }
   addLightEditListeners() {
-    window.addEventListener("keydown", this.keydownHandler);
+    window.addEventListener("keydown", this.keydownHandler.bind(this));
     // window.addEventListener("mousedown", this.mousedownHandler);
   }
 
-  mousedownHandler = () => {
-    console.log("light mousedownHandler");
-    this.wall.builder.detachTransformControls();
-  };
+  // mousedownHandler = () => {
+  //   console.log("light mousedownHandler");
+  //   this.wall.builder.detachTransformControls();
+  // };
 
   keydownHandler = e => {
     const keycode = e.keyCode;
@@ -170,17 +171,32 @@ class WallLight {
 
     switch (e.keyCode) {
       case 88: //x
-        this.wall.builder.transformControls.setMode("rotate");
+        this.setTransformMode("rotate");
         break;
       case 90: //z
-        this.wall.builder.transformControls.setMode("translate");
+        this.setTransformMode("translate");
         break;
       case 13: //enter
         // this.wall.builder.detachTransformControls();
-        this.wall.builder.deselectSpotlight();
+        debugger;
+        this.deselectSpotlight();
+        break;
+      default:
         break;
     }
   };
+
+  setTransformMode(mode) {
+    this.wall.builder.transformControls.setMode(mode);
+  }
+
+  deselectSpotlight() {
+    this.coneMaterial.color.set(0xcfccee);
+    this.coneMaterial.opacity = 0.5;
+
+    window.removeEventListener("keydown", this.keydownHandler);
+    this.wall.builder.deselectSpotlight();
+  }
 
   switchOff() {
     console.log("switchOff", this.wall.col);

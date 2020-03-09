@@ -27,7 +27,7 @@ class VaultFloor extends Component {
     // console.log("getTilesCallback", data);
     if (data) {
       data.forEach(function(childSnapshot) {
-        const itemKey = list.push(childSnapshot);
+        list.push(childSnapshot);
         listObj[childSnapshot.key] = childSnapshot;
       });
     }

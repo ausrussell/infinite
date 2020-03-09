@@ -326,9 +326,9 @@ class Builder extends Component {
 
   lightConeHelperSelected(helper) {
     this.transformingMesh = helper;
+    helper.controllerClass.selectHandler();
     this.dragging = true;
     this.setState({ selectedSpotlight: helper });
-    // debugger;
     this.transformControlsForMesh().attach(helper);
     // window.addEventListener("mousedown", this.lightHelperMousedownHandler);
   }
@@ -377,7 +377,6 @@ class Builder extends Component {
       this.state.galleryTitle.replace(" ", "_")
     );
     console.log("saveGallery galleryData", this.galleryData);
-    debugger;
     this.galleryData.floorplan = this.state.floorplan;
     this.galleryData.floor = this.floor.getExport();
     this.galleryData.wallData = [];
@@ -665,11 +664,14 @@ class Builder extends Component {
     const height = this.mount.clientHeight;
     this.setState({ width: width, height: height });
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
+    // this.scene.background = new THREE.Color().setHSL(0.6, 0, 1);
+    this.camera = new THREE.PerspectiveCamera(45, width / height, 1, 5000);
     this.renderer = new THREE.WebGLRenderer({
       antialias: true
       // shadowMapEnabled: true
     });
+    // this.renderer.shadowMap.enabled = true;
+    // this.renderer.outputEncoding = THREE.sRGBEncoding;
     // this.renderer.shadowMap.enabled = true;
 
     this.renderer.setSize(width, height);
@@ -682,6 +684,34 @@ class Builder extends Component {
     this.addTransformControls();
   }
 
+  // SKYDOME
+  addSkyDome() {
+    var vertexShader = document.getElementById("vertexShader").textContent;
+    var fragmentShader = document.getElementById("fragmentShader").textContent;
+    console.log("vertexShader", vertexShader);
+    var uniforms = {
+      topColor: { value: new THREE.Color(0x0077ff) },
+      bottomColor: { value: new THREE.Color(0xffffff) },
+      offset: { value: 33 },
+      exponent: { value: 0.6 }
+    };
+    // uniforms["topColor"].value.copy(this.generalLight.color); // this was turning the sky off
+    console.log("uniforms topColor", uniforms, this.generalLight.color);
+    this.scene.fog = new THREE.Fog(this.scene.background, 1, 5000);
+
+    this.scene.fog.color.copy(uniforms["bottomColor"].value);
+
+    var skyGeo = new THREE.SphereBufferGeometry(4000, 32, 15);
+    var skyMat = new THREE.ShaderMaterial({
+      uniforms: uniforms,
+      vertexShader: vertexShader,
+      fragmentShader: fragmentShader,
+      side: THREE.BackSide
+    });
+
+    var sky = new THREE.Mesh(skyGeo, skyMat);
+    this.scene.add(sky);
+  }
   setupFlaneurControls() {
     this.flaneurControls = new FlaneurControls(this.camera, this);
   }
@@ -717,9 +747,9 @@ class Builder extends Component {
 
   addLight() {
     // Add the light to the scene
-    this.generalLight = new GeneralLight();
-    this.lightGroup = this.generalLight.getLight();
-    this.scene.add(this.lightGroup);
+    this.generalLightController = new GeneralLight();
+    this.generalLight = this.generalLightController.getLight();
+    this.scene.add(this.generalLight);
   }
   //process floorplan
   processFloorplan() {
@@ -749,6 +779,7 @@ class Builder extends Component {
     this.setupListeners();
     this.initialCameraAnimation();
     this.setSceneMeshes();
+
     // this.addTransformControls();
   };
 
@@ -797,9 +828,10 @@ class Builder extends Component {
   }
 
   initialWallBuild(done) {
-    console.log("initialWallBuild this.wallEntities", this.wallEntities);
+    // console.log("initialWallBuild this.wallEntities", this.wallEntities);
+    this.addSkyDome(); //??
     this.wallEntities.forEach((item, index) => {
-      console.log("initialWallBuild wall", item, done);
+      // console.log("initialWallBuild wall", item, done);
       item.initialAnimateBuild(index, done);
     });
     this.wallMeshes = this.wallEntities.map(item => item.getMesh()); //used for raycaster, needs to occur after rendering
@@ -885,7 +917,10 @@ class Builder extends Component {
 
   getElevatorFloors() {
     this.lightFloor = (
-      <LightFloor selectedSpotlight={this.state.selectedSpotlight} />
+      <LightFloor
+        selectedSpotlight={this.state.selectedSpotlight}
+        generalLight={this.generalLight}
+      />
     );
     let floors = {
       0: {
@@ -933,7 +968,6 @@ class Builder extends Component {
     this.lights.forEach(light => {
       light.displayHelper();
     });
-    // debugger;
   };
 
   animate() {

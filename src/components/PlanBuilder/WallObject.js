@@ -67,7 +67,6 @@ class WallObject {
     const animationStartDelay =
       this.builder.initialAnimationTime / this.builder.wallEntities.length;
     setTimeout(() => {
-      console.log("start wall ", done);
       this.animateWallBuild(() => done && done(index));
     }, index * animationStartDelay);
   }
@@ -135,7 +134,6 @@ class WallObject {
     return this.wallMesh;
   }
   dragEnterHandler(side) {
-    //console.log("dragEnterHandler", side);
     this.currentSideOver = this.sides[side];
     this.currentSideOver.wallLight.hoverOn();
     this.wallGroup.add(this.currentSideOver.wallLight.spotLight);
@@ -185,7 +183,6 @@ class WallObject {
     this.sides[side].hasArt = true;
     this.currentSideOver = this.sides[side];
     this.updateWallLight(side);
-    //console.log("positionMovedHolder this.wallGroup", this.wallGroup);
     //console.log(
     //   "positionMovedHolder this.currentSideOver",
     //   this.currentSideOver
@@ -195,10 +192,10 @@ class WallObject {
   updateWallLight(side) {
     if (this.sides[side].hasArt) {
       this.wallGroup.add(this.sides[side].wallLight.spotLight);
-      console.log(
-        "this.sides[side].wallLight.spotLight",
-        this.sides[side].wallLight.spotLight.getWorldPosition()
-      );
+      // console.log(
+      //   "this.sides[side].wallLight.spotLight",
+      //   this.sides[side].wallLight.spotLight.getWorldPosition()
+      // );
       this.wallGroup.updateMatrixWorld();
       // this.sides[side].wallLight.spotLight.children[0].lookAt(
       //   // this.wallGroup.getWorldPosition()
@@ -217,7 +214,6 @@ class WallObject {
   removeFrame(frame, side) {
     console.log("removing frame from ", this.col);
     console.log("light off ", side, this.sides[side].wallLight.spotLight);
-
     let index = this.sides[side].frames.indexOf(frame);
     console.log(
       "removeFrame",

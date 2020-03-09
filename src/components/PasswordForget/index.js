@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
 
-import Firebase, { withFirebase } from "../Firebase";
+import { withFirebase } from "../Firebase";
 import * as ROUTES from "../../constants/routes";
 import { Form, Icon, Input, Button, Row, Col, Card } from "antd";
 import "antd/dist/antd.css";

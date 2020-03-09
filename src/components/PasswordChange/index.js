@@ -1,9 +1,9 @@
 import React, { Component } from "react";
 
 import { withFirebase } from "../Firebase";
-import { withAuthorization } from "../Session";
+// import { withAuthorization } from "../Session";
 
-import { Form, Icon, Input, Button } from "antd";
+import { Form, Input, Button } from "antd";
 import "antd/dist/antd.css";
 
 const INITIAL_STATE = {
