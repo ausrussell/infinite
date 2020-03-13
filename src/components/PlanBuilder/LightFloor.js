@@ -6,10 +6,10 @@ import { Slider, Row, Col, Button } from "antd";
 const GeneralLightControls = props => {
   const generalLight = props.generalLight;
   console.log("generalLight", generalLight);
-  // if (!generalLight) return null; //should get changed when working out general Lights
+  if (!generalLight) return null; //should get changed when working out general Lights
 
   const [intensity, setIntensity] = useState(generalLight.intensity * 100);
-  const [color, setColor] = useState("#ffffff");
+  const [color, setColor] = useState();
   generalLight.intensity = intensity / 100;
   generalLight.color.set(color);
 
@@ -38,9 +38,10 @@ const GeneralLightControls = props => {
 
 const SpotlightControls = props => {
   const selectedSpotlight = props.selectedSpotlight.children[0];
+  if (!selectedSpotlight) return null;
   const controllerClass = props.selectedSpotlight.controllerClass;
   const [intensity, setIntensity] = useState(selectedSpotlight.intensity * 100);
-  const [color, setColor] = useState("#ffffff");
+  const [color, setColor] = useState();
   // const [transform, setTransform] = useState("translate");
 
   selectedSpotlight.intensity = intensity / 100;
@@ -60,6 +61,10 @@ const SpotlightControls = props => {
   const desectClickHandler = () => {
     controllerClass.deselectSpotlight();
   };
+  const removeClickHandler = () => {
+    controllerClass.removeSpotlight(selectedSpotlight);
+  };
+
   return (
     <Row gutter={16}>
       <Col className="gutter-inner-row" span={12}>
@@ -83,7 +88,7 @@ const SpotlightControls = props => {
           <Button id="remove" onClick={desectClickHandler}>
             Deselect (Enter)
           </Button>
-          <Button id="remove" onClick={transformClickHandler}>
+          <Button id="remove" onClick={removeClickHandler}>
             Remove
           </Button>
         </div>
@@ -97,7 +102,8 @@ const SpotlightControls = props => {
 
 class LightFloor extends Component {
   state = {
-    selectedSpotlight: null
+    selectedSpotlight: null,
+    generalLight: null
   };
   constructor(props) {
     // console.log("VaultFloor props", props);
@@ -114,6 +120,9 @@ class LightFloor extends Component {
     if (props.selectedSpotlight !== this.props.selectedSpotlight) {
       this.setState({ selectedSpotlight: this.props.selectedSpotlight });
     }
+    if (props.generalLight !== this.props.generalLight) {
+      this.setState({ generalLight: this.props.generalLight });
+    }
   }
 
   componentWillUnmount() {}
@@ -124,14 +133,9 @@ class LightFloor extends Component {
 
   render() {
     //console.log("tilesData", tilesData, tilesData.length);
-    const { selectedSpotlight } = this.state;
-    // const style = { background: '#0092ff', padding: '8px 0' };
-    // <div className="spotlight-controls-holder">
-    //   <h3>Spotlights</h3>
-    //   <div className="spotlight-controls-holder">
-    //     Click a cone to alter a spotLight
-    //   </div>
-    // </div>
+    const { selectedSpotlight, generalLight } = this.state;
+
+    console.log("selectedSpotlight", selectedSpotlight);
     return (
       <Row gutter={16} className="lights-gutter-row">
         <Col className="gutter-row" span={12}>
@@ -147,7 +151,7 @@ class LightFloor extends Component {
         <Col className="gutter-row" span={12}>
           <div className="gutter-box">
             <h3>General Lighting</h3>
-            <GeneralLightControls generalLight={this.generalLight} />
+            <GeneralLightControls generalLight={this.state.generalLight} />
           </div>
         </Col>
       </Row>

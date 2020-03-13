@@ -4,24 +4,72 @@ import animate from "../../Helpers/animate";
 class WallLight {
   constructor(props, side = "front") {
     // this.controls = this.setupControls();
-    this.wall = props;
-    this.spotLightColor = "#ffffff";
-    this.spotLight = new THREE.SpotLight(this.spotLightColor);
-    // this.spotLight.castShadow = true;
-    this.spotLight.shadow.camera.near = 1;
-    this.spotLight.shadow.camera.far = 500;
-    this.spotLight.angle = 0.4;
-    this.spotLight.intensity = 0.2;
-    this.spotLight.distance = 0;
-    this.spotLight.target = this.wall.wallMesh;
-    // this.spotLight.castShadow = true;
-    // this.spotLight.shadow.camera.fov = this.controls.fov;
-    this.spotLight.penumbra = 1;
-    this.side = side;
+    const targetObject = new THREE.Object3D();
+
+    if (props.color) {
+      const { intensity, position, color, target, builder } = props;
+      this.builder = builder;
+      this.scene = this.builder.scene;
+
+      const threeColor = new THREE.Color(...color);
+      this.spotLight = new THREE.SpotLight(threeColor);
+
+      this.spotLight.position.set(...position);
+      console.log("settingh this.spotLight", this.spotLight);
+
+      this.spotLight.shadow.camera.near = 1;
+      this.spotLight.shadow.camera.far = 500;
+      this.spotLight.angle = 0.4;
+      this.spotLight.intensity = intensity;
+      this.spotLight.penumbra = 1;
+      this.setTarget(target);
+      this.builder.scene.add(this.spotLight);
+    } else {
+      this.wall = props;
+      this.builder = this.wall.builder;
+      this.spotLightColor = "#ffffff";
+      this.spotLight = new THREE.SpotLight(this.spotLightColor);
+      // this.spotLight.castShadow = true;
+      this.spotLight.shadow.camera.near = 1;
+      this.spotLight.shadow.camera.far = 500;
+      this.spotLight.angle = 0.4;
+      this.spotLight.intensity = 0.2;
+      this.spotLight.distance = 0;
+      // targetObject.position.set(...target);
+
+      const wallPos = this.wall.wallMesh.getWorldPosition();
+      this.spotLight.target = this.wall.wallMesh;
+      // this.spotLight.castShadow = true;
+      // this.spotLight.shadow.camera.fov = this.controls.fov;
+      this.spotLight.penumbra = 1;
+      this.side = side;
+    }
+
     // this.switchedOn = false;
+    this.posHolder = new THREE.Vector3();
+
     this.setConeHelper();
     // this.spotLightHelper = new THREE.SpotLightHelper(this.spotLight);
   }
+
+  componentWillUnmount() {
+    this.removeListeners();
+  }
+  removeListeners() {
+    window.removeEventListener("keydown", this.keydownHandler);
+  }
+
+  getExport = () => {
+    const { intensity, color } = this.spotLight;
+    const { x, y, z } = this.spotLight.getWorldPosition();
+    const target = this.spotLight.target.getWorldPosition();
+    return {
+      intensity: intensity,
+      position: [x, y, z],
+      color: [color.r, color.g, color.b],
+      target: [target.x, target.y, target.z]
+    };
+  };
   setWallLight() {
     this.wall.wallMesh.updateMatrix();
     const wallMatrix = this.wall.wallMesh.matrixWorld;
@@ -34,6 +82,29 @@ class WallLight {
     // this.builder.scene.add(this.cone);
 
     this.spotLight.position.setFromMatrixPosition(shifted);
+  }
+
+  setTarget(targetPositionArray) {
+    var helperTargetGeometry = new THREE.SphereGeometry(3);
+
+    var helperTargetMaterial = new THREE.MeshNormalMaterial({
+      color: 0xcfccee,
+      transparent: true,
+      opacity: 0.5
+    });
+    this.helperTarget = new THREE.Mesh(
+      helperTargetGeometry,
+      helperTargetMaterial
+    );
+    // this.coneHelper.visileble = false;
+    this.helperTarget.name = "helperTarget";
+    this.posHolder = this.spotLight.target.getWorldPosition();
+    console.log("target posHolder", this.posHolder);
+    this.helperTarget.position.set(...targetPositionArray);
+
+    this.scene.add(this.helperTarget);
+    // this.helperTarget.position.set(...targetPositionArray);
+    this.spotLight.target = this.helperTarget;
   }
   setConeHelper() {
     var geometry = new THREE.ConeGeometry(5, 20, 32);
@@ -48,20 +119,6 @@ class WallLight {
     // this.coneHelper.visible = false;
     this.coneHelper.name = "LightConeHelper";
     this.coneHelper.controllerClass = this;
-
-    var helperTargetGeometry = new THREE.SphereGeometry(3);
-
-    var helperTargetMaterial = new THREE.MeshNormalMaterial({
-      color: 0xcfccee,
-      transparent: true,
-      opacity: 0.5
-    });
-    this.helperTarget = new THREE.Mesh(
-      helperTargetGeometry,
-      helperTargetMaterial
-    );
-    // this.coneHelper.visible = false;
-    this.helperTarget.name = "helperTarget";
   }
 
   updateIntensity(intensity) {
@@ -106,51 +163,40 @@ class WallLight {
     this.spotLight.intensity = intensity;
     this.spotLight.color.setHex(0xffffff);
 
-    // debugger;
-    if (this.wall.builder.addLightToArray) {
-      this.wall.builder.addLightToArray(this);
+    if (this.builder.addLightToArray) {
+      this.builder.addLightToArray(this);
     }
   }
   displayHelper() {
-    this.wall.builder.scene.add(this.helperTarget);
+    // this.builder.scene.add(this.helperTarget);
 
-    this.wall.builder.scene.add(this.coneHelper);
-    console.log(
-      "this.spotLight.getWorldPosition();",
-      this.spotLight.getWorldPosition()
-    );
+    this.builder.scene.add(this.coneHelper);
 
-    this.posHolder = new THREE.Vector3();
     this.posHolder = this.spotLight.getWorldPosition();
     this.coneHelper.position.set(
       this.posHolder.x,
       this.posHolder.y,
       this.posHolder.z
     );
-
-    this.posHolder = this.spotLight.target.getWorldPosition();
-    this.helperTarget.position.set(
-      this.posHolder.x,
-      this.posHolder.y,
-      this.posHolder.z
-    );
-
-    // this.coneHelper.position.set(0, 0, 0);
-
     this.coneHelper.lookAt(this.spotLight.target.getWorldPosition());
-
     this.coneHelper.attach(this.spotLight);
-
     this.coneHelper.attach(this.helperTarget);
-    this.spotLight.target = this.helperTarget;
 
-    // this.spotLight.children[0].lookAt(this.spotLight.target.getWorldPosition());
-    this.wall.builder.setSceneMeshes();
-    // debugger;
+    this.spotLight.target = this.helperTarget;
+    this.builder.setSceneMeshes();
     // this.spotLightHelper = new THREE.SpotLightHelper(this.spotLight);
-    // this.wall.builder.scene.add(this.spotLightHelper);
     this.addLightEditListeners();
   }
+
+  undisplayHelper() {
+    // debugger;
+    this.builder.scene.attach(this.spotLight);
+    this.builder.scene.attach(this.helperTarget);
+    this.builder.scene.remove(this.coneHelper);
+
+    console.log("undisplayHelper this.spotLight", this.spotLight);
+  }
+
   selectHandler() {
     this.coneMaterial.color.set(0x9999ff);
     this.coneMaterial.opacity = 0.75;
@@ -178,7 +224,6 @@ class WallLight {
         break;
       case 13: //enter
         // this.wall.builder.detachTransformControls();
-        debugger;
         this.deselectSpotlight();
         break;
       default:
@@ -187,7 +232,7 @@ class WallLight {
   };
 
   setTransformMode(mode) {
-    this.wall.builder.transformControls.setMode(mode);
+    this.builder.transformControls.setMode(mode);
   }
 
   deselectSpotlight() {
@@ -195,7 +240,14 @@ class WallLight {
     this.coneMaterial.opacity = 0.5;
 
     window.removeEventListener("keydown", this.keydownHandler);
-    this.wall.builder.deselectSpotlight();
+    this.builder.deselectSpotlight();
+  }
+
+  removeSpotlight() {
+    this.builder.deselectSpotlight();
+
+    this.builder.scene.remove(this.coneHelper);
+    this.builder.removeSpotlight(this);
   }
 
   switchOff() {

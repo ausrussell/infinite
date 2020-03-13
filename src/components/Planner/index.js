@@ -8,6 +8,8 @@ import Elevator from "../Elevator";
 import PlanCanvas from "./PlanCanvas";
 import * as BUTTONS from "./buttons";
 
+import * as Stats from "stats-js";
+
 const paddedWall = 15;
 const voxelSizePlus = 30 + paddedWall;
 
@@ -58,10 +60,21 @@ class Planner extends Component {
 
   componentDidMount() {
     this.setState({ walls: this.setWalls() }); //, this.renderCanvas
+    this.setupStats();
     // this.stats = new Stats();
     // this.stats.showPanel(1); // 0: fps, 1: ms, 2: mb, 3+: custom
     // document.body.appendChild(this.stats.dom);
   }
+
+  setupStats() {
+    console.log("Planner setupStats");
+    if (!this.stats) {
+      this.stats = new Stats();
+      this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+      document.body.appendChild(this.stats.dom);
+    }
+  }
+
   componentWillUnmount() {}
 
   setLocalStorage(plan) {
@@ -217,6 +230,10 @@ class Planner extends Component {
     this.setState({ title: target.value });
   };
 
+  statsCallback() {
+    this.stats.update();
+  }
+
   render() {
     const { nowBuild } = this.state;
     return (
@@ -243,6 +260,7 @@ class Planner extends Component {
 
             <div className="canvas-holder">
               <PlanCanvas
+                statsCallback={() => this.statsCallback()}
                 width={this.state.width}
                 height={this.state.height}
                 walls={this.state.walls}

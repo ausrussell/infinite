@@ -6,6 +6,8 @@ import "../../css/builder.css";
 import WallObject from "./WallObject";
 import FlaneurControls from "./FlaneurControls";
 import GeneralLight from "./GeneralLight";
+import WallLight from "./WallLight";
+
 import { withAuthentication } from "../Session";
 import { withFirebase } from "../Firebase";
 import * as Stats from "stats-js";
@@ -45,7 +47,9 @@ class Builder extends Component {
     draggableVaultElementActive: null,
     draggableVaultItem: null,
     galleryTitle: "",
-    selectedSpotlight: null
+    lights: [],
+    selectedSpotlight: null,
+    generalLight: null
   };
   constructor(props) {
     super(props);
@@ -71,6 +75,10 @@ class Builder extends Component {
     // this.processFloorplan();
   }
 
+  componentWillUnmount() {
+    this.removeListeners();
+  }
+
   componentDidUpdate(props) {
     // this.flaneurControls.dispose();
     console.log(
@@ -84,9 +92,12 @@ class Builder extends Component {
     }
   }
   setupStats() {
-    this.stats = new Stats();
-    this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-    document.body.appendChild(this.stats.dom);
+    console.log("planbuilder setupStats");
+    if (!this.stats) {
+      this.stats = new Stats();
+      this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+      document.body.appendChild(this.stats.dom);
+    }
   }
   setUpGui() {
     var controls = new function() {
@@ -100,10 +111,23 @@ class Builder extends Component {
   }
   //listeners
   setupListeners() {
-    this.mount.addEventListener("mousemove", e => this.onMouseMove(e), false);
-    this.mount.addEventListener("mousedown", e => this.onMouseDown(e), false);
+    this.mount.addEventListener(
+      "mousemove",
+      this.onMouseMove.bind(this),
+      false
+    );
+    this.mount.addEventListener(
+      "mousedown",
+      this.onMouseDown.bind(this),
+      false
+    );
     // window.addEventListener("resize", () => this.onWindowResize(), false);
     this.setupFlaneurControls();
+  }
+
+  removeListeners() {
+    this.mount.removeEventListener("mousemove", this.onMouseMove);
+    this.mount.removeEventListener("mousedown", this.onMouseDown);
   }
 
   onMouseMove(e) {
@@ -215,6 +239,14 @@ class Builder extends Component {
     });
   };
 
+  removeSpotlight(spotLight) {
+    const index = this.lights.indexOf(spotLight);
+
+    console.log("remove spotlight", index, spotLight, this.lights);
+    this.lights.splice(index, 1);
+    console.log("removed spotlight", index, spotLight, this.lights);
+  }
+
   floorTileCallback(item) {
     this.floor.floorTileCallback(item);
   }
@@ -244,7 +276,7 @@ class Builder extends Component {
 
   hoverArtMesh(artMesh) {
     // return;
-    console.log("hoverArtMesh", artMesh, this.dragging);
+    // console.log("hoverArtMesh", artMesh, this.dragging);
     if (!this.dragging) {
       // this.setSceneMeshes();
 
@@ -306,7 +338,7 @@ class Builder extends Component {
     this.editGalleryId = id;
     console.log("this.editGalleryId", this.editGalleryId);
 
-    const { name, floorplan, walls, floor } = value;
+    const { name, floorplan, walls, floor, lights, generalLight } = value;
     this.setState({ galleryTitle: name, floorplan: floorplan });
 
     this.floorPlan = floorplan.data;
@@ -316,13 +348,33 @@ class Builder extends Component {
     this.removeWalls();
     this.setEditWalls(walls);
 
+    this.setEditGeneralLight(generalLight);
+    this.setEditWallLights(lights);
+
     this.animate();
     this.initialWallBuild(this.fadeInArt);
     this.setupListeners();
     this.initialCameraAnimation();
     this.setSceneMeshes();
-    // this.loadGalleryToEdit();
   };
+
+  setEditGeneralLight(generalLight) {
+    console.log("generalLight", generalLight);
+    this.addLight(generalLight);
+  }
+
+  setEditWallLights(wallLights) {
+    if (!wallLights) return;
+    this.lights = [];
+    wallLights.forEach(light => {
+      const options = light;
+      options.builder = this;
+      const newWallLight = new WallLight(options);
+      this.lights.push(newWallLight);
+    });
+    // this.setState({ lights: this.lights });
+    console.log("wallLights", wallLights);
+  }
 
   lightConeHelperSelected(helper) {
     this.transformingMesh = helper;
@@ -385,6 +437,12 @@ class Builder extends Component {
     this.state.wallEntities.forEach(item => {
       this.galleryData.walls.push(item.getExport());
     });
+    this.galleryData.lights = [];
+    this.lights.forEach(item => {
+      this.galleryData.lights.push(item.getExport());
+    });
+
+    this.galleryData.generalLight = this.generalLightController.getExport();
     this.makeGalleryDbSave();
   };
 
@@ -660,6 +718,7 @@ class Builder extends Component {
 
   //scene setup and animation
   setUpScene() {
+    // debugger;
     const width = this.mount.clientWidth;
     const height = this.mount.clientHeight;
     this.setState({ width: width, height: height });
@@ -676,7 +735,8 @@ class Builder extends Component {
 
     this.renderer.setSize(width, height);
     this.mount.appendChild(this.renderer.domElement);
-    this.addLight();
+
+    // this.addLight();
     // this.addBox();
     this.renderer.render(this.scene, this.camera);
     // this.camera.position.z = 5;
@@ -745,10 +805,13 @@ class Builder extends Component {
     mesh.position.set(0, 0, 0);
   }
 
-  addLight() {
+  addLight(options) {
     // Add the light to the scene
-    this.generalLightController = new GeneralLight();
+    // return;
+    this.generalLightController = new GeneralLight(options);
     this.generalLight = this.generalLightController.getLight();
+    this.setState({ generalLight: this.generalLight });
+
     this.scene.add(this.generalLight);
   }
   //process floorplan
@@ -762,6 +825,7 @@ class Builder extends Component {
       );
     } else {
       console.log("no state in location");
+      // this.addLight();
     }
   }
 
@@ -773,6 +837,7 @@ class Builder extends Component {
     this.setWalls();
     // this.setFloor();
     // this.addHelperGrid();
+    this.addLight();
 
     this.animate();
     this.initialWallBuild();
@@ -829,7 +894,7 @@ class Builder extends Component {
 
   initialWallBuild(done) {
     // console.log("initialWallBuild this.wallEntities", this.wallEntities);
-    this.addSkyDome(); //??
+    // this.addSkyDome(); //??
     this.wallEntities.forEach((item, index) => {
       // console.log("initialWallBuild wall", item, done);
       item.initialAnimateBuild(index, done);
@@ -918,8 +983,10 @@ class Builder extends Component {
   getElevatorFloors() {
     this.lightFloor = (
       <LightFloor
+        lights={this.state.lights}
         selectedSpotlight={this.state.selectedSpotlight}
         generalLight={this.generalLight}
+        // refreshLightFloor={this.state.refreshLightFloor}
       />
     );
     let floors = {
@@ -960,14 +1027,36 @@ class Builder extends Component {
     return floors;
   }
 
+  floorCalledCallback = floor => {
+    if (this.currentFloor === "Lights") {
+      this.removeLightsHelpers();
+    }
+    this.currentFloor = floor.name;
+    console.log("floorCalledCallback", floor);
+    console.log("this.lights", this.lights);
+    if (this.currentFloor === "Lights") {
+      this.addLightHelpers();
+    }
+  };
+
+  addLightHelpers() {
+    this.lights.forEach(light => {
+      light.displayHelper();
+    });
+  }
+  removeLightsHelpers() {
+    this.detachTransformControls();
+    this.setState({ selectedSpotlight: null });
+    this.lights.forEach(light => {
+      light.undisplayHelper();
+    });
+  }
+
   lightFloorCalledCallback = floor => {
     console.log("floor", floor);
     // floor[4].test();
     // this.setState({ selectedSpotlight: "hey" });
     console.log("this.lights", this.lights);
-    this.lights.forEach(light => {
-      light.displayHelper();
-    });
   };
 
   animate() {
@@ -1014,7 +1103,11 @@ class Builder extends Component {
         )}
 
         {this.props.firebase.currentUID && (
-          <Elevator name="Vault" floors={this.getElevatorFloors()} />
+          <Elevator
+            name="Vault"
+            floors={this.getElevatorFloors()}
+            floorCalledCallback={this.floorCalledCallback}
+          />
         )}
         <Uploader
           fileDragover={this.dragOverHandler}

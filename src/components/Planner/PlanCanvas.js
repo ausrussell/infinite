@@ -22,9 +22,10 @@ class PlanCanvas extends Component {
     overCanvas: false,
     counter: 0
   };
-  // constructor(props) {
-  //   super(props);
-  // }
+  constructor(props) {
+    super(props);
+    this.statsCallback = props.statsCallback;
+  }
 
   componentDidMount() {
     // const { width, height } = this.props;
@@ -156,6 +157,8 @@ class PlanCanvas extends Component {
 
   updateAnimationState = () => {
     this.renderWalls();
+    this.statsCallback();
+
     this.rAF = requestAnimationFrame(this.updateAnimationState);
   };
 

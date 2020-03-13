@@ -1,14 +1,7 @@
 import React, { Component } from "react";
 import * as THREE from "three";
 import "../../css/builder.css";
-// import {
-//   BrowserRouter as Router,
-//   Switch,
-//   Route,
-//   Link,
-//   useParams,
-//   useRouteMatch
-// } from "react-router-dom";
+
 import { withAuthentication } from "../Session";
 import { withFirebase } from "../Firebase";
 import FlaneurControls from "../PlanBuilder/FlaneurControls";
@@ -84,7 +77,7 @@ class Gallery extends Component {
 
     this.renderer.setSize(width, height);
     this.mount.appendChild(this.renderer.domElement);
-    this.addLight();
+    // this.addLight();
     this.addHelperGrid();
 
     this.renderer.render(this.scene, this.camera);
@@ -119,6 +112,7 @@ class Gallery extends Component {
   }
   processGallery = snapshot => {
     console.log("processGallery", snapshot.val());
+    if (this.galleryData) this.emptyScene();
     snapshot.forEach(data => {
       console.log("processGallery", data.key, data.val());
       this.galleryData = data.val();
@@ -140,6 +134,13 @@ class Gallery extends Component {
       this.animate();
     });
   };
+  emptyScene() {
+    debugger;
+    while (this.scene.children.length > 0) {
+      this.scene.remove(this.scene.children[0]);
+    }
+  }
+
   isWallMesh(item) {
     if (item.name === "wallGroup") {
       return item.children.filter(child => child.name === "wallMesh");
@@ -178,16 +179,19 @@ class Gallery extends Component {
     });
   }
   renderWalls() {
-    var geometry = new THREE.BoxGeometry(1, 1, 1);
-    var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    var cube = new THREE.Mesh(geometry, material);
-    this.scene.add(cube);
     console.log("this.scene", this.scene);
     console.log("renderWalls", this.walls);
     this.walls.forEach(wall => {
       console.log("renderWalls wall", wall);
       wall.renderWall();
     });
+  }
+
+  addBox() {
+    var geometry = new THREE.BoxGeometry(1, 1, 1);
+    var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    var cube = new THREE.Mesh(geometry, material);
+    this.scene.add(cube);
   }
   renderFrames() {
     console.log("this.frameGroups", this.frameGroups);

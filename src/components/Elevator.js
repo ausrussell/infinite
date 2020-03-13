@@ -31,6 +31,7 @@ class Elevator extends PureComponent {
   constructor(props) {
     super(props);
     this.floors = props.floors;
+    this.floorCalledCallback = props.floorCalledCallback;
   }
   vaultButtonHandler() {
     this.setState({ vaultOpen: !this.state.vaultOpen });
@@ -41,8 +42,9 @@ class Elevator extends PureComponent {
   handleFloorClick = floorNo => {
     console.log("set y", floorNo);
     this.setState({ y: this.floors[floorNo].y, currentFloor: floorNo });
-    if (this.floors[floorNo].floorCalledCallback)
-      this.floors[floorNo].floorCalledCallback(this.floorComponentsInstances);
+    this.floorCalledCallback && this.floorCalledCallback(this.floors[floorNo]);
+    // if (this.floors[floorNo].floorCalledCallback)
+    //   this.floors[floorNo].floorCalledCallback(this.floorComponentsInstances);
   };
   // User interaction should stop animation in order to prevent scroll-hijacking
   // Doing this on onWheel isn't enough, but just to illustrate ...

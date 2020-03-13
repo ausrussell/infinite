@@ -46,13 +46,13 @@ class WallObject {
       const side = value[1];
       const framesToSave = [];
 
-      console.log("sides", side, index);
+      // console.log("sides", side, index);
       const sideFrames = side.frames;
       sideFrames.forEach(item => {
         const frameData = item.getExport();
         framesToSave.push(JSON.stringify(frameData));
       });
-      console.log(value[0]);
+      // console.log(value[0]);
 
       this.export.sides[value[0]] = framesToSave;
     });
@@ -197,14 +197,6 @@ class WallObject {
       //   this.sides[side].wallLight.spotLight.getWorldPosition()
       // );
       this.wallGroup.updateMatrixWorld();
-      // this.sides[side].wallLight.spotLight.children[0].lookAt(
-      //   // this.wallGroup.getWorldPosition()
-      //
-      //   100,
-      //   60,
-      //   0
-      // );
-      // debugger;
       this.sides[side].wallLight.switchOn();
     } else {
       this.wallGroup.remove(this.sides[side].wallLight.spotLight);

@@ -1,5 +1,7 @@
 import FloorDisplay from "./FloorDisplay";
 import WallDisplayObject from "./WallDisplayObject";
+import { WallLightDisplay } from "./WallLightDisplay";
+import { GeneralLightDisplay } from "./GeneralLightDisplay";
 
 const wallWidth = 20;
 class SceneLoader {
@@ -16,6 +18,9 @@ class SceneLoader {
   renderData() {
     this.renderFloor();
     this.renderWalls();
+    this.renderGeneralLight();
+
+    this.renderLights();
   }
   renderFloor() {
     this.floor = new FloorDisplay(this);
@@ -30,6 +35,29 @@ class SceneLoader {
       this.wallEntities.push(new WallDisplayObject(options));
     });
     this.wallEntities.forEach(wall => wall.renderWall());
+  }
+
+  renderGeneralLight() {
+    const { generalLight } = this.sceneData;
+    const options = generalLight;
+    options.builder = this;
+    if (this.generalLight) this.scene.remove(this.generalLight);
+    this.generalLight = GeneralLightDisplay(options);
+    console.log("renderGeneralLight", this.scene.children);
+  }
+
+  renderLights() {
+    this.wallLights = [];
+    const { lights } = this.sceneData;
+    const wallLights = lights;
+    console.log("renderLights", wallLights);
+    if (!wallLights) return;
+    wallLights.forEach(light => {
+      const options = light;
+      options.builder = this;
+
+      this.wallLights.push(WallLightDisplay(options));
+    });
   }
 }
 
