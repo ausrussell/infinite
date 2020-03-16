@@ -1,6 +1,9 @@
 import * as THREE from "three";
 import animate from "../../Helpers/animate";
 
+const coneColor = 0x9999ff;
+const coneColorSelected = 0x99eeaa;
+
 class WallLight {
   constructor(props, side = "front") {
     // this.controls = this.setupControls();
@@ -131,7 +134,7 @@ class WallLight {
     geometry.rotateX(Math.PI / 2);
     geometry.rotateY(Math.PI);
     this.coneMaterial = new THREE.MeshBasicMaterial({
-      color: 0xcfccee,
+      color: coneColor,
       transparent: true,
       opacity: 0.5
     });
@@ -175,8 +178,14 @@ class WallLight {
     this.spotLight.color.setHex(0xffffff);
     this.hoverAni && this.hoverAni.end();
 
-    if (this.wall.currentSideOver.hasArt) this.switchOn();
-    // this.switchedOn = false;
+    // if (this.wall.currentSideOver.hasArt) this.switchOn();
+  }
+
+  addWallLightToScene() {
+    // this.spotLight.intensity = 0.2;
+    // this.spotLight.color.setHex(0xff3333);
+    this.builder.addLightToArray(this.spotLight);
+    this.hoverOff();
   }
   switchOn(intensity = 0.8) {
     console.log("switchOn", this.wall.col);
@@ -218,7 +227,7 @@ class WallLight {
   }
 
   selectHandler() {
-    this.coneMaterial.color.set(0x9999ff);
+    this.coneMaterial.color.set(coneColorSelected);
     this.coneMaterial.opacity = 0.75;
   }
   addLightEditListeners() {
@@ -256,7 +265,7 @@ class WallLight {
   }
 
   deselectSpotlight() {
-    this.coneMaterial.color.set(0xcfccee);
+    this.coneMaterial.color.set(coneColor);
     this.coneMaterial.opacity = 0.5;
 
     window.removeEventListener("keydown", this.keydownHandler);

@@ -378,6 +378,9 @@ class Builder extends Component {
   }
 
   lightConeHelperSelected(helper) {
+    console.log("selected Spotlight", this.state.selectedSpotlight);
+    this.state.selectedSpotlight &&
+      this.state.selectedSpotlight.controllerClass.deselectSpotlight();
     this.transformingMesh = helper;
     helper.controllerClass.selectHandler();
     this.dragging = true;
@@ -806,7 +809,23 @@ class Builder extends Component {
   }
 
   addLightToArray(light) {
-    this.lights.push(light);
+    var spotlightPos = light.getWorldPosition();
+    let { x, y, z } = spotlightPos;
+    const spotlightPosArr = [x, y, z];
+    console.log("spotlightPosArr", spotlightPosArr);
+    const targetPos = light.target.position;
+    const targetAr = [targetPos.x, targetPos.y, targetPos.z];
+    console.log("targetAr", targetAr);
+
+    const options = {
+      position: spotlightPosArr,
+      builder: this,
+      target: targetAr
+    };
+    const newWallLight = new WallLight(options);
+    this.lights.push(newWallLight);
+
+    // this.lights.push(light);
     console.log("this.lights", this.lights);
   }
 

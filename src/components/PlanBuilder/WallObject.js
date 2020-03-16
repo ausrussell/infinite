@@ -183,11 +183,15 @@ class WallObject {
     this.sides[side].frames[index - 1].setArtMesh(artMesh);
     this.sides[side].hasArt = true;
     this.currentSideOver = this.sides[side];
-    this.updateWallLight(side);
+    // this.updateWallLight(side);
     //console.log(
     //   "positionMovedHolder this.currentSideOver",
     //   this.currentSideOver
     // );
+  }
+
+  addWallLightToScene(side) {
+    this.sides[side].wallLight.addWallLightToScene();
   }
 
   updateWallLight(side) {
@@ -218,7 +222,7 @@ class WallObject {
       "removeFrame after splice",
       this.sides[side].frames.indexOf(frame)
     );
-    this.switchLightOffIfNoArt(side);
+    // this.switchLightOffIfNoArt(side);
   }
   disposeHierarchy(node, callback) {
     for (var i = node.children.length - 1; i >= 0; i--) {
@@ -319,7 +323,7 @@ class WallObject {
 
     // this.currentSideOver.defaultFrame.addArt(file);
     // this.currentSideOver.defaultFrame.removeDefault();
-    this.updateWallLight(side);
+    this.addWallLightToScene(side);
     return;
     // }
 
