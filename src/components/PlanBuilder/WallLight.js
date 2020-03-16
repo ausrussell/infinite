@@ -5,9 +5,8 @@ class WallLight {
   constructor(props, side = "front") {
     // this.controls = this.setupControls();
     const targetObject = new THREE.Object3D();
-
+    const { intensity, position, color, target, builder } = props;
     if (props.color) {
-      const { intensity, position, color, target, builder } = props;
       this.builder = builder;
       this.scene = this.builder.scene;
 
@@ -26,24 +25,44 @@ class WallLight {
       this.builder.scene.add(this.spotLight);
     } else {
       this.wall = props;
-      this.builder = this.wall.builder;
+      this.builder = builder || this.wall.builder;
+      this.scene = this.builder.scene;
+
       this.spotLightColor = "#ffffff";
       this.spotLight = new THREE.SpotLight(this.spotLightColor);
       // this.spotLight.castShadow = true;
       this.spotLight.shadow.camera.near = 1;
       this.spotLight.shadow.camera.far = 500;
       this.spotLight.angle = 0.4;
-      this.spotLight.intensity = 0.2;
       this.spotLight.distance = 0;
       // targetObject.position.set(...target);
+      if (target) {
+        //when added by button
+        console.log("target", target);
+        this.spotLight.intensity = 0.6;
+        this.setTarget(target);
+        this.builder.scene.add(this.spotLight);
+      } else {
+        //for default wall light
+        this.spotLight.intensity = 0.2;
 
-      const wallPos = this.wall.wallMesh.getWorldPosition();
-      this.spotLight.target = this.wall.wallMesh;
+        this.spotLight.target = this.wall.wallGroup;
+        console.log(
+          "this.wall.wallMesh",
+          this.wall.wallMesh,
+          this.wall.wallGroup.position
+        );
+        const { x, y, z } = this.spotLight.target.position;
+        console.log("this.spotLight.target x, y, z", x, y, z);
+        this.setTarget([x, y, z]);
+      }
       // this.spotLight.castShadow = true;
       // this.spotLight.shadow.camera.fov = this.controls.fov;
       this.spotLight.penumbra = 1;
       this.side = side;
     }
+
+    if (position) this.spotLight.position.set(...position);
 
     // this.switchedOn = false;
     this.posHolder = new THREE.Vector3();
@@ -105,6 +124,7 @@ class WallLight {
     this.scene.add(this.helperTarget);
     // this.helperTarget.position.set(...targetPositionArray);
     this.spotLight.target = this.helperTarget;
+    console.log("this.helperTarget", this.helperTarget);
   }
   setConeHelper() {
     var geometry = new THREE.ConeGeometry(5, 20, 32);

@@ -1,15 +1,6 @@
 import React, { Component } from "react";
-
+import { Select } from "antd";
 import { withFirebase } from "../Firebase";
-
-const GalleryEditListItem = props => {
-  console.log("props.data", props.data);
-  const galleryData = props.data.val();
-  const { key } = props.data;
-  console.log("key, galleryData", key, galleryData);
-  const { name } = galleryData;
-  return <option value={key}>{name}</option>;
-};
 
 class GalleryEditDropdown extends Component {
   state = {
@@ -18,7 +9,6 @@ class GalleryEditDropdown extends Component {
   constructor(props) {
     super(props);
     console.log("GalleryEditDropdown props", props);
-
     this.callback = props.callback;
   }
 
@@ -38,7 +28,7 @@ class GalleryEditDropdown extends Component {
     console.log("Galleries plansCallback", list);
   };
 
-  getGalleryData(id) {
+  getGalleryData = id => {
     console.log("onChange getGalleryData", id, this.currentId);
     if (this.currentId === id) return;
     this.props.firebase.getGalleryById(id).on("value", snapshot => {
@@ -50,15 +40,36 @@ class GalleryEditDropdown extends Component {
       }
     });
     // .then(data => this.callback(data))
+  };
+
+  listItem(data) {
+    const { Option } = Select;
+
+    const galleryData = data.val();
+    const { key } = data;
+    const { name } = galleryData;
+    return (
+      <Option value={key} key={data.key}>
+        {name}
+      </Option>
+    );
   }
   render() {
+    const { Option } = Select;
+    // {this.state.galleriesList.map(data => (
+    //   <GalleryEditListItem data={data} key={data.key} />
+    // ))}
+    // <Option value={0}>Select a Gallery to edit</Option>
+    // onChange={({ target }) => this.getGalleryData(target.value)}
+
     return (
-      <select onChange={({ target }) => this.getGalleryData(target.value)}>
-        <option value={0}>Select a Gallery to edit</option>
-        {this.state.galleriesList.map(data => (
-          <GalleryEditListItem data={data} key={data.key} />
-        ))}
-      </select>
+      <Select
+        style={{ width: 250 }}
+        defaultValue="Select a Gallery to edit"
+        onChange={this.getGalleryData}
+      >
+        {this.state.galleriesList.map(data => this.listItem(data))}
+      </Select>
     );
   }
 }

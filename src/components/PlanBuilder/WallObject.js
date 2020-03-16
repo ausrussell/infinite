@@ -156,6 +156,7 @@ class WallObject {
     Object.keys(this.sides).forEach(side => this.lightsForSide(side));
   }
   lightsForSide(side) {
+    console.log("this.wallMesh.position", this.wallMesh.position);
     this.sides[side].wallLight = new WallLight(this, side);
     this.sides[side].wallLight.setWallLight();
   }
@@ -306,13 +307,13 @@ class WallObject {
     // if (holderOver.defaultArtMesh || holderOver.wallOver) {
     this.sides[side].wallLight.hoverOff();
     let index = this.sides[side].frames.push(new Frame(this, side));
-
-    this.currentSideOver.frames[index - 1].addArt(
-      file || itemData,
-      uploadTask,
-      this.currentSideOver.defaultFrame,
-      draggableImageRef
-    );
+    const options = {
+      file: file || itemData,
+      uploadTask: uploadTask,
+      holder: this.currentSideOver.defaultFrame,
+      draggableImageRef: draggableImageRef
+    };
+    this.currentSideOver.frames[index - 1].addArt(options);
 
     this.wallGroup.remove(this.currentSideOver.defaultFrame.group);
 

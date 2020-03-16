@@ -196,14 +196,34 @@ class Builder extends Component {
   };
 
   fileDropHandler = (file, uploadTask) => {
+    const dropData = {
+      file: file,
+      uploadTask: uploadTask
+    };
+    this.processDroppedArt(dropData);
+  };
+
+  itemDropHandler = itemData => {
+    const dropData = {
+      itemData: itemData
+    };
+    this.processDroppedArt(dropData);
+  };
+
+  processDroppedArt(dropData) {
+    const { file, uploadTask, itemData } = dropData;
     this.dragging = false;
     let intersect = this.checkForIntersecting();
     this.holderOver = intersect;
     if (this.currentWallOver || this.holderOver) {
       const addImageData = {
+        itemData: itemData,
+
         file: file,
         side: this.currentSide,
         holderOver: this.holderOver,
+        draggableImageRef: this.draggableImageRef,
+
         uploadTask: uploadTask
       };
       if (this.currentWallOver || this.holderOver.defaultArtMesh) {
@@ -212,32 +232,11 @@ class Builder extends Component {
         this.holderOver.artMesh.parent.holderClass.addArt(file, uploadTask);
       }
     } //else it's straight in vault
-  };
-
-  itemDropHandler = itemData => {
-    this.dragging = false;
-    let intersect = this.checkForIntersecting();
-    this.holderOver = intersect;
-    if (this.currentWallOver || this.holderOver) {
-      const addImageData = {
-        itemData: itemData,
-        side: this.currentSide,
-        holderOver: this.holderOver,
-        draggableImageRef: this.draggableImageRef
-        // uploadTask: uploadTask
-      };
-      if (this.currentWallOver || this.holderOver.defaultArtMesh) {
-        console.log("add addImageFile", addImageData);
-        this.currentWallOver.addImageFile(addImageData);
-      } else {
-        this.holderOver.artMesh.parent.holderClass.addArt(addImageData);
-      }
-    }
     this.setState({
       draggableVaultElementActive: false,
       draggableVaultItem: null
     });
-  };
+  }
 
   removeSpotlight(spotLight) {
     const index = this.lights.indexOf(spotLight);
@@ -348,7 +347,9 @@ class Builder extends Component {
     this.removeWalls();
     this.setEditWalls(walls);
 
-    this.setEditGeneralLight(generalLight);
+    this.removeLights();
+
+    generalLight && this.setEditGeneralLight(generalLight);
     this.setEditWallLights(lights);
 
     this.animate();
@@ -360,7 +361,7 @@ class Builder extends Component {
 
   setEditGeneralLight(generalLight) {
     console.log("generalLight", generalLight);
-    this.addLight(generalLight);
+    if (generalLight) this.addGeneralLight(generalLight);
   }
 
   setEditWallLights(wallLights) {
@@ -406,15 +407,6 @@ class Builder extends Component {
     this.wallEntities[index].fadeInArt();
   };
 
-  // loadGalleryToEdit() {
-  //   this.setWalls();
-  //   this.setFloor();
-  //   // this.addHelperGrid();
-  //   // this.renderRenderer();
-  //   this.animate();
-  //   this.initialWallBuild();
-  // }
-
   removeWalls() {
     if (this.wallEntities)
       this.wallEntities.forEach(item => {
@@ -450,11 +442,6 @@ class Builder extends Component {
     // this.galleryData.frameGroups = this.framesToSave;
     console.log("makeGalleryDbSave this.framesToSave", this.galleryData);
     this.props.firebase.storeGallery(this.galleryData, this.editGalleryId);
-  }
-
-  addLightToArray(light) {
-    this.lights.push(light);
-    console.log("this.lights", this.lights);
   }
 
   resetTranslatedArt() {
@@ -736,7 +723,7 @@ class Builder extends Component {
     this.renderer.setSize(width, height);
     this.mount.appendChild(this.renderer.domElement);
 
-    // this.addLight();
+    // this.addGeneralLight();
     // this.addBox();
     this.renderer.render(this.scene, this.camera);
     // this.camera.position.z = 5;
@@ -805,9 +792,29 @@ class Builder extends Component {
     mesh.position.set(0, 0, 0);
   }
 
-  addLight(options) {
+  //***** LIGHTS
+
+  removeLights() {
+    if (this.lights)
+      this.lights.forEach(item => {
+        item.removeSpotlight();
+      });
+    if (this.generalLightController) {
+      this.setState({ generalLight: null });
+      this.generalLightController.removeLight();
+    }
+  }
+
+  addLightToArray(light) {
+    this.lights.push(light);
+    console.log("this.lights", this.lights);
+  }
+
+  addGeneralLight(options = {}) {
     // Add the light to the scene
     // return;
+    options.builder = this;
+
     this.generalLightController = new GeneralLight(options);
     this.generalLight = this.generalLightController.getLight();
     this.setState({ generalLight: this.generalLight });
@@ -825,7 +832,6 @@ class Builder extends Component {
       );
     } else {
       console.log("no state in location");
-      // this.addLight();
     }
   }
 
@@ -837,7 +843,7 @@ class Builder extends Component {
     this.setWalls();
     // this.setFloor();
     // this.addHelperGrid();
-    this.addLight();
+    this.addGeneralLight();
 
     this.animate();
     this.initialWallBuild();
@@ -979,6 +985,50 @@ class Builder extends Component {
 
     return intersects[0] || null;
   }
+  addSpotlightHandler() {
+    let cameraPosition = this.camera.getWorldPosition();
+    let cameraDirection = this.camera.getWorldDirection();
+    var geometry = new THREE.BoxGeometry(5, 5, 5);
+    var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    var cube = new THREE.Mesh(geometry, material);
+    cube.name = "cubeHelper";
+
+    let spotlightDistanceFromCamera = 70;
+    let targetDistanceFromCamera = 130;
+
+    console.log(
+      "cameraPosition, cameraDirection",
+      cameraPosition,
+      cameraDirection
+    );
+
+    var spotlightPos = new THREE.Vector3();
+    spotlightPos.addVectors(
+      cameraPosition,
+      cameraDirection.clone().multiplyScalar(spotlightDistanceFromCamera)
+    );
+    let { x, y, z } = spotlightPos;
+    const spotlightPosArr = [x, 60, z];
+    console.log("spotlightPosArr", spotlightPosArr);
+
+    const targetPos = new THREE.Vector3();
+    targetPos.addVectors(
+      cameraPosition,
+      cameraDirection.clone().multiplyScalar(targetDistanceFromCamera)
+    );
+    const targetAr = [targetPos.x, 35, targetPos.z];
+    console.log("targetAr", targetAr);
+
+    const options = {
+      position: spotlightPosArr,
+      builder: this,
+      target: targetAr
+    };
+    const newWallLight = new WallLight(options);
+    this.lights.push(newWallLight);
+    newWallLight.displayHelper();
+    // debugger;
+  }
 
   getElevatorFloors() {
     this.lightFloor = (
@@ -986,6 +1036,7 @@ class Builder extends Component {
         lights={this.state.lights}
         selectedSpotlight={this.state.selectedSpotlight}
         generalLight={this.generalLight}
+        addSpotlightHandler={() => this.addSpotlightHandler()}
         // refreshLightFloor={this.state.refreshLightFloor}
       />
     );
@@ -1074,18 +1125,23 @@ class Builder extends Component {
     // console.log("render planner", this.state.draggableVaultElement);
     return (
       <ErrorBoundary>
-        <div className="floorplan-title">
-          <GalleryTitle
-            content={this.state.galleryTitle}
-            onTitleChangeHandler={this.onTitleChangeHandler}
-          />
-          Edit::{" "}
-          <GalleryEditDropdown callback={this.onEditDropdownChangeHandler} />
-          <SaveButton onClick={this.saveGallery} />
+        <div className="page-header-area">
+          <div className="floorplan-title">
+            <GalleryTitle
+              content={this.state.galleryTitle}
+              onTitleChangeHandler={this.onTitleChangeHandler}
+            />
+            <div className="edit-gallery-dropdown">
+              <GalleryEditDropdown
+                callback={this.onEditDropdownChangeHandler}
+              />
+            </div>
+            <SaveButton onClick={this.saveGallery} />
+          </div>
+          <h3 className="floorplan-title">
+            Floorplan: {this.state.floorplan && this.state.floorplan.title}
+          </h3>
         </div>
-        <h3 className="floorplan-title">
-          Floorplan: {this.state.floorplan && this.state.floorplan.title}
-        </h3>
         <MainCanvas refer={mount => (this.mount = mount)} />
         {this.state.draggableVaultElementActive && (
           <Draggable

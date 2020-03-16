@@ -1,7 +1,8 @@
 import React, { Component, useState } from "react";
 import { withFirebase } from "../Firebase";
 import { CompactPicker } from "react-color";
-import { Slider, Row, Col, Button } from "antd";
+import { Slider, Row, Col, Button, Icon, Tooltip } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 
 const GeneralLightControls = props => {
   const generalLight = props.generalLight;
@@ -109,6 +110,7 @@ class LightFloor extends Component {
     // console.log("VaultFloor props", props);
     super(props);
     this.generalLight = props.generalLight;
+    this.addSpotlLightCallback = props.addSpotlightHandler;
     console.log("LightFloor props", props);
   }
   componentDidMount() {
@@ -127,9 +129,9 @@ class LightFloor extends Component {
 
   componentWillUnmount() {}
 
-  test() {
-    debugger;
-  }
+  addSpotlightHandler = () => {
+    this.addSpotlLightCallback();
+  };
 
   render() {
     //console.log("tilesData", tilesData, tilesData.length);
@@ -141,6 +143,16 @@ class LightFloor extends Component {
         <Col className="gutter-row" span={12}>
           <div className="gutter-box">
             <h3>Spotlights</h3>
+            <Tooltip title="Add a spotlight">
+              <Button
+                type="primary"
+                shape="round"
+                onClick={() => this.addSpotlightHandler()}
+              >
+                <PlusOutlined />
+                Add Spotlight
+              </Button>
+            </Tooltip>
             {selectedSpotlight ? (
               <SpotlightControls selectedSpotlight={selectedSpotlight} />
             ) : (

@@ -273,7 +273,9 @@ class Frame {
   getFrameGroup() {
     return this.group;
   }
-  addArt(file, uploadTask, holder = this, draggableImageRef) {
+  addArt(options) {
+    const { file, uploadTask, holder, draggableImageRef } = options;
+    if (!holder) holder = this;
     console.log("addART", file);
     if (file.url) {
       const options = {
