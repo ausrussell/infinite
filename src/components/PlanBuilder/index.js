@@ -19,6 +19,8 @@ import LightFloor from "./LightFloor";
 
 import Floor from "./Floor";
 
+import Surroundings from "./Surroundings";
+
 import Elevator from "../Elevator";
 
 import ErrorBoundary from "../ErrorBoundary";
@@ -218,12 +220,10 @@ class Builder extends Component {
     if (this.currentWallOver || this.holderOver) {
       const addImageData = {
         itemData: itemData,
-
         file: file,
         side: this.currentSide,
         holderOver: this.holderOver,
         draggableImageRef: this.draggableImageRef,
-
         uploadTask: uploadTask
       };
       if (this.currentWallOver || this.holderOver.defaultArtMesh) {
@@ -248,6 +248,10 @@ class Builder extends Component {
 
   floorTileCallback(item) {
     this.floor.floorTileCallback(item);
+  }
+
+  surroundingsTileCallback(item) {
+    this.surroundings.surroundingsTileCallback(item);
   }
 
   frameClickHandler(item) {
@@ -731,6 +735,7 @@ class Builder extends Component {
     this.renderer.render(this.scene, this.camera);
     // this.camera.position.z = 5;
     this.setFloor(); //move to didMount... but needs to be after editWalls // remove previous
+    this.setSurroundings();
     this.addTransformControls();
   }
 
@@ -917,6 +922,11 @@ class Builder extends Component {
     this.floor = new Floor(this);
   }
 
+  setSurroundings() {
+
+    this.surroundings = new Surroundings(this);
+  }
+
   initialWallBuild(done) {
     // console.log("initialWallBuild this.wallEntities", this.wallEntities);
     // this.addSkyDome(); //??
@@ -1092,6 +1102,14 @@ class Builder extends Component {
         refPath: "master/floortiles",
         level: 3,
         floorCalledCallback: this.lightFloorCalledCallback.bind(this)
+      },
+      4: {
+        name: "Surroundings",
+        y: 940,
+        floorComponent: VaultFloor,
+        refPath: "users/" + this.props.firebase.currentUID + "/cubebox",
+        level: 4,
+        tileCallback: this.surroundingsTileCallback.bind(this)
       }
     };
     return floors;
@@ -1191,6 +1209,7 @@ class Builder extends Component {
             this.fileDropHandler(item, uploadTask)
           }
           wallOver={this.state.wallOver}
+          type="art"
         />
       </ErrorBoundary>
     );

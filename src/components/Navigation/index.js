@@ -101,6 +101,10 @@ const NavigationAuth = (user, authuser) => {
         <Link to={ROUTES.ADMIN}>Admin</Link>
       </li>
       <li>
+        <Link to={ROUTES.STUDIO}>Studio</Link>
+      </li>
+
+      <li>
         <Link to={ROUTES.PLANNER}>Planner</Link>
       </li>
       <li>

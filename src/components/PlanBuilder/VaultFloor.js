@@ -24,7 +24,7 @@ class VaultFloor extends Component {
   getTilesCallback = data => {
     const list = [];
     const listObj = {};
-    // console.log("getTilesCallback", data);
+    console.log("getTilesCallback", data);
     if (data) {
       data.forEach(function(childSnapshot) {
         list.push(childSnapshot);
@@ -32,7 +32,7 @@ class VaultFloor extends Component {
       });
     }
     this.setState({ tilesData: list });
-    // console.log("getTilesCallback", list);
+    console.log("getTilesCallback list", list);
   };
 
   tileClickHandler = (item, tile) => {
@@ -40,26 +40,20 @@ class VaultFloor extends Component {
   };
 
   renderTile(snapshot) {
-    //console.log("renderTile(snapshot)", snapshot);
+    // console.log("renderTile(snapshot)", snapshot);
     const tileData = snapshot.val();
-    const { url, color } = tileData;
+    const { url, color, ny } = tileData;//ny for cubeboxes
+    console.log("renderTile, url, color, ny", url, color, ny);
+    const tileUrl = url || ny;
     const { key } = snapshot;
     tileData.key = key;
     const { draggable } = this.props;
     const style = {
       backgroundColor: color || "#FFFFFF",
-      backgroundImage: "url(" + url + ")",
+      backgroundImage: "url(" + tileUrl + ")",
       backgroundSize: "cover"
     };
-    //style={style} onClick={() => this.tileClickHandler(tileData)}
-    // return  ({draggable ? (<Draggable><Tile  /></Draggable> ): (<Tile />)})
-    //
-    // <Draggable key={key}>
-    //   <Tile
-    //     style={style}
-    //     onClick={() => this.tileClickHandler(tileData)}
-    //   />
-    // </Draggable>
+
 
     return draggable ? (
       <Tile

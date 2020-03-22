@@ -196,9 +196,11 @@ class Firebase {
 
   storeArt = file => {
     const storageRef = this.storage.ref();
+    const path = file.assetType;
     const imageRef = storageRef.child(
-      "users/" + this.currentUID + "/art/" + file.name
+      "users/" + this.currentUID + "/" + file.assetType + "/" + file.name
     );
+    file.uid = this.currentUID;
     return imageRef.put(file);
   };
 
@@ -217,6 +219,8 @@ class Firebase {
       .push();
     return newArtRef.set(artData);
   };
+
+
 }
 
 export default Firebase;

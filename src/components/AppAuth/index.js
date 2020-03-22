@@ -15,6 +15,7 @@ import AdminPage from "../Admin";
 import Planner from "../Planner";
 import Gallery from "../Gallery";
 import Builder from "../PlanBuilder";
+import StudioPage from "../Studio";
 
 import * as ROUTES from "../../constants/routes";
 import { withAuthentication } from "../Session";
@@ -35,6 +36,7 @@ const AppAuth = () => {
         <Route path={ROUTES.PLANNER} component={Planner} />
 
         <Route path={ROUTES.BUILDER} component={Builder} />
+        <Route path={ROUTES.STUDIO} component={StudioPage} />
       </Router>
     </Layout>
   );

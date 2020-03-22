@@ -9,3 +9,4 @@ export const APP = "/landing";
 export const PLANNER = "/planner";
 export const GALLERY = "/gallery";
 export const BUILDER = "/builder";
+export const STUDIO = "/studio";
