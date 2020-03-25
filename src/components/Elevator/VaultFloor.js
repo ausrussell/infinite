@@ -42,8 +42,8 @@ class VaultFloor extends Component {
   renderTile(snapshot) {
     // console.log("renderTile(snapshot)", snapshot);
     const tileData = snapshot.val();
-    const { url, color, ny } = tileData;//ny for cubeboxes
-    console.log("renderTile, url, color, ny", url, color, ny);
+    const { url, color, ny, title } = tileData;//ny for cubeboxes
+    // console.log("renderTile, url, color, ny", url, color, ny);
     const tileUrl = url || ny;
     const { key } = snapshot;
     tileData.key = key;
@@ -60,21 +60,16 @@ class VaultFloor extends Component {
         key={key}
         style={style}
         onMouseDown={() => this.tileClickHandler(tileData)}
+        title={title}
       />
     ) : (
       <Tile
         style={style}
         onClick={() => this.tileClickHandler(tileData, "not draggable")}
         key={key}
+        title={title}
       />
     );
-    // <div
-    //   key={key}
-    //   className="tile"
-    //   onClick={() => this.tileClickHandler(tileData)}
-    // >
-    //   <div className="tile-image" style={style} />
-    // </div>
   }
 
   render() {
@@ -93,10 +88,11 @@ class VaultFloor extends Component {
 }
 
 const Tile = props => {
-  const { style, onClick, onMouseDown } = props;
+  const { style, onClick, onMouseDown, title } = props;
   //console.log("Tile", props);
   return (
     <div className="tile" onClick={onClick}>
+      <div className="tile-title">{title}</div>
       <div className="tile-image" style={style} onMouseDown={onMouseDown} />
     </div>
   );

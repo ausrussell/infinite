@@ -1,13 +1,13 @@
 import React, { Component, useState } from "react";
 import { withFirebase } from "../Firebase";
 import { CompactPicker } from "react-color";
-import { Slider, Row, Col, Button, Icon, Tooltip } from "antd";
+import { Slider, Row, Col, Button, Tooltip } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 
 const GeneralLightControls = props => {
   const generalLight = props.generalLight;
   console.log("generalLight", generalLight);
-  if (!generalLight) return null; //should get changed when working out general Lights
+  // if (!generalLight) return null; //should get changed when working out general Lights
 
   const [intensity, setIntensity] = useState(generalLight.intensity * 100);
   const [color, setColor] = useState();
@@ -39,7 +39,7 @@ const GeneralLightControls = props => {
 
 const SpotlightControls = props => {
   const selectedSpotlight = props.selectedSpotlight.children[0];
-  if (!selectedSpotlight) return null;
+  // if (!selectedSpotlight) return null;
   const controllerClass = props.selectedSpotlight.controllerClass;
   const [intensity, setIntensity] = useState(selectedSpotlight.intensity * 100);
   const [color, setColor] = useState();
@@ -139,9 +139,11 @@ class LightFloor extends Component {
 
     console.log("selectedSpotlight", selectedSpotlight);
     return (
-      <Row gutter={16} className="lights-gutter-row">
+      <div>
+
+{     generalLight && (<Row gutter={16} className="lights-gutter-row">
         <Col className="gutter-row" span={12}>
-          <div className="gutter-box">
+        <div className="gutter-box">
             <h3>Spotlights</h3>
             <Tooltip title="Add a spotlight">
               <Button
@@ -163,11 +165,15 @@ class LightFloor extends Component {
         <Col className="gutter-row" span={12}>
           <div className="gutter-box">
             <h3>General Lighting</h3>
-            <GeneralLightControls generalLight={this.state.generalLight} />
+            <GeneralLightControls generalLight={generalLight} />
           </div>
         </Col>
-      </Row>
-    );
+      </Row>)}
+
+
+      </div>
+    )
+  
   }
 }
 

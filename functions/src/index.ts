@@ -15,7 +15,7 @@ exports.generateThumbnail = functions.storage.object().onFinalize(async (object:
   const contentType = object.contentType; // File content type.
   // const metageneration = object.metageneration; // Number of times metadata has been generated. New objects have a value of 1.
   // Exit if this is triggered on a file that is not an image.
-  console.log("fileBucket::",fileBucket, "filePath",filePath);
+  console.log("fileBucket::", fileBucket, "filePath", filePath);
   if (!contentType.startsWith('image/')) {
     console.log('This is not an image.', contentType);
     return null;
@@ -25,7 +25,7 @@ exports.generateThumbnail = functions.storage.object().onFinalize(async (object:
   const fileName = path.basename(filePath);
   // Exit if the image is already a thumbnail.
   // const pathAr = filePath.split('/');
-  if (filePath.indexOf("art") === -1){
+  if (filePath.indexOf("art") === -1) {
     console.log("not in art");
     return null;
   }
@@ -91,11 +91,14 @@ export const manageZipArchives = functions
           + newMetadata.metadata.firebaseStorageDownloadTokens;
         const tileType = nameAr[usersIndex + 5].split('.');
         const key = tileType[0];
-        const acceptableKeys = ["nx","ny","nz","px","py","pz"];
-        if(acceptableKeys.indexOf(key) === -1){
+        const acceptableKeys = ["nx", "ny", "nz", "px", "py", "pz"];
+        if (acceptableKeys.indexOf(key) === -1) {
           return;
         }
-        const data = { [key]: img_url };
+        const data = {
+          [key]: img_url,
+          title: nameAr[usersIndex + 3].replace('_zip', '')
+        };
         const refPath = "users/" + userId + '/cubebox/' + nameAr[usersIndex + 3];
         const db = admin.database();
         const cubeBoxRef = db.ref(refPath);

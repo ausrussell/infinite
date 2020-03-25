@@ -76,6 +76,12 @@ class Firebase {
     return newPostRef.getKey();
   };
 
+  updateTitle = (path, title) => {
+    const ref = this.database
+    .ref("users/" + this.currentUID + "/" + path)
+    return ref.update({title:title})
+  }
+
   storeGallery = (galleryData, id) => {
     // debugger;
     let galleryRef;

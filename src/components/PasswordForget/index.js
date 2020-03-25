@@ -3,7 +3,10 @@ import { Link } from "react-router-dom";
 
 import { withFirebase } from "../Firebase";
 import * as ROUTES from "../../constants/routes";
-import { Form, Icon, Input, Button, Row, Col, Card } from "antd";
+import { MailOutlined } from '@ant-design/icons';
+import { Form } from '@ant-design/compatible';
+import '@ant-design/compatible/assets/index.css';
+import { Input, Button, Row, Col, Card } from "antd";
 import "antd/dist/antd.css";
 
 const PasswordForgetPage = () => (
@@ -75,7 +78,7 @@ class PasswordForgetFormBase extends Component {
       <Form layout="inline" onSubmit={this.onSubmit}>
         <Form.Item>
           <Input
-            prefix={<Icon type="mail" style={{ color: "rgba(0,0,0,.25)" }} />}
+            prefix={<MailOutlined style={{ color: "rgba(0,0,0,.25)" }} />}
             placeholder="Email Address"
             value={email}
             name="email"

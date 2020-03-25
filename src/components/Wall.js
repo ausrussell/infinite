@@ -16,15 +16,10 @@ class Wall {
   }
   styleMap = {
     0: "#37474f", //not built
-<<<<<<< HEAD
-    1: "#B9F6CA", //onMouseOver
+    1: "#b9f6ca", //onMouseOver
     2: "#ccddff", //built
-    3: "#FFC107", //onMouseOver with shift
-    4: "#FF6F00" //onMouseOver with shift over wall
-=======
-    1: "#99aacc", //onMouseOver
-    2: "#ccddff" //built
->>>>>>> c8bad0b60d8806c539e78dd9454028cd387eb640
+    3: "#ffc107", //onMouseOver with shift
+    4: "#ff6f00" //onMouseOver with shift over wall
   };
   onMouseOver(shiftDown) {
     // if (this.built) return;

@@ -1,5 +1,7 @@
 import React, { Component, useState } from "react";
-import { Form, Upload, message, Button, Input, Select } from 'antd';
+// import { Form } from '@ant-design/compatible';
+// import '@ant-design/compatible/assets/index.css';
+// import { Upload, message, Button, Input, Select } from 'antd';
 import { UploadOutlined, InboxOutlined } from '@ant-design/icons';
 
 // import FileUploader from "react-firebase-file-uploader";
@@ -11,7 +13,7 @@ import { withFirebase } from "./Firebase";
 
 
 
-// import { Form, Input, Button, Select } from 'antd';
+import { Form, Upload, Input, Button, Select } from 'antd';
 
 const { Option } = Select;
 const layout = {
@@ -29,40 +31,36 @@ const tailLayout = {
   },
 };
 
-
-
 const UploadButton = (props) => {
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadFileName, setuploadFileName] = useState("");
   const [form] = Form.useForm();
   // debugger;
-  const customRequest = ({ file, onSuccess }) => {
+  const customRequest = ({ file, onProgress, onSuccess }) => {
     console.log("dummyRequest file", file);
     const uploadTask = props.changeHandler(file);
     console.log("uploadTask", uploadTask);
     const next = snapshot => {
-      // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-      var progress = snapshot.bytesTransferred / snapshot.totalBytes;
-      // if (this.artMesh) this.show(progress);
-      console.log("Upload is " + progress * 100 + "% done");
-      // console.log("snapshot", snapshot.ref);
+      const progress = snapshot.bytesTransferred / snapshot.totalBytes;
+      onProgress({ percent: progress * 100 });
     };
 
-    const complete = () => completeHandler(file, onSuccess)
+    const complete = () => {
+      console.log("complete");
+      setuploadFileName(file.name)
+      const uploadTitle = file.name.replace(".zip", "")
+      form.setFieldsValue({
+        UploadTitle: file.name.replace(".zip", "")
+      });
+      onSuccess("Ok");
+      setUploadTitle(uploadTitle);
+    }
+
     uploadTask.on("state_changed", {
       next: next,
       complete: complete
     });
-
   };
-
-  const completeHandler = (file, onSuccess) => {
-    setuploadFileName(file.name);
-    // form.setFieldsValue({
-    //   uploadTitle: file.name
-    // });
-    onSuccess("ok");
-  }
 
   const onTitleChangeHandler = ({ target }) => {
     setUploadTitle(target.value);
@@ -73,16 +71,44 @@ const UploadButton = (props) => {
     wrapperCol: { span: 16 },
   };
 
+  const normFile = e => {
+    console.log('Upload event:', e);
+    if (Array.isArray(e)) {
+      return e;
+    }
+    return e && e.fileList;
+  };
+
+  const onFinish = ()=> {
+    console.log("onFinish",uploadTitle);
+    const dbSave = props.firebase.updateTitle("cubebox/" + uploadFileName.replace('.', '_'),uploadTitle);//obeying rules for path in cloud functions
+    dbSave.then(()=> {
+      console.log("saved")
+    })
+  }
+  //disabled={!uploadFileName}
+//   <Form.Item
+//   label="Upload Title"
+//   name="UploadTitle"
+// >
+//   <Input placeholder="Cube Map Title" onChange={onTitleChangeHandler} disabled={!uploadTitle} />
+// </Form.Item>
+// <Form.Item>
+//   <Button type="primary" htmlType="submit" disabled={!uploadTitle}>
+//     Submit
+//   </Button>
+// </Form.Item>
   return (
     <Form
       {...layout}
       // name="uploadForm"
-      name="control-hooks"
+      name="upload-dragger"
       form={form}
+      onFinish={onFinish}
     >
       <Form.Item label="Dragger">
-        <Form.Item name="dragger">
-          <Upload.Dragger name="files" customRequest={customRequest}>
+        <Form.Item name="dragger" valuePropName="files" getValueFromEvent={normFile}>
+          <Upload.Dragger name="files" customRequest={customRequest} noStyle>
             <p className="ant-upload-drag-icon">
               <InboxOutlined />
             </p>
@@ -92,17 +118,7 @@ const UploadButton = (props) => {
         </Form.Item>
       </Form.Item>
 
-      <Form.Item
-        label="Upload Title"
-        name="UploadTitle"
-      >
-        <Input placeholder="Cube Box Title" name="uploadTitle" onChange={onTitleChangeHandler} disabled={!uploadFileName} />
-      </Form.Item>
-      <Form.Item>
-        <Button type="primary" htmlType="submit">
-          Submit
-        </Button>
-      </Form.Item>
+
     </Form>
   )
 }
@@ -224,12 +240,18 @@ class Uploader extends Component {
     this.fileUpload(info.fileList[0]);
   }
 
+  
+
   render() {
     console.log(this.state);
 
     const { button } = this.props;
-    return (
-      <UploadButton changeHandler={this.fileUpload} />
+    console.log("uploader button",button)
+    return (<div>
+      {button && (
+        <UploadButton changeHandler={this.fileUpload} firebase={this.props.firebase}/>)
+      }
+      </div>
     );
   }
 }

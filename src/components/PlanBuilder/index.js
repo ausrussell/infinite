@@ -14,7 +14,7 @@ import * as Stats from "stats-js";
 
 // import TilesFloor, { floorData } from "./TilesFloor";
 
-import VaultFloor from "./VaultFloor";
+import VaultFloor from "../Elevator/VaultFloor";
 import LightFloor from "./LightFloor";
 
 import Floor from "./Floor";
