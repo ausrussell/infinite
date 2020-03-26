@@ -1,13 +1,14 @@
 body {
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  /* overflow: hidden; */
   position: relative;
   color: #444;
+  /* background-color: #263238; */
 }
 
-.floorplan-title {
-  /* position: absolute; */
+.ant-layout{
+  background-color: inherit important!;
 }
 
 .tile-holder {

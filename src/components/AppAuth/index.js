@@ -23,7 +23,7 @@ import { Layout } from "antd";
 
 const AppAuth = () => {
   return (
-    <Layout style={{ backgroundColor: "#37474F" }}>
+    <Layout>
       <Router>
         <Navigation />
         <Route path={`${ROUTES.GALLERY}/:galleryName`} component={Gallery} />

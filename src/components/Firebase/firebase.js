@@ -82,6 +82,12 @@ class Firebase {
     return ref.update({title:title})
   }
 
+  updateAsset = (path, object) => {
+    const ref = this.database
+    .ref(path)
+    return ref.update(object)
+  }
+
   storeGallery = (galleryData, id) => {
     // debugger;
     let galleryRef;

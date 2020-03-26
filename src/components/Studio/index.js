@@ -2,22 +2,21 @@ import React, { Component, useState, useEffect } from "react";
 // import { compose } from "recompose";
 // import { FirebaseContext } from "../Firebase";
 import { withFirebase } from "../Firebase";
-import { Row, Col, Card } from "antd";
+import { Row, Col, Card, Checkbox, Tabs, Form, Input, Button } from "antd";
 import Uploader from "../Uploader";
 
 import Elevator from "../Elevator";
 import VaultFloor from "../Elevator/VaultFloor";
-
-import { Tabs, Form, Input, Button } from 'antd';
+import AssetEditor from "./AssetEditor";
 
 const { TabPane } = Tabs;
 
 const layout = {
   labelCol: {
-    span: 8,
+    span: 4,
   },
   wrapperCol: {
-    span: 16,
+    span: 20,
   },
 };
 const tailLayout = {
@@ -37,47 +36,7 @@ const CubeMapEditor = (props) => {
   )
 }
 
-const AssetEditor = props => {
-  const [title, setTitle] = useState("");
-  useEffect(() => {
-    const item = props.item;
-    const updateTitle = () => {
-      console.log("updateTitle", props)
-      form.setFieldsValue({
-        title: item.title
-      }, [item]);
-    }
-    updateTitle()
-  }, [props]);
-  const [form] = Form.useForm();
-  const onFinish = () => {
-    console.log("onFinish", title);
-    // const dbSave = props.firebase.updateTitle(props.ref, title);//obeying rules for path in cloud functions
-    // dbSave.then(() => {
-    //   console.log("saved")
-    // })
-  }
-  return (<Form
-    {...layout}
-    // name="uploadForm"
-    name="asset-editor"
-    form={form}
-    onFinish={onFinish}
-  >
-    <Form.Item
-      label="Upload Title"
-      name="title"
-      valuePropName="value"
-    >
-      <Input placeholder="Title" />
-    </Form.Item>
-    <Form.Item>
-      <Button type="primary" htmlType="submit">
-        Submit
-        </Button>
-    </Form.Item>
-  </Form>)
-}
+
 
 
 const CubeBox = () => {
@@ -98,7 +57,7 @@ const CubeBox = () => {
   };
 
   return (
-    <div>
+    <Card type="inner" title="Upload new asset">
       <div>Drag zip file to upload Cube boxes</div>
       <Uploader
         type="cubebox"
@@ -108,7 +67,7 @@ const CubeBox = () => {
         fileDrop={(item, uploadTask) => fileDropHandler(item, uploadTask)}
         fileLoadedHandler={fileLoadedHandler}
       />
-    </div>
+    </Card>
   );
 };
 class StudioPage extends Component {
@@ -151,6 +110,7 @@ class StudioPage extends Component {
 
   surroundingsTileCallback(item) {
     console.log("surroundingsTileCallback", item)
+    item.type = this.floors[this.state.floorCalled].name;
     this.setState({ selectedItem: item })
   }
 

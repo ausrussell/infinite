@@ -45,8 +45,10 @@ class VaultFloor extends Component {
     const { url, color, ny, title } = tileData;//ny for cubeboxes
     // console.log("renderTile, url, color, ny", url, color, ny);
     const tileUrl = url || ny;
-    const { key } = snapshot;
+    const { key, ref } = snapshot;
+    console.log("tile click snapshot",snapshot)
     tileData.key = key;
+    tileData.ref = ref;
     const { draggable } = this.props;
     const style = {
       backgroundColor: color || "#FFFFFF",

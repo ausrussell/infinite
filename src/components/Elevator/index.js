@@ -35,7 +35,7 @@ class Elevator extends PureComponent {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.floorCalled !== this.state.currentFloor) {
+    if (nextProps.floorCalled && (nextProps.floorCalled !== this.state.currentFloor)) {
       this.handleFloorClick(nextProps.floorCalled);
     }
   }
