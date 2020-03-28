@@ -6,8 +6,8 @@ import { SignUpLink } from "../SignUp";
 import { PasswordForgetLink } from "../PasswordForget";
 import { withFirebase } from "../Firebase";
 import * as ROUTES from "../../constants/routes";
-import { Form } from '@ant-design/compatible';
-import '@ant-design/compatible/assets/index.css';
+import { Form } from 'antd';
+// import '@ant-design/compatible/assets/index.css';
 import { Row, Col, Card, Input, Button } from "antd";
 
 const SignInPage = () => (

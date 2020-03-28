@@ -87,17 +87,7 @@ const UploadButton = (props) => {
     })
   }
   //disabled={!uploadFileName}
-//   <Form.Item
-//   label="Upload Title"
-//   name="UploadTitle"
-// >
-//   <Input placeholder="Cube Map Title" onChange={onTitleChangeHandler} disabled={!uploadTitle} />
-// </Form.Item>
-// <Form.Item>
-//   <Button type="primary" htmlType="submit" disabled={!uploadTitle}>
-//     Submit
-//   </Button>
-// </Form.Item>
+  
   return (
     <Form
       {...layout}

@@ -3,7 +3,8 @@ import { withFirebase } from "../Firebase";
 
 class VaultFloor extends Component {
   state = {
-    tilesData: []
+    tilesData: [],
+    selectedTile: null
   };
   constructor(props) {
     // console.log("VaultFloor props", props);
@@ -25,18 +26,31 @@ class VaultFloor extends Component {
     const list = [];
     const listObj = {};
     console.log("getTilesCallback", data);
+    let selectedTilePresent = false;
     if (data) {
-      data.forEach(function(childSnapshot) {
+      data.forEach((childSnapshot) => {
         list.push(childSnapshot);
         listObj[childSnapshot.key] = childSnapshot;
+        if  (this.state.selectedTile === childSnapshot.key && !selectedTilePresent) selectedTilePresent = true
+        console.log("childSnapshot.key",childSnapshot.key)
       });
     }
+    if (this.state.selectedTile && !selectedTilePresent) {
+      console.log("",this.state.selectedTile,selectedTilePresent )
+      this.clearSelected()}
     this.setState({ tilesData: list });
     console.log("getTilesCallback list", list);
   };
+  clearSelected(){
+    this.setState({selectedTile: null});
+    this.tileCallback(null);
+
+  }
 
   tileClickHandler = (item, tile) => {
+    console.log("tileClickHandler",item)
     this.tileCallback(item, tile);
+    this.setState({selectedTile: item.key});
   };
 
   renderTile(snapshot) {
@@ -46,7 +60,6 @@ class VaultFloor extends Component {
     // console.log("renderTile, url, color, ny", url, color, ny);
     const tileUrl = url || ny;
     const { key, ref } = snapshot;
-    console.log("tile click snapshot",snapshot)
     tileData.key = key;
     tileData.ref = ref;
     const { draggable } = this.props;

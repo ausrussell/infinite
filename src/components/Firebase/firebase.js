@@ -19,6 +19,7 @@ class Firebase {
     this.auth = app.auth();
     this.storage = app.storage();
     this.database = app.database();
+    this.functions = app.functions()
 
     this.auth.onAuthStateChanged(user => {
       this.currentUID = user ? user.uid : null;
@@ -78,14 +79,57 @@ class Firebase {
 
   updateTitle = (path, title) => {
     const ref = this.database
-    .ref("users/" + this.currentUID + "/" + path)
-    return ref.update({title:title})
+      .ref("users/" + this.currentUID + "/" + path)
+    return ref.update({ title: title })
   }
 
   updateAsset = (path, object) => {
     const ref = this.database
-    .ref(path)
+      .ref(path)
     return ref.update(object)
+  }
+
+  deleteFolderContents(path) {
+    const ref = this.storage.ref(path);
+    return ref.listAll()
+      .then(dir => {
+        dir.items.forEach(fileRef => {
+          console.log("deleteFile", fileRef.name)
+
+          this.deleteFile(ref.fullPath, fileRef.name);
+        });
+        dir.prefixes.forEach(folderRef => {
+          console.log("deleteFolderContents recursive", folderRef.fullPath)
+          this.deleteFolderContents(folderRef.fullPath);
+        })
+      })
+      .catch(error => {
+        console.log("delete folder", error);
+      });
+  }
+
+  deleteFile(pathToFile, fileName) {
+    const ref = this.storage.ref(pathToFile);
+    const childRef = ref.child(fileName);
+    childRef.delete()
+  }
+
+  deleteAsset = (path, item) => {
+    console.log("deleteAsset", path, item);
+    // const deleteBucket = this.functions.httpsCallable('deleteBucket');
+    // deleteBucket({ path: path }).then(function (result) {
+    //   // Read result of the Cloud Function.
+    //   console.log("deleteAsset result from Cloud Function", result)
+    //   // ...
+    // });
+    return this.deleteFolderContents(path)
+      .then(() => {
+        const dbRef = this.database
+          .ref(path)
+        return dbRef.remove();
+      });
+
+
   }
 
   storeGallery = (galleryData, id) => {

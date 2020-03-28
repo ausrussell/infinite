@@ -1,7 +1,7 @@
 import React, { Component, useState, useEffect } from "react";
 import { withFirebase } from "../Firebase";
-import { Row, Col, Card, Checkbox, Tabs, Form, Input, Button } from "antd";
-const {Meta} = Card;
+import { Card, Checkbox, Form, Input, Button } from "antd";
+const { Meta } = Card;
 const layout = {
     labelCol: {
         span: 4,
@@ -19,30 +19,36 @@ const tailLayout = {
 
 const AssetPreview = (props) => {
     const [item, setItem] = useState({});
+
     useEffect(() => {
         setItem(props.item)
-
     }, [props]);
-    console.log("AssetPreview item",item)
-    let url = ""
+    console.log("AssetPreview item", item)
+    let url = "";
     const originalTitle = item.title;
     const type = item.type;
+    const description = "Last updated " + item.updateTime;
     console.log("type");
     switch (type) {
         case "Surroundings":
-        console.log("Surroundings", item)
+            console.log("Surroundings", item)
             url = item.ny;
             break;
-        default: 
-        console.log("default", item)
-        url = item.url || "";
+        case "Art":
+            console.log("Art", item)
+            url = item.url;
+            break;
+        default:
+            console.log("default", item)
+            url = item.url || "";
     }
 
     return (
-        <Card style={{ height: 300 }}
-            cover={<img alt="example" src={url} />}
+        <Card style={{ margin: 'auto', marginBottom: 16, width: 200 }}
+            title={originalTitle}
+            cover={<img alt={type} src={url} />}
         >
-            <Meta title={originalTitle} description={type} />
+            <Meta description={description} />
         </Card>
     )
 }
@@ -50,23 +56,34 @@ const AssetPreview = (props) => {
 const AssetEditor = props => {
     console.log("props.props", props)
     const [title, setTitle] = useState("");
+    const [shareable, setShareable] = useState(false);
+
     const item = props.item;
 
     useEffect(() => {
         const updateTitle = () => {
             console.log("updateTitle", props)
             form.setFieldsValue({
-                title: item.title
+                title: item.title,
+                shareable: item.shareable || true
             }, [item]);
+
         }
         updateTitle()
     }, [props]);
     const [form] = Form.useForm();
+    const deleteHandler = () => {
+        const dbDelete = props.firebase.deleteAsset(path(), item);//obeying rules for path in cloud functions
+        dbDelete.then(() => console.log("delete callback"))
+    }
+    const path = () => item.ref.path.pieces_.join("/");
+
     const onFinish = (values) => {
         console.log("onFinish item ref path", item, item.ref.path);
         console.log("onFinish", values);
-        const path = item.ref.path.pieces_.join("/")
-        const dbSave = props.firebase.updateAsset(path, values);//obeying rules for path in cloud functions
+        values.updateTime = new Date();
+        const dbSave = props.firebase.updateAsset(path(), values);//obeying rules for path in cloud functions
+
         dbSave.then(() => {
             console.log("onFinish saved", path, values);
         })
@@ -74,9 +91,9 @@ const AssetEditor = props => {
     return (
         <Card type="inner" title="Edit asset">
             <AssetPreview item={item} />
-  
-        <Form
-          {...layout}
+
+            <Form
+                {...layout}
                 // name="uploadForm"
                 name="asset-editor"
                 form={form}
@@ -92,12 +109,17 @@ const AssetEditor = props => {
                 <Form.Item name="shareable" valuePropName="checked">
                     <Checkbox>Allow others to borrow this for their own gallery</Checkbox>
                 </Form.Item>
+                <Form.Item>
+                    <Button htmlType="button" onClick={deleteHandler}>
+                        Delete this item
+                    </Button>
+                </Form.Item>
                 <Form.Item {...tailLayout}>
                     <Button type="primary" htmlType="submit">
                         Update
-          </Button>
+                    </Button>
                 </Form.Item>
-        </Form>
+            </Form>
         </Card>)
 }
 

@@ -6,7 +6,42 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 const UUID = require("uuid-v4");
+// const { Storage } = require('@google-cloud/storage');
+// const gcs = require('@google-cloud/storage')();
 
+
+
+
+exports.deleteBucket = functions.https.onCall((data: any) => {
+  // const { path } = data;
+  console.log("path", data.path)
+  // const bucket = admin.storage().bucket(data.path);
+  // return bucket.delete();
+
+  // // Creates a client
+  // const storage = new Storage();
+  // const bucketName = data.path;
+  // async function deleteBucket() {
+  //   // Deletes the bucket
+  //   await storage.bucket(bucketName).delete();
+  //   console.log(`Bucket ${bucketName} deleted.`);
+  // }
+
+  // deleteBucket().catch(console.error);
+  // const gcs = new Storage();
+
+  // const bucket = gcs.bucket(functions.config().firebase.storageBucket);
+  // return bucket.deleteFiles({
+  //   prefix: data.path
+  // }, function (err: any) {
+  //   if (err) {
+  //     console.log(err);
+  //   } else {
+  //     console.log(`All the Firebase Storage files in users/${data.path}/ have been deleted`);
+  //   }
+  // });
+  return null;
+});
 
 exports.generateThumbnail = functions.storage.object().onFinalize(async (object: any) => {
 

@@ -4,10 +4,11 @@ import { Link } from "react-router-dom";
 import { withFirebase } from "../Firebase";
 import * as ROUTES from "../../constants/routes";
 import { MailOutlined } from '@ant-design/icons';
-import { Form } from '@ant-design/compatible';
-import '@ant-design/compatible/assets/index.css';
+import { Form } from 'antd';
 import { Input, Button, Row, Col, Card } from "antd";
-import "antd/dist/antd.css";
+
+//This file needs checking for antd Form
+
 
 const PasswordForgetPage = () => (
   <Row>
@@ -105,8 +106,9 @@ const PasswordForgetLink = () => (
 export default PasswordForgetPage;
 
 // const WrappedHorizontalLoginForm = Form.create({ name: 'horizontal_login' })(HorizontalLoginForm);
+//.create({ name: "horizontal_login" }
 const PasswordForgetForm = withFirebase(
-  Form.create({ name: "horizontal_login" })(PasswordForgetFormBase)
+  Form
 );
 
 // const PasswordForgetForm = withFirebase(PasswordForgetFormBase);

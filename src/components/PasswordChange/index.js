@@ -1,12 +1,10 @@
 import React, { Component } from "react";
 
 import { withFirebase } from "../Firebase";
-import { Form } from '@ant-design/compatible';
-import '@ant-design/compatible/assets/index.css';
+import { Form } from 'antd';
 // import { withAuthorization } from "../Session";
-
+//This file needs checking for antd Form
 import { Input, Button } from "antd";
-import "antd/dist/antd.css";
 
 const INITIAL_STATE = {
   passwordOne: "",
@@ -15,6 +13,7 @@ const INITIAL_STATE = {
 };
 
 class PasswordChangeForm extends Component {
+  formRef = React.createRef();
   constructor(props) {
     super(props);
 
@@ -46,7 +45,7 @@ class PasswordChangeForm extends Component {
     const isInvalid = passwordOne !== passwordTwo || passwordOne === "";
 
     return (
-      <Form layout="inline" onSubmit={this.onSubmit}>
+      <Form layout="inline" onFinish={this.onSubmit} ref={this.formRef}>
         <Form.Item>
           <Input
             name="passwordOne"
