@@ -177,7 +177,7 @@ class Builder extends Component {
     this.onMouseMove(e);
     let intersectedData = this.checkForIntersecting();
     const { wallOver, wallSideOver } = intersectedData;
-
+    console.log("dragOverHandler",intersectedData,wallOver, wallSideOver)
     if (this.currentWallOver && this.currentWallOver !== wallOver) {
       this.currentWallOver.dragOutHandler(this.currentSide);
     }
@@ -217,6 +217,7 @@ class Builder extends Component {
     this.dragging = false;
     let intersect = this.checkForIntersecting();
     this.holderOver = intersect;
+    debugger;
     if (this.currentWallOver || this.holderOver) {
       const addImageData = {
         itemData: itemData,
@@ -485,6 +486,7 @@ class Builder extends Component {
   }
 
   transformMouseUpHandler(event) {
+    console.log("transformMouseUpHandler",event.mode)
     const intersect = this.checkForIntersecting();
     if (!intersect) this.unhoverArtMesh();
     if (event.mode === "translate" && this.objectChanged) {
@@ -1036,7 +1038,7 @@ class Builder extends Component {
       cameraPosition,
       cameraDirection.clone().multiplyScalar(spotlightDistanceFromCamera)
     );
-    let { x, y, z } = spotlightPos;
+    let { x, z } = spotlightPos;//y
     const spotlightPosArr = [x, 60, z];
     console.log("spotlightPosArr", spotlightPosArr);
 
@@ -1083,7 +1085,8 @@ class Builder extends Component {
         name: "Frames",
         y: 235,
         floorComponent: VaultFloor,
-        refPath: "master/frametiles",
+        refPath: "users/" + this.props.firebase.currentUID + "/frame",
+        // refPath: "master/frametiles",
         level: 1,
         tileCallback: this.frameClickHandler.bind(this) //to do
       },
@@ -1099,7 +1102,7 @@ class Builder extends Component {
         name: "Lights",
         y: 705,
         floorComponent: this.lightFloor,
-        refPath: "master/floortiles",
+        builder: this,
         level: 3,
         floorCalledCallback: this.lightFloorCalledCallback.bind(this)
       },
@@ -1116,6 +1119,7 @@ class Builder extends Component {
   }
 
   floorCalledCallback = floor => {
+    console.log("planner floorCalledCallback")
     if (this.currentFloor === "Lights") {
       this.removeLightsHelpers();
     }
@@ -1134,10 +1138,13 @@ class Builder extends Component {
   }
   removeLightsHelpers() {
     this.detachTransformControls();
-    this.setState({ selectedSpotlight: null });
-    this.lights.forEach(light => {
-      light.undisplayHelper();
+
+    this.setState({ selectedSpotlight: null }, () => {
+      this.lights.forEach(light => {
+        light.undisplayHelper();
+      });
     });
+
   }
 
   lightFloorCalledCallback = floor => {

@@ -41,15 +41,23 @@ class Elevator extends PureComponent {
   }
 
   vaultButtonHandler() {
+    console.log("vaultButtonHandler")
     this.setState({ vaultOpen: !this.state.vaultOpen });
   }
   setDraggable(element) {
+    console.log("setDraggable")
+
     this.setState({ draggableElement: element });
   }
   handleFloorClick = floorNo => {
     console.log("set y", floorNo);
-    this.setState({ y: this.floors[floorNo].y, currentFloor: floorNo });
-    this.floorCalledCallback && this.floorCalledCallback(this.floors[floorNo]);
+    // debugger;
+
+    console.log("setDraggable")
+ 
+      this.setState({ y: this.floors[floorNo].y, currentFloor: floorNo });
+      this.floorCalledCallback && this.floorCalledCallback(this.floors[floorNo]);
+
   };
 
   // User interaction should stop animation in order to prevent scroll-hijacking
@@ -62,9 +70,9 @@ class Elevator extends PureComponent {
 
     return (
       <div className={`vault-container ${vaultOpen ? "open" : "closed"}`}>
-        <div draggable="true">{this.state.draggable}</div>
+        {vaultOpen && (<div draggable="true">{this.state.draggable}</div>)}
         <div className="vault-doors">
-          <div className="vault-floors-container">
+          {vaultOpen &&(<div className="vault-floors-container">
             <Spring
               native
               reset
@@ -92,7 +100,7 @@ class Elevator extends PureComponent {
                 </animated.div>
               )}
             </Spring>
-          </div>
+          </div>)}
           <div className="elevator-panel">
             <div className="elevator header">
               <div className="elevator-current-floor">

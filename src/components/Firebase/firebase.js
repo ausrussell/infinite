@@ -84,6 +84,7 @@ class Firebase {
   }
 
   updateAsset = (path, object) => {
+    console.log("updateAsset", path, object)
     const ref = this.database
       .ref(path)
     return ref.update(object)
@@ -95,7 +96,6 @@ class Firebase {
       .then(dir => {
         dir.items.forEach(fileRef => {
           console.log("deleteFile", fileRef.name)
-
           this.deleteFile(ref.fullPath, fileRef.name);
         });
         dir.prefixes.forEach(folderRef => {
@@ -108,10 +108,34 @@ class Firebase {
       });
   }
 
+  getNewAssetRef(type){
+    const newAssetRef = this.database
+    .ref("users/" + this.currentUID + "/" + type)
+    .push();
+    return newAssetRef
+  }
+
+  storeAsset = (path, file) => {
+    const storageRef = this.storage.ref();
+    const name = file.assetName || file.name;
+    const ref = storageRef.child(
+      "users/" + this.currentUID + "/" + path + "/" + name
+    );
+    // imageRef.dbPath =  "users/" + this.currentUID + "/" + path;
+    console.log("storeAsset","users/" + this.currentUID + "/" + path + "/" + name)
+    return ref.put(file);
+  }
+
   deleteFile(pathToFile, fileName) {
     const ref = this.storage.ref(pathToFile);
     const childRef = ref.child(fileName);
     childRef.delete()
+  }
+
+  deleteValue(path,key) {
+    const ref = this.database.ref(path)
+    console.log("deleteValue path", path, key)
+    return ref.update({[key]: null})
   }
 
   deleteAsset = (path, item) => {
@@ -221,13 +245,12 @@ class Firebase {
   }
   getTiles = (refPath, callback) => {
     console.log("getTiles", refPath);
-    this.newArtRef = this.database.ref(refPath);
-    return this.newArtRef.on("value", callback);
+    this.tilesRef = refPath;
+    this.newArtRef = app.database().ref(refPath);
+    this.newArtRef.on("value", callback);
+    console.log("this.newArtRef",this.newArtRef)
+    return this.newArtRef;
   };
-
-  detachGetTiles() {
-    this.newArtRef.off();
-  }
 
   addFloorTile(tile) {
     const floortilesRef = this.database.ref("master/floortiles").push();

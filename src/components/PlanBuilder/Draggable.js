@@ -16,6 +16,7 @@ export default class Draggable extends React.Component {
   };
 
   constructor(props) {
+    console.log("Draggable constructor", props)
     super(props);
     this.itemDragover = props.itemDragover;
     this.itemDrop = props.itemDrop;
@@ -123,20 +124,23 @@ export default class Draggable extends React.Component {
     );
   }
 }
-//    transform: `translate(${x}px, ${y}px)`,
-const Container = styled.div.attrs({
-  style: ({ x, y }) => ({
-    position: "absolute",
-    top: y,
-    left: x
-  })
-})`
-  cursor: grab;
 
-  ${({ isDragging }) =>
-    isDragging &&
-    css`
-      opacity: 0.8;
-      cursor: grabbing;
-    `};
+const Container = styled.div.attrs(props => ({
+  // we can define static props
+  type: "password",
+
+  // or we can define dynamic ones
+  size: props.x || "1em",
+}))`
+  position: absolute;
+  border: 2px solid #666;
+  border-radius: 3px;
+
+  /* here we use the dynamically computed prop */
+  top:${props => props.y}px;
+  left: ${props => props.x}px;
+  cursor: grabbing;
+       opacity: 0.8;
+
 `;
+

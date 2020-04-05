@@ -96,15 +96,9 @@ export default class Floor {
       this.floorMaterial.needsUpdate = true;
     } else if (item.type === "texture") {
       var loader = new THREE.TextureLoader();
-      // loader.crossOrigin = "";
       this.floorMaterial.map = null;
-
       loader.load(item.url, texture => this.floorLoadHandler(texture));
     } else if (item.type === "texture-array") {
-      // debugger;
-      // this.floorMaterial = item.floorMat;
-      // this.floorMaterial.needsUpdate = true;
-
       var textureLoader = new THREE.TextureLoader();
       textureLoader.load(item.map, map => this.floorArrayMapLoadHandler(map));
       textureLoader.load(item.bumpMap, map =>

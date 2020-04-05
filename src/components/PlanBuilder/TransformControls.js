@@ -430,6 +430,7 @@ var TransformControls = function(camera, domElement) {
         }
       }
     } else if (mode === "scale") {
+      console.log("mode scale",object)
       if (axis.search("XYZ") !== -1) {
         var d = pointEnd.length() / pointStart.length();
 
@@ -968,19 +969,21 @@ var TransformControlsGizmo = function() {
     ],
     XYZ: [[new Mesh(new OctahedronBufferGeometry(0.2, 0), matInvisible)]],
     XY: [
-      [new Mesh(new PlaneBufferGeometry(0.4, 0.4), matInvisible), [0.2, 0.2, 0]]
+      // [new Mesh(new PlaneBufferGeometry(0.4, 0.4), matInvisible), [0.2, 0.2, 0]]
+      [new Mesh(new PlaneBufferGeometry(0.295, 0.295), matInvisible), [0.15, 0.15, 0]]
+
     ],
     YZ: [
       [
-        new Mesh(new PlaneBufferGeometry(0.4, 0.4), matInvisible),
-        [0, 0.2, 0.2],
+        new Mesh(new PlaneBufferGeometry(0.295, 0.295), matInvisible),
+        [0, 0.15, 0.15],
         [0, Math.PI / 2, 0]
       ]
     ],
     XZ: [
       [
-        new Mesh(new PlaneBufferGeometry(0.4, 0.4), matInvisible),
-        [0.2, 0, 0.2],
+        new Mesh(new PlaneBufferGeometry(0.295, 0.295), matInvisible),
+        [0.15, 0, 0.15],
         [-Math.PI / 2, 0, 0]
       ]
     ]

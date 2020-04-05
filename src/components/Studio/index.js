@@ -8,8 +8,25 @@ import Uploader from "../Uploader";
 import Elevator from "../Elevator";
 import VaultFloor from "../Elevator/VaultFloor";
 import AssetEditor from "./AssetEditor";
+import FrameMaker from "./FrameMaker";
 
 const { TabPane } = Tabs;
+
+const ArtEditor = (props) => {
+  console.log("CubeMapEditor props", props);
+
+  return (<div>
+    {props.item ? (<AssetEditor item={props.item} />) : (<div>Select an item from the vault below to edit or delete</div>)}
+  </div>
+  )
+}
+
+const FrameEditor = (props) => {
+  console.log("FrameEditor props", props);
+
+  return (<FrameMaker item={props.item} />
+  )
+}
 
 const CubeMapEditor = (props) => {
   console.log("CubeMapEditor props", props);
@@ -21,14 +38,7 @@ const CubeMapEditor = (props) => {
   )
 }
 
-const ArtEditor = (props) => {
-  console.log("CubeMapEditor props", props);
 
-  return (<div>
-    {props.item ? (<AssetEditor item={props.item} />) : (<div>Select an item from the vault below to edit or delete</div>)}
-  </div>
-  )
-}
 
 const CubeBox = () => {
 
@@ -61,18 +71,13 @@ const CubeBox = () => {
     </Card>
   );
 };
-class StudioPage extends Component {
 
-  // const StudioPage = () => {
-  // console.log("StudioPage");
+class StudioPage extends Component {
   state = {
     floorCalled: 0,
     selectedItem: null
   };
 
-  // constructor(props) {
-  //   super(props);
-  // }
   componentDidMount() {
     this.floors = this.getElevatorFloors()
   }
@@ -82,35 +87,34 @@ class StudioPage extends Component {
     this.setState({ floorCalled: floorNo })
   }
   floorCalledCallback = (item) => {
-    console.log("StudioPage floorCalledCallback", item, item.level);
     this.setState({ floorCalled: item.level })
-    console.log("floorCalledCallback state level", this.state.floorCalled);
     this.setState({ counter: this.state.counter + 1 });
   }
 
   artClickHandler(item, draggableVaultElement) {
-    console.log("artClickHandler", item);
-    if (item)  item.type = this.floors[this.state.floorCalled].name;
+    if (item) item.type = this.floors[this.state.floorCalled].name;
     this.setState({ selectedItem: item })
   }
   frameClickHandler(item) {
-    console.log("frameClickHandler", item)
+    console.log("frameClickHandler", item);
+    this.setState({ selectedItem: item });
   }
 
   floorTileCallback(item) {
-    console.log("floorTileCallback", item)
+    console.log("floorTileCallback", item);
+    this.setState({ selectedItem: item })
   }
 
   surroundingsTileCallback(item) {
     console.log("surroundingsTileCallback", item)
-    if (item)  item.type = this.floors[this.state.floorCalled].name;
+    if (item) item.type = this.floors[this.state.floorCalled].name;
     this.setState({ selectedItem: item })
   }
 
   getElevatorFloors() {
     this.cubeMapeditor = (<CubeMapEditor item={this.state.selectedItem} />);
     this.artEditor = (<ArtEditor item={this.state.selectedItem} />)
-
+    this.frameEditor = (<FrameEditor item={this.state.selectedItem} />)
     let floorsX = {
       0: {
         name: "Art",
@@ -128,9 +132,12 @@ class StudioPage extends Component {
         name: "Frames",
         y: 235,
         floorComponent: VaultFloor,
-        refPath: "master/frametiles",
+        refPath: "users/" + this.props.firebase.currentUID + "/frame",
+        // refPath: "master/frametiles",
         level: 1,
-        tileCallback: this.frameClickHandler.bind(this) //to do
+        tileCallback: this.frameClickHandler.bind(this), //to do
+        editorComponent: this.frameEditor
+
       },
       2: {
         name: "Floors",
@@ -155,8 +162,6 @@ class StudioPage extends Component {
   }
 
   renderTab = (item) => {
-    console.log("renderTab item", item)
-    console.log("renderTab name", item.level, item.name)
 
     return (<TabPane tab={item.name} key={item.level}>
       {item.editorComponent}
@@ -171,8 +176,8 @@ class StudioPage extends Component {
     return (
       <div>
         <h1>Studio</h1>
-        <Row>
-          <Col span={12} offset={6} className="center-standard-form">
+        <Row >
+          <Col span={16} offset={4} className="center-standard-form">
             <Card title="Studio">
               <Card type="inner">
                 <div>Here you can upload resources for your galleries.</div>

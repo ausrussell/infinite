@@ -37,7 +37,6 @@ const UploadButton = (props) => {
   const [form] = Form.useForm();
   // debugger;
   const customRequest = ({ file, onProgress, onSuccess }) => {
-    console.log("dummyRequest file", file);
     const uploadTask = props.changeHandler(file);
     console.log("uploadTask", uploadTask);
     const next = snapshot => {

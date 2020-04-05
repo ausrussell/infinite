@@ -7,58 +7,59 @@ class VaultFloor extends Component {
     selectedTile: null
   };
   constructor(props) {
-    // console.log("VaultFloor props", props);
+    console.log("VaultFloor props", props);
     super(props);
-    // this.refPath = props.refPath;
     this.tileCallback = props.tileCallback;
   }
   componentDidMount() {
     console.log("mounted vault UID", this.props.firebase.currentUID);
     const { refPath } = this.props;
-    this.props.firebase.getTiles(refPath, this.getTilesCallback);
+    this.tilesCall = this.props.firebase.getTiles(refPath, this.getTilesCallback);
   }
 
   componentWillUnmount() {
-    this.props.firebase.detachGetTiles();
+    this.props.firebase.detachRefListener(this.tilesCall);
   }
 
   getTilesCallback = data => {
     const list = [];
     const listObj = {};
-    console.log("getTilesCallback", data);
     let selectedTilePresent = false;
     if (data) {
       data.forEach((childSnapshot) => {
         list.push(childSnapshot);
         listObj[childSnapshot.key] = childSnapshot;
-        if  (this.state.selectedTile === childSnapshot.key && !selectedTilePresent) selectedTilePresent = true
-        console.log("childSnapshot.key",childSnapshot.key)
+        if (this.state.selectedTile === childSnapshot.key && !selectedTilePresent) selectedTilePresent = true
       });
     }
+
     if (this.state.selectedTile && !selectedTilePresent) {
-      console.log("",this.state.selectedTile,selectedTilePresent )
-      this.clearSelected()}
+      console.log("", this.state.selectedTile, selectedTilePresent)
+      this.clearSelected()
+    }
     this.setState({ tilesData: list });
     console.log("getTilesCallback list", list);
   };
-  clearSelected(){
-    this.setState({selectedTile: null});
+
+  clearSelected() {
+    console.log("clearSelected");
+    this.setState({ selectedTile: null });
     this.tileCallback(null);
 
   }
 
   tileClickHandler = (item, tile) => {
-    console.log("tileClickHandler",item)
+    console.log("tileClickHandler", item)
     this.tileCallback(item, tile);
-    this.setState({selectedTile: item.key});
+    this.setState({ selectedTile: item.key });
   };
 
   renderTile(snapshot) {
     // console.log("renderTile(snapshot)", snapshot);
     const tileData = snapshot.val();
-    const { url, color, ny, title } = tileData;//ny for cubeboxes
-    // console.log("renderTile, url, color, ny", url, color, ny);
-    const tileUrl = url || ny;
+    const { url, color, ny, map, normalMap, bumpMap, title } = tileData;//ny for cubeboxes
+    // console.log("renderTile, url, color, ny", url, color, ny, map);
+    const tileUrl = url || ny || map || normalMap || bumpMap;
     const { key, ref } = snapshot;
     tileData.key = key;
     tileData.ref = ref;
@@ -78,13 +79,13 @@ class VaultFloor extends Component {
         title={title}
       />
     ) : (
-      <Tile
-        style={style}
-        onClick={() => this.tileClickHandler(tileData, "not draggable")}
-        key={key}
-        title={title}
-      />
-    );
+        <Tile
+          style={style}
+          onClick={() => this.tileClickHandler(tileData, "not draggable")}
+          key={key}
+          title={title}
+        />
+      );
   }
 
   render() {
@@ -95,8 +96,8 @@ class VaultFloor extends Component {
         {tilesData.length > 0 ? (
           tilesData.map(data => this.renderTile(data))
         ) : (
-          <div className="vault-floor-empty">Nothing on this floor, yet!</div>
-        )}
+            <div className="vault-floor-empty">Nothing on this floor, yet!</div>
+          )}
       </div>
     );
   }

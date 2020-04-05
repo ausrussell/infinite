@@ -63,6 +63,9 @@ const SpotlightControls = props => {
     controllerClass.deselectSpotlight();
   };
   const removeClickHandler = () => {
+    console.log("removeClickHandler")
+    props.deletedSpotlightCallback();
+
     controllerClass.removeSpotlight(selectedSpotlight);
   };
 
@@ -133,6 +136,11 @@ class LightFloor extends Component {
     this.addSpotlLightCallback();
   };
 
+  deletedSpotlightCallback = () => {
+    console.log("deletedSpotlightCallback", this.state.selectedSpotlight);
+    this.setState({ selectedSpotlight: null });
+  }
+
   render() {
     //console.log("tilesData", tilesData, tilesData.length);
     const { selectedSpotlight, generalLight } = this.state;
@@ -156,7 +164,7 @@ class LightFloor extends Component {
               </Button>
             </Tooltip>
             {selectedSpotlight ? (
-              <SpotlightControls selectedSpotlight={selectedSpotlight} />
+              <SpotlightControls selectedSpotlight={selectedSpotlight} deletedSpotlightCallback={this.deletedSpotlightCallback}/>
             ) : (
               <h2> Click a cone to alter a spotLight</h2>
             )}

@@ -55,8 +55,8 @@ const AssetPreview = (props) => {
 
 const AssetEditor = props => {
     console.log("props.props", props)
-    const [title, setTitle] = useState("");
-    const [shareable, setShareable] = useState(false);
+    // const [title, setTitle] = useState("");
+    // const [shareable, setShareable] = useState();
 
     const item = props.item;
 
@@ -65,10 +65,11 @@ const AssetEditor = props => {
             console.log("updateTitle", props)
             form.setFieldsValue({
                 title: item.title,
-                shareable: item.shareable || true
+                shareable: item.shareable  
             }, [item]);
 
         }
+        console.log("AssetEditor useEffect", props)
         updateTitle()
     }, [props]);
     const [form] = Form.useForm();
