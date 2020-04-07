@@ -1,11 +1,15 @@
 import * as THREE from "three";
 import FrameDisplayObject from "./FrameDisplayObject";
+import TextureAdder from "../../Helpers/TextureAdder"
+
 
 class WallDisplayObject {
   constructor(options) {
     console.log("WallDisplayObject", options);
     // this.builder = options;
-    const { col, row, pos, height, sides, builder } = options;
+    const { col, row, pos, height, sides, builder,texture } = options;
+    this.texture = texture;
+
     // const { x, y, pos, builder } = options;
     this.col = col;
     this.row = row;
@@ -52,6 +56,10 @@ class WallDisplayObject {
     });
     this.wallMesh = new THREE.Mesh(geometry, this.wallMaterial);
     this.wallMesh.name = "wallMesh";
+    const textureAdder = new TextureAdder({ material: this.wallMaterial });
+    textureAdder.setDataToMaterial(this.texture);
+
+
     this.wallGroup = new THREE.Group();
     this.wallGroup.receiveShadow = true;
     // this.group.castShadow = true;

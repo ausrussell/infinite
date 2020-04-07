@@ -1,24 +1,30 @@
 // import React, { Component } from "react";
 import * as THREE from "three";
+import TextureAdder from "../../Helpers/TextureAdder"
+
 
 export default class Floor {
-  constructor(builder) {
-    this.builder = builder;
+  constructor(props) {
+    console.log("just floor")
+    this.builder = props.builder;
+    this.data = props.data;
     this.addFloorMesh();
+    this.textureAdder = new TextureAdder({material: this.floorMaterial});
+
     this.export = { color: 0xf8f1f0 };
+
+
   }
-  // setScene(scene) {
-  //   this.scene = scene;
-  // }
+  renderFloor() {
+    console.log("renderFloor", this.scene, this.floorItem);
+    this.addFloorMesh();
+    this.data && this.setDataToMaterial(this.data)
+  }
   getFloorMesh() {
     return this.floorMesh;
   }
-  addFloorMesh() {
-    this.floorPlane = new THREE.PlaneBufferGeometry(
-      this.builder.gridWidth,
-      this.builder.gridDepth
-    );
 
+  setFloorMaterial(){
     this.floorMaterial = new THREE.MeshStandardMaterial({
       roughness: 0.8,
       color: 0xffffff,
@@ -26,6 +32,13 @@ export default class Floor {
       bumpScale: 0.0005
       // side: THREE.DoubleSide
     });
+  }
+  addFloorMesh() {
+    this.floorPlane = new THREE.PlaneBufferGeometry(
+      this.builder.gridWidth,
+      this.builder.gridDepth
+    );
+this.setFloorMaterial();
 
     this.floorMesh = new THREE.Mesh(this.floorPlane, this.floorMaterial);
     this.floorMesh.name = "mainFloor";
@@ -33,81 +46,34 @@ export default class Floor {
     this.floorMesh.rotateX(-Math.PI / 2);
     console.log("this.floorMesh", this.floorMesh);
     this.builder.scene.add(this.floorMesh);
+
+    const geometry = new THREE.BoxGeometry(10, 10, 10);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0xffffff
+      // wireframe: true
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    this.builder.scene.add(mesh);
+
+  }
+  setDataToMaterial(data) {
+    this.textureAdder.setDataToMaterial(data);
   }
 
-  floorLoadHandler = texture => {
-    this.floorMaterial.color.set("#fff");
-    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(25, 25);
-    this.floorMaterial.map = texture;
-    this.floorMaterial.needsUpdate = true;
-  };
+  resetMaterial(){
+    this.floorMaterial.dispose();
+    this.floorMesh.material = null;
+    this.setFloorMaterial();
+    this.floorMesh.material = this.floorMaterial;
+    this.textureAdder = new TextureAdder({material: this.floorMaterial});
 
-  floorArrayMapLoadHandler = map => {
-    // this.floorMaterial.color.set("#fff");
-
-    map.wrapS = THREE.RepeatWrapping;
-    map.wrapT = THREE.RepeatWrapping;
-    map.anisotropy = 4;
-    map.repeat.set(10, 24);
-    this.floorMaterial.map = map;
-    this.floorMaterial.needsUpdate = true;
-  };
-
-  floorArrayMapLoadHandler = map => {
-    console.log("floorArrayMapLoadHandler");
-
-    this.floorMaterial.color.set("#fff");
-
-    map.wrapS = THREE.RepeatWrapping;
-    map.wrapT = THREE.RepeatWrapping;
-    map.anisotropy = 4;
-    map.repeat.set(10, 24);
-    this.floorMaterial.map = map;
-    this.floorMaterial.needsUpdate = true;
-  };
-  floorArrayMapBumpLoadHandler = map => {
-    map.wrapS = THREE.RepeatWrapping;
-    map.wrapT = THREE.RepeatWrapping;
-    map.anisotropy = 4;
-    map.repeat.set(10, 24);
-    this.floorMaterial.bumpMap = map;
-    this.floorMaterial.needsUpdate = true;
-    console.log("floorArrayMapBumpLoadHandler");
-  };
-  floorArrayMapRoughnessLoadHandler = map => {
-    map.wrapS = THREE.RepeatWrapping;
-    map.wrapT = THREE.RepeatWrapping;
-    map.anisotropy = 4;
-    map.repeat.set(10, 24);
-    this.floorMaterial.roughnessMap = map;
-    this.floorMaterial.needsUpdate = true;
-    console.log("floorArrayMapRoughnessLoadHandler");
-    console.log("floorMesh", this.floorMesh);
-  };
+  }
 
   floorTileCallback = item => {
     console.log("floorTileCallback item", item);
     this.export = item;
-    console.log("floor tile", item);
-    if (item.color) {
-      this.floorMaterial.map = null;
-      this.floorMaterial.color.set(item.color);
-      this.floorMaterial.needsUpdate = true;
-    } else if (item.type === "texture") {
-      var loader = new THREE.TextureLoader();
-      this.floorMaterial.map = null;
-      loader.load(item.url, texture => this.floorLoadHandler(texture));
-    } else if (item.type === "texture-array") {
-      var textureLoader = new THREE.TextureLoader();
-      textureLoader.load(item.map, map => this.floorArrayMapLoadHandler(map));
-      textureLoader.load(item.bumpMap, map =>
-        this.floorArrayMapBumpLoadHandler(map)
-      );
-      textureLoader.load(item.roughnessMap, map =>
-        this.floorArrayMapRoughnessLoadHandler(map)
-      );
-    }
+    delete this.export.ref;
+    this.setDataToMaterial(item);
   };
 
   getExport = () => this.export;

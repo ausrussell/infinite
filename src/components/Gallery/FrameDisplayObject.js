@@ -1,10 +1,9 @@
 import * as THREE from "three";
-// import GLTFLoader from "three-gltf-loader";
+import TextureAdder from "../../Helpers/TextureAdder"
 
 class Frame {
   constructor({ scene, wall, data, side }) {
     this.scene = scene;
-
     this.data = JSON.parse(data);
     this.wall = wall;
     this.side = side;
@@ -13,52 +12,6 @@ class Frame {
     this.group = new THREE.Group();
     this.frameWidth = 1;
   }
-
-  // convertArtMeshData() {
-  //   const loader = new GLTFLoader();
-  //   console.log("this.artMeshData", this.artMeshData);
-  //   debugger;
-  //
-  //   loader.parse(this.artMeshData, gltf => {
-  //     console.log("artMesh = ", gltf);
-  //   });
-  // const artPlane = new THREE.PlaneGeometry(
-  //   this.artMeshData.width,
-  //   this.artMeshData.height,
-  //   0
-  // );
-  //
-  // const loader = new THREE.TextureLoader();
-  // var texture = loader.load(this.artMeshData.src);
-  //
-  // const iMaterial = new THREE.MeshBasicMaterial({
-  //   side: THREE.DoubleSide,
-  //   map: texture,
-  //   opacity: 1
-  // });
-  // this.artMesh = new THREE.Mesh(artPlane, iMaterial);
-  // }
-
-  // convertFrameMeshData() {
-  //   console.log("this.frameMeshData.shapes", this.frameMeshData);
-  //
-  //   var loader = new THREE.ObjectLoader();
-  //
-  //   const fgeometry = new THREE.ExtrudeBufferGeometry(
-  //     this.frameMeshData.shapes,
-  //     this.frameMeshData.options
-  //   );
-  //   const fmaterial = new THREE.MeshLambertMaterial({
-  //     color: 0x666666,
-  //     side: THREE.DoubleSide
-  //     // transparent: true,
-  //     // map: texture1
-  //   });
-  //
-  //   this.frameMesh = new THREE.Mesh(fgeometry, fmaterial);
-  //   this.setFramePosition();
-  //   this.group.add(this.frameMesh);
-  // }
 
   renderArt() {
     console.log("renderArt", this);
@@ -73,7 +26,6 @@ class Frame {
 
   setGroup() {
     this.wall.wallGroup.add(this.group);
-
     this.group.position.set(
       this.data.groupPosition.x,
       this.data.groupPosition.y,
@@ -100,15 +52,8 @@ class Frame {
     const { frame } = this.data;
     console.log("frame", frame);
     this.setFrameMesh();
-
-    if (frame.color) {
-      this.fmaterial.map = null;
-      this.fmaterial.needsUpdate = true;
-      this.fmaterial.color.set(frame.color);
-    } else {
-      // loader.crossOrigin = "";
-      this.textureLoader.load(frame.url, texture => this.loadHandler(texture));
-    }
+    const textureAdder = new TextureAdder({ material: this.fmaterial });
+    textureAdder.setDataToMaterial(frame);
     this.group.add(this.frameMesh);
   }
   loadHandler = texture => {

@@ -2,9 +2,9 @@ import React, { Component, useState, useEffect } from "react";
 import { withFirebase } from "../Firebase";
 import ThreeAssetPreview from './ThreeAssetPreview';
 
-const FrameMaker =  (props) => {
+const FloorMaker =  (props) => {
 console.log("FrameMaker props", props)
-    return (<ThreeAssetPreview props={props} item={props.item} type="frame" />)
+    return (<ThreeAssetPreview props={props} item={props.item}  type="floor"/>)
 }
 
-export default withFirebase(FrameMaker);
+export default FloorMaker;

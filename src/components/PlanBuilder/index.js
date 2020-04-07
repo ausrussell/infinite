@@ -102,7 +102,7 @@ class Builder extends Component {
     }
   }
   setUpGui() {
-    var controls = new function() {
+    var controls = new function () {
       this.fov = 45;
     }();
 
@@ -156,18 +156,21 @@ class Builder extends Component {
           artHolder = intersectedData[key].parent;
         }
       }
-
+      console.log("this.state.selectedTile && artHolder", this.state.selectedTile, artHolder)
       if (this.state.selectedTile && artHolder) {
         console.log("selectedTile", this.state.selectedTile);
-        const frameData = {
-          selectedTile: this.state.selectedTile
-        };
-        artHolder.setFrameColor(frameData);
+        artHolder.removeTexture();
+        artHolder.setFrameColor(this.state.selectedTile);
       }
 
       if (intersectedData.LightConeHelper) {
         // e.stopPropagation();
         this.lightConeHelperSelected(intersectedData.LightConeHelper);
+      }
+      const { wallOver } = intersectedData;//for changing wall texture
+      if (this.state.selectedTile && wallOver) {
+        wallOver.removeTexture();
+        wallOver.setDataToMaterial(this.state.selectedTile);
       }
     }
   }
@@ -177,7 +180,6 @@ class Builder extends Component {
     this.onMouseMove(e);
     let intersectedData = this.checkForIntersecting();
     const { wallOver, wallSideOver } = intersectedData;
-    console.log("dragOverHandler",intersectedData,wallOver, wallSideOver)
     if (this.currentWallOver && this.currentWallOver !== wallOver) {
       this.currentWallOver.dragOutHandler(this.currentSide);
     }
@@ -248,7 +250,13 @@ class Builder extends Component {
   }
 
   floorTileCallback(item) {
+    this.floor.resetMaterial();
     this.floor.floorTileCallback(item);
+  }
+
+  wallTileCallback(item) {
+    this.setState({ selectedTile: item });
+
   }
 
   surroundingsTileCallback(item) {
@@ -270,26 +278,10 @@ class Builder extends Component {
     this.dragging = true;
   }
 
-  // attachTransform() {
-  //   this.transformControls.showZ = false;
-  //   this.transformControls.showX = true;
-  //   this.transformControls.showY = true;
-  //   this.transformControls.attach(artMesh);
-  //   this.activeArtMesh = artMesh;
-  // }
 
   hoverArtMesh(artMesh) {
-    // return;
     // console.log("hoverArtMesh", artMesh, this.dragging);
     if (!this.dragging) {
-      // this.setSceneMeshes();
-
-      // this.transformControls.showZ = false;
-      // this.transformControls.showX = true;
-      // this.transformControls.showY = true;
-      // this.transformControls.attach(artMesh);
-      // this.activeArtMesh = artMesh;
-
       this.transformControls.showZ = artMesh.parent.wallPos === 0;
       this.transformControls.showX = artMesh.parent.wallPos === 1;
       this.transformControls.attach(artMesh);
@@ -431,7 +423,6 @@ class Builder extends Component {
     console.log("saveGallery galleryData", this.galleryData);
     this.galleryData.floorplan = this.state.floorplan;
     this.galleryData.floor = this.floor.getExport();
-    this.galleryData.wallData = [];
     this.galleryData.walls = [];
 
     this.state.wallEntities.forEach(item => {
@@ -486,7 +477,7 @@ class Builder extends Component {
   }
 
   transformMouseUpHandler(event) {
-    console.log("transformMouseUpHandler",event.mode)
+    console.log("transformMouseUpHandler", event.mode)
     const intersect = this.checkForIntersecting();
     if (!intersect) this.unhoverArtMesh();
     if (event.mode === "translate" && this.objectChanged) {
@@ -904,8 +895,8 @@ class Builder extends Component {
     this.voxelsY = this.floorPlan[0].length;
     this.wallEntities = [];
     walls.forEach(wall => {
-      const { col, row, pos, sides } = wall;
-      const options = { x: col, y: row, pos: pos, builder: this };
+      const { col, row, pos, sides, texture } = wall;
+      const options = { x: col, y: row, pos: pos, builder: this, texture: texture };
       this.newWall = new WallObject(options);
       if (sides) this.newWall.addSidesFromData(sides);
       this.wallEntities = [...this.wallEntities, this.newWall];
@@ -921,7 +912,7 @@ class Builder extends Component {
     }
     this.gridWidth = this.voxelsX * wallWidth;
     this.gridDepth = this.voxelsY * wallWidth;
-    this.floor = new Floor(this);
+    this.floor = new Floor({ builder: this });
   }
 
   setSurroundings() {
@@ -1068,7 +1059,7 @@ class Builder extends Component {
         selectedSpotlight={this.state.selectedSpotlight}
         generalLight={this.generalLight}
         addSpotlightHandler={() => this.addSpotlightHandler()}
-        // refreshLightFloor={this.state.refreshLightFloor}
+      // refreshLightFloor={this.state.refreshLightFloor}
       />
     );
     let floors = {
@@ -1094,24 +1085,34 @@ class Builder extends Component {
         name: "Floors",
         y: 470,
         floorComponent: VaultFloor,
-        refPath: "master/floortiles",
+        refPath: "users/" + this.props.firebase.currentUID + "/floor",
+
+        // refPath: "master/floortiles",
         level: 2,
         tileCallback: this.floorTileCallback.bind(this)
       },
       3: {
-        name: "Lights",
+        name: "Walls",
         y: 705,
-        floorComponent: this.lightFloor,
-        builder: this,
+        floorComponent: VaultFloor,
+        refPath: "users/" + this.props.firebase.currentUID + "/wall",
         level: 3,
-        floorCalledCallback: this.lightFloorCalledCallback.bind(this)
+        tileCallback: this.wallTileCallback.bind(this)
       },
       4: {
-        name: "Surroundings",
+        name: "Lights",
         y: 940,
+        floorComponent: this.lightFloor,
+        builder: this,
+        level: 4,
+        floorCalledCallback: this.lightFloorCalledCallback.bind(this)
+      },
+      5: {
+        name: "Surroundings",
+        y: 1175,
         floorComponent: VaultFloor,
         refPath: "users/" + this.props.firebase.currentUID + "/cubebox",
-        level: 4,
+        level: 5,
         tileCallback: this.surroundingsTileCallback.bind(this)
       }
     };

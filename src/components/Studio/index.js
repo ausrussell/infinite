@@ -9,6 +9,9 @@ import Elevator from "../Elevator";
 import VaultFloor from "../Elevator/VaultFloor";
 import AssetEditor from "./AssetEditor";
 import FrameMaker from "./FrameMaker";
+import FloorMaker from "./FloorMaker";
+import ThreeAssetPreview from './ThreeAssetPreview';
+
 
 const { TabPane } = Tabs;
 
@@ -28,6 +31,12 @@ const FrameEditor = (props) => {
   )
 }
 
+const FloorEditor = (props) => {
+  console.log("FrameEditor props", props);
+  return (<FloorMaker item={props.item} />
+  )
+}
+
 const CubeMapEditor = (props) => {
   console.log("CubeMapEditor props", props);
 
@@ -37,8 +46,6 @@ const CubeMapEditor = (props) => {
   </div>
   )
 }
-
-
 
 const CubeBox = () => {
 
@@ -87,14 +94,15 @@ class StudioPage extends Component {
     this.setState({ floorCalled: floorNo })
   }
   floorCalledCallback = (item) => {
-    this.setState({ floorCalled: item.level })
+    this.setState({ floorCalled: item.level, selectedItem: null })
     this.setState({ counter: this.state.counter + 1 });
   }
 
-  artClickHandler(item, draggableVaultElement) {
+  artClickHandler(item) {
     if (item) item.type = this.floors[this.state.floorCalled].name;
     this.setState({ selectedItem: item })
   }
+
   frameClickHandler(item) {
     console.log("frameClickHandler", item);
     this.setState({ selectedItem: item });
@@ -115,6 +123,10 @@ class StudioPage extends Component {
     this.cubeMapeditor = (<CubeMapEditor item={this.state.selectedItem} />);
     this.artEditor = (<ArtEditor item={this.state.selectedItem} />)
     this.frameEditor = (<FrameEditor item={this.state.selectedItem} />)
+    this.floorEditor = (<FloorEditor item={this.state.selectedItem} />)
+    this.wallEditor = (<ThreeAssetPreview item={this.state.selectedItem}  type="wall"/> )
+
+
     let floorsX = {
       0: {
         name: "Art",
@@ -143,9 +155,21 @@ class StudioPage extends Component {
         name: "Floors",
         y: 470,
         floorComponent: VaultFloor,
-        refPath: "master/floortiles",
+        refPath:  "users/" + this.props.firebase.currentUID + "/floor",
         level: 2,
-        tileCallback: this.floorTileCallback.bind(this)
+        tileCallback: this.floorTileCallback.bind(this),
+        editorComponent: this.floorEditor
+
+      },
+      3: {
+        name: "Walls",
+        y: 705,
+        floorComponent: VaultFloor,
+        refPath:  "users/" + this.props.firebase.currentUID + "/wall",
+        level: 3,
+        tileCallback: this.floorTileCallback.bind(this),
+        editorComponent: this.wallEditor
+
       },
 
       4: {
@@ -164,7 +188,7 @@ class StudioPage extends Component {
   renderTab = (item) => {
 
     return (<TabPane tab={item.name} key={item.level}>
-      {item.editorComponent}
+      {(this.state.floorCalled === item.level) && item.editorComponent}
     </TabPane>)
   }
 

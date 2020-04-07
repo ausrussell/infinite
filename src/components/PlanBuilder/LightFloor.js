@@ -110,11 +110,10 @@ class LightFloor extends Component {
     generalLight: null
   };
   constructor(props) {
-    // console.log("VaultFloor props", props);
-    super(props);
-    this.generalLight = props.generalLight;
-    this.addSpotlLightCallback = props.addSpotlightHandler;
     console.log("LightFloor props", props);
+    super(props);
+    // this.generalLight = props.generalLight;
+    this.addSpotlLightCallback = props.addSpotlightHandler;
   }
   componentDidMount() {
     console.log("lightfloor mounted");
@@ -124,9 +123,6 @@ class LightFloor extends Component {
     console.log("lightfloor componentDidUpdate", props, this.props);
     if (props.selectedSpotlight !== this.props.selectedSpotlight) {
       this.setState({ selectedSpotlight: this.props.selectedSpotlight });
-    }
-    if (props.generalLight !== this.props.generalLight) {
-      this.setState({ generalLight: this.props.generalLight });
     }
   }
 
@@ -143,7 +139,8 @@ class LightFloor extends Component {
 
   render() {
     //console.log("tilesData", tilesData, tilesData.length);
-    const { selectedSpotlight, generalLight } = this.state;
+    const { selectedSpotlight } = this.state;
+    const {generalLight} = this.props;
 
     console.log("selectedSpotlight", selectedSpotlight);
     return (

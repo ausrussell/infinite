@@ -1,4 +1,4 @@
-import FloorDisplay from "./FloorDisplay";
+import Floor from "../PlanBuilder/Floor";
 import WallDisplayObject from "./WallDisplayObject";
 import { WallLightDisplay } from "./WallLightDisplay";
 import { GeneralLightDisplay } from "./GeneralLightDisplay";
@@ -19,11 +19,14 @@ class SceneLoader {
     this.renderFloor();
     this.renderWalls();
     this.renderGeneralLight();
-
     this.renderLights();
   }
   renderFloor() {
-    this.floor = new FloorDisplay(this);
+    const options = {
+      builder: this,
+      data: this.sceneData.floor
+    }
+    this.floor = new Floor(options);
     this.floor.renderFloor();
   }
   renderWalls() {

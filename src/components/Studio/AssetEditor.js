@@ -62,7 +62,8 @@ const AssetEditor = props => {
 
     useEffect(() => {
         const updateTitle = () => {
-            console.log("updateTitle", props)
+            console.log("updateTitle", props);
+            form.resetFields();
             form.setFieldsValue({
                 title: item.title,
                 shareable: item.shareable  

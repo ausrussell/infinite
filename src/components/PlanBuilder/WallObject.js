@@ -3,11 +3,13 @@ import * as THREE from "three";
 import Frame from "./Frame";
 import WallLight from "./WallLight";
 import Animate from "../../Helpers/animate";
+import TextureAdder from "../../Helpers/TextureAdder"
 
 class WallObject {
   constructor(options) {
     console.log("WallObject", options);
-    const { x, y, pos, builder } = options;
+    const { x, y, pos, builder, texture } = options;
+    this.texture = texture;
     this.col = x;
     this.row = y;
     this.pos = pos;
@@ -15,6 +17,8 @@ class WallObject {
     this.midpointX = this.builder.voxelsX / 2;
     this.midpointY = this.builder.voxelsY / 2;
     this.height = 60; //1;
+    this.wallGroup = new THREE.Group();
+    this.wallGroup.setTexture = (data) => this.setDataToMaterial(data);
     this.opacity = 0;
     this.sides = { front: {}, back: {} };
     this.wallWidth = 20;
@@ -22,11 +26,24 @@ class WallObject {
     this.wallDepth = 5;
     this.defaultImageWidth = this.wallWidth * 0.6;
     this.defaultImageHeight = 15;
-    this.setXZPos();
+    if (options.preview) {
+      this.posX = this.posZ = 0
+    }
+    else {
+      this.setXZPos();
+    }
+
     this.renderWall();
+    this.textureAdder = new TextureAdder({ material: this.wallMaterial });
+    texture && this.textureAdder.setDataToMaterial(this.texture);
+
+    if (options.preview) {
+      this.wallMesh.translateY(-30)
+    } else {
     this.addLights();
     this.addFrames();
     this.setupExport();
+  }
   }
 
   setupExport() {
@@ -37,6 +54,7 @@ class WallObject {
       height,
       opacity
     }))(this);
+    this.export.texture ={color: 0xe1f5fe}
     //console.log("wall this.export", this.export);
   }
 
@@ -59,6 +77,7 @@ class WallObject {
   }
 
   getExport = () => {
+    console.log("getExport",this.export)
     this.addArtToExport();
     return this.export;
   };
@@ -77,22 +96,25 @@ class WallObject {
     this.posZ = (this.row - this.midpointY) * this.wallWidth;
   }
 
-  renderWall() {
-    const geometry = new THREE.BoxGeometry(
-      this.wallWidth,
-      this.wallHeight,
-      this.wallDepth
-    );
+  setWallMaterial(){
     this.wallMaterial = new THREE.MeshStandardMaterial({
       // wireframe: true
       color: 0xe1f5fe,
       opacity: this.opacity,
       transparent: true
     });
+  }
+
+  renderWall() {
+    const geometry = new THREE.BoxGeometry(
+      this.wallWidth,
+      this.wallHeight,
+      this.wallDepth
+    );
+    this.setWallMaterial();
     this.wallMesh = new THREE.Mesh(geometry, this.wallMaterial);
     this.wallMesh.castShadow = true;
     this.wallMesh.name = "wallMesh";
-    this.wallGroup = new THREE.Group();
     this.wallGroup.receiveShadow = true;
     // this.group.castShadow = true;
     this.wallGroup.add(this.wallMesh);
@@ -183,11 +205,6 @@ class WallObject {
     this.sides[side].frames[index - 1].setArtMesh(artMesh);
     this.sides[side].hasArt = true;
     this.currentSideOver = this.sides[side];
-    // this.updateWallLight(side);
-    //console.log(
-    //   "positionMovedHolder this.currentSideOver",
-    //   this.currentSideOver
-    // );
   }
 
   addWallLightToScene(side) {
@@ -233,7 +250,7 @@ class WallObject {
   }
 
   disposeNode(parentObject) {
-    parentObject.traverse(function(node) {
+    parentObject.traverse(function (node) {
       if (node instanceof THREE.Mesh) {
         if (node.geometry) {
           node.geometry.dispose();
@@ -245,7 +262,7 @@ class WallObject {
             node.material instanceof THREE.MeshFaceMaterial ||
             node.material instanceof THREE.MultiMaterial
           ) {
-            node.material.materials.forEach(function(mtrl, idx) {
+            node.material.materials.forEach(function (mtrl, idx) {
               if (mtrl.map) mtrl.map.dispose();
               if (mtrl.lightMap) mtrl.lightMap.dispose();
               if (mtrl.bumpMap) mtrl.bumpMap.dispose();
@@ -352,6 +369,19 @@ class WallObject {
       newFrame.addFrameFromData(JSON.parse(sideItem[1][0]));
     });
   };
+  removeTexture(){
+    this.wallMaterial.dispose();
+    this.wallMesh.material = null;
+    this.setWallMaterial();
+    this.wallMesh.material = this.wallMaterial;
+    this.textureAdder = new TextureAdder({ material: this.wallMaterial });
+  }
+  setDataToMaterial(data) {
+    console.log("wall's setDataToMaterial", this.wallMesh, data);
+    this.export.texture = data;
+    delete this.export.texture.ref;
+    this.textureAdder.setDataToMaterial(data);
+  }
 }
 
 export default WallObject;
