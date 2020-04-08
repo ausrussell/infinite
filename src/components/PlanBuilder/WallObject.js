@@ -292,9 +292,20 @@ class WallObject {
   };
   removeGroup() {
     console.log("removeGroup", this.builder.renderer.info);
+    this.removeAllLights()
+
     this.disposeHierarchy(this.wallGroup, this.disposeCallback); //does this dispose save memory??
+
+
     this.builder.scene.remove(this.wallGroup);
     //console.log("removeGroup after", this.builder.renderer.info);
+  }
+
+  removeAllLights(){
+    ["front","back"].forEach(side => {
+      console.log("this.sides[side].wallLight",this.sides[side].wallLight,this.sides[side])
+      this.sides[side].wallLight.removeSpotlight()
+    })
   }
   switchLightOffIfNoArt(side) {
     console.log(

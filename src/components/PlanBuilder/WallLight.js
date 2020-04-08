@@ -107,9 +107,9 @@ class WallLight {
   }
 
   setTarget(targetPositionArray) {
-    var helperTargetGeometry = new THREE.SphereGeometry(3);
+    const helperTargetGeometry = new THREE.SphereGeometry(1.5);
 
-    var helperTargetMaterial = new THREE.MeshNormalMaterial({
+    const helperTargetMaterial = new THREE.MeshNormalMaterial({
       color: 0xcfccee,
       transparent: true,
       opacity: 0.5
@@ -125,7 +125,7 @@ class WallLight {
     this.helperTarget.position.set(...targetPositionArray);
 
     this.scene.add(this.helperTarget);
-    // this.helperTarget.position.set(...targetPositionArray);
+
     this.spotLight.target = this.helperTarget;
     console.log("this.helperTarget", this.helperTarget);
   }
@@ -213,7 +213,6 @@ class WallLight {
 
     this.spotLight.target = this.helperTarget;
     this.builder.setSceneMeshes();
-    // this.spotLightHelper = new THREE.SpotLightHelper(this.spotLight);
     this.addLightEditListeners();
   }
 
@@ -273,9 +272,14 @@ class WallLight {
   }
 
   removeSpotlight() {
+    this.builder.scene.remove(this.helperTarget);
+
     this.builder.deselectSpotlight();
 
+    this.coneHelper && this.builder.scene.remove(this.coneHelper);
+    this.builder.scene.remove(this.spotLight)
     this.builder.scene.remove(this.coneHelper);
+    console.log("this.helperTarget",this.helperTarget)
     this.builder.removeSpotlight(this);
   }
 

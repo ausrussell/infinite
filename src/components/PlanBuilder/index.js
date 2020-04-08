@@ -330,6 +330,10 @@ class Builder extends Component {
 
   onEditDropdownChangeHandler = (value, id) => {
     console.log("onEditDropdownChangeHandler", value);
+    // debugger;
+    this.removeLights();
+
+
     // if (this.editGalleryId === id) return;
     this.editGalleryId = id;
     console.log("this.editGalleryId", this.editGalleryId);
@@ -340,11 +344,12 @@ class Builder extends Component {
     this.floorPlan = floorplan.data;
     // disposeHierarchy(this.scene, () => this.loadGalleryToEdit());
     //need to check if need initial setup
-    this.setEditFloor(floor);
+
     this.removeWalls();
+
+    this.setEditFloor(floor);
     this.setEditWalls(walls);
 
-    this.removeLights();
 
     generalLight && this.setEditGeneralLight(generalLight);
     this.setEditWallLights(lights);
@@ -705,7 +710,7 @@ class Builder extends Component {
 
   //scene setup and animation
   setUpScene() {
-    // debugger;
+
     const width = this.mount.clientWidth;
     const height = this.mount.clientHeight;
     this.setState({ width: width, height: height });
@@ -796,10 +801,10 @@ class Builder extends Component {
   //***** LIGHTS
 
   removeLights() {
-    if (this.lights)
-      this.lights.forEach(item => {
-        item.removeSpotlight();
-      });
+    console.log("removeLights this.lights", this.lights, this.lights.length)
+    while (this.lights.length) {
+      this.lights[0].removeSpotlight();
+    }
     if (this.generalLightController) {
       this.setState({ generalLight: null });
       this.generalLightController.removeLight();
