@@ -7,7 +7,6 @@ const coneColorSelected = 0x99eeaa;
 class WallLight {
   constructor(props, side = "front") {
     // this.controls = this.setupControls();
-    const targetObject = new THREE.Object3D();
     const { intensity, position, color, target, builder } = props;
     if (props.color) {
       this.builder = builder;
@@ -38,7 +37,6 @@ class WallLight {
       this.spotLight.shadow.camera.far = 500;
       this.spotLight.angle = 0.4;
       this.spotLight.distance = 0;
-      // targetObject.position.set(...target);
       if (target) {
         //when added by button
         console.log("target", target);
@@ -118,7 +116,6 @@ class WallLight {
       helperTargetGeometry,
       helperTargetMaterial
     );
-    // this.coneHelper.visileble = false;
     this.helperTarget.name = "helperTarget";
     this.posHolder = this.spotLight.target.getWorldPosition();
     console.log("target posHolder", this.posHolder);
@@ -139,7 +136,6 @@ class WallLight {
       opacity: 0.5
     });
     this.coneHelper = new THREE.Mesh(geometry, this.coneMaterial);
-    // this.coneHelper.visible = false;
     this.coneHelper.name = "LightConeHelper";
     this.coneHelper.controllerClass = this;
   }

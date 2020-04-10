@@ -8,9 +8,9 @@ import Uploader from "../Uploader";
 import Elevator from "../Elevator";
 import VaultFloor from "../Elevator/VaultFloor";
 import AssetEditor from "./AssetEditor";
-import FrameMaker from "./FrameMaker";
-import FloorMaker from "./FloorMaker";
+
 import ThreeAssetPreview from './ThreeAssetPreview';
+import CubeMapUploader from './CubeMapUploader';
 
 
 const { TabPane } = Tabs;
@@ -24,25 +24,12 @@ const ArtEditor = (props) => {
   )
 }
 
-const FrameEditor = (props) => {
-  console.log("FrameEditor props", props);
-
-  return (<FrameMaker item={props.item} />
-  )
-}
-
-const FloorEditor = (props) => {
-  console.log("FrameEditor props", props);
-  return (<FloorMaker item={props.item} />
-  )
-}
-
 const CubeMapEditor = (props) => {
   console.log("CubeMapEditor props", props);
-
+  
   return (<div>
     {props.item ? (<AssetEditor item={props.item} />) : (<div>Select an item from the vault below to edit or delete</div>)}
-    <CubeBox />
+    <CubeMapUploader />
   </div>
   )
 }
@@ -90,12 +77,11 @@ class StudioPage extends Component {
   }
 
   tabClickHandler = (floorNo) => {
-    console.log("tabClickHandler", floorNo);
+    // console.log("tabClickHandler", floorNo);
     this.setState({ floorCalled: floorNo })
   }
   floorCalledCallback = (item) => {
     this.setState({ floorCalled: item.level, selectedItem: null })
-    this.setState({ counter: this.state.counter + 1 });
   }
 
   artClickHandler(item) {
@@ -109,21 +95,26 @@ class StudioPage extends Component {
   }
 
   floorTileCallback(item) {
-    console.log("floorTileCallback", item);
+    console.log("Studio floorTileCallback", item);
+    this.setState({ selectedItem: item })
+  }
+
+  wallTileCallback(item) {
+    console.log("Studio wallTileCallback", item);
     this.setState({ selectedItem: item })
   }
 
   surroundingsTileCallback(item) {
     console.log("surroundingsTileCallback", item)
-    if (item) item.type = this.floors[this.state.floorCalled].name;
+    // if (item) item.type = this.floors[this.state.floorCalled].name;
     this.setState({ selectedItem: item })
   }
 
   getElevatorFloors() {
-    this.cubeMapeditor = (<CubeMapEditor item={this.state.selectedItem} />);
+    this.cubeMapeditor = (<ThreeAssetPreview item={this.state.selectedItem}  type="surrounds"/>);
     this.artEditor = (<ArtEditor item={this.state.selectedItem} />)
-    this.frameEditor = (<FrameEditor item={this.state.selectedItem} />)
-    this.floorEditor = (<FloorEditor item={this.state.selectedItem} />)
+    this.frameEditor = (<ThreeAssetPreview item={this.state.selectedItem}  type="frame"/>)
+    this.floorEditor = (<ThreeAssetPreview item={this.state.selectedItem}  type="floor"/>)
     this.wallEditor = (<ThreeAssetPreview item={this.state.selectedItem}  type="wall"/> )
 
 
@@ -167,16 +158,16 @@ class StudioPage extends Component {
         floorComponent: VaultFloor,
         refPath:  "users/" + this.props.firebase.currentUID + "/wall",
         level: 3,
-        tileCallback: this.floorTileCallback.bind(this),
+        tileCallback: this.wallTileCallback.bind(this),
         editorComponent: this.wallEditor
 
       },
 
       4: {
-        name: "Surroundings",
+        name: "Surrounds",
         y: 940,
         floorComponent: VaultFloor,
-        refPath: "users/" + this.props.firebase.currentUID + "/cubebox",
+        refPath: "users/" + this.props.firebase.currentUID + "/surrounds",
         level: 4,
         tileCallback: this.surroundingsTileCallback.bind(this),
         editorComponent: this.cubeMapeditor
@@ -194,7 +185,6 @@ class StudioPage extends Component {
 
   render() {
     const { floorCalled } = this.state;
-    console.log("render floorCalled `${floorCalled}`", floorCalled)
     const floors = this.getElevatorFloors();
 
     return (

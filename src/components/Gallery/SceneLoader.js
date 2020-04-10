@@ -27,7 +27,7 @@ class SceneLoader {
       data: this.sceneData.floor
     }
     this.floor = new Floor(options);
-    this.floor.renderFloor();
+    this.floor.setDataToMaterial(this.sceneData.floor);
   }
   renderWalls() {
     const { walls } = this.sceneData;

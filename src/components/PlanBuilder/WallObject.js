@@ -26,7 +26,7 @@ class WallObject {
     this.wallDepth = 5;
     this.defaultImageWidth = this.wallWidth * 0.6;
     this.defaultImageHeight = 15;
-    if (options.preview) {
+    if (options.preview) {//just change location if in Studio
       this.posX = this.posZ = 0
     }
     else {
@@ -40,10 +40,11 @@ class WallObject {
     if (options.preview) {
       this.wallMesh.translateY(-30)
     } else {
-    this.addLights();
-    this.addFrames();
+      this.addLights();
+      this.addFrames();
+    }
     this.setupExport();
-  }
+
   }
 
   setupExport() {
@@ -51,11 +52,9 @@ class WallObject {
       col,
       row,
       pos,
-      height,
-      opacity
+      height
     }))(this);
-    this.export.texture ={color: 0xe1f5fe}
-    //console.log("wall this.export", this.export);
+    this.export.texture = this.texture || { color: 0xe1f5fe }
   }
 
   addArtToExport() {
@@ -63,21 +62,17 @@ class WallObject {
     Object.entries(this.sides).forEach((value, index) => {
       const side = value[1];
       const framesToSave = [];
-
-      // console.log("sides", side, index);
       const sideFrames = side.frames;
       sideFrames.forEach(item => {
         const frameData = item.getExport();
         framesToSave.push(JSON.stringify(frameData));
       });
-      // console.log(value[0]);
-
       this.export.sides[value[0]] = framesToSave;
     });
   }
 
   getExport = () => {
-    console.log("getExport",this.export)
+    console.log("getExport", this.export)
     this.addArtToExport();
     return this.export;
   };
@@ -96,9 +91,8 @@ class WallObject {
     this.posZ = (this.row - this.midpointY) * this.wallWidth;
   }
 
-  setWallMaterial(){
+  setWallMaterial() {
     this.wallMaterial = new THREE.MeshStandardMaterial({
-      // wireframe: true
       color: 0xe1f5fe,
       opacity: this.opacity,
       transparent: true
@@ -301,9 +295,9 @@ class WallObject {
     //console.log("removeGroup after", this.builder.renderer.info);
   }
 
-  removeAllLights(){
-    ["front","back"].forEach(side => {
-      console.log("this.sides[side].wallLight",this.sides[side].wallLight,this.sides[side])
+  removeAllLights() {
+    ["front", "back"].forEach(side => {
+      console.log("this.sides[side].wallLight", this.sides[side].wallLight, this.sides[side])
       this.sides[side].wallLight.removeSpotlight()
     })
   }
@@ -380,7 +374,7 @@ class WallObject {
       newFrame.addFrameFromData(JSON.parse(sideItem[1][0]));
     });
   };
-  removeTexture(){
+  removeTexture() {
     this.wallMaterial.dispose();
     this.wallMesh.material = null;
     this.setWallMaterial();
@@ -389,10 +383,14 @@ class WallObject {
   }
   setDataToMaterial(data) {
     console.log("wall's setDataToMaterial", this.wallMesh, data);
-    this.export.texture = data;
-    delete this.export.texture.ref;
     this.textureAdder.setDataToMaterial(data);
   }
+  wallTileCallback = item => {
+    console.log("floorTileCallback item", item);
+    this.export.texture = item;
+    delete this.export.texture.ref;
+    this.setDataToMaterial(item);
+  };
 }
 
 export default WallObject;

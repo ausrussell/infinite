@@ -170,7 +170,7 @@ class Builder extends Component {
       const { wallOver } = intersectedData;//for changing wall texture
       if (this.state.selectedTile && wallOver) {
         wallOver.removeTexture();
-        wallOver.setDataToMaterial(this.state.selectedTile);
+        wallOver.wallTileCallback(this.state.selectedTile);
       }
     }
   }
@@ -1116,7 +1116,7 @@ class Builder extends Component {
         name: "Surroundings",
         y: 1175,
         floorComponent: VaultFloor,
-        refPath: "users/" + this.props.firebase.currentUID + "/cubebox",
+        refPath: "users/" + this.props.firebase.currentUID + "/surrounds",
         level: 5,
         tileCallback: this.surroundingsTileCallback.bind(this)
       }

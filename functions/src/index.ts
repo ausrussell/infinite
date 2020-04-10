@@ -115,30 +115,40 @@ export const manageZipArchives = functions
           firebaseStorageDownloadTokens: uuid
         }
       }
-      const nameAr = obj.id.split('/');
+      const nameAr = file.name.split('/');
       const usersIndex = nameAr.indexOf('users');
-      console.log("nameAr id", nameAr);
+      console.log("nameAr", nameAr);
       const userId = nameAr[usersIndex + 1];
       file.setMetadata(newMetadata).then(() => {
+        console.log("file.setMetadata then")
+
         const img_url = 'https://firebasestorage.googleapis.com/v0/b/' + fileBucket + '/o/'
           + encodeURIComponent(filePath)
           + '?alt=media&token='
           + newMetadata.metadata.firebaseStorageDownloadTokens;
-        const tileType = nameAr[usersIndex + 5].split('.');
-        const key = tileType[0];
+        console.log("img_url", img_url);
+        const fileName = nameAr.pop()
+        // const tileType = nameAr[usersIndex + 5].split('.');
+        // const key = tileType[0];
+        const titleFromZipName = nameAr[usersIndex + 4].replace('_zip', '')
         const acceptableKeys = ["nx", "ny", "nz", "px", "py", "pz"];
-        if (acceptableKeys.indexOf(key) === -1) {
-          return;
-        }
-        const data = {
-          [key]: img_url,
-          title: nameAr[usersIndex + 3].replace('_zip', '')
-        };
-        const refPath = "users/" + userId + '/cubebox/' + nameAr[usersIndex + 3];
-        const db = admin.database();
-        const cubeBoxRef = db.ref(refPath);
-        console.log("saving data to db refPath, data,img_url", refPath, data, img_url);
-        cubeBoxRef.update(data);
+        const assetId = nameAr[usersIndex + 3];
+
+        acceptableKeys.forEach(key => {
+          if (fileName.indexOf(key) >= 0 ) {
+            const data = {
+              [key]: img_url,
+              title: titleFromZipName
+            };
+            const refPath = "users/" + userId + '/surrounds/' + assetId;
+            const db = admin.database();
+            const cubeBoxRef = db.ref(refPath);
+            console.log("saving data to db refPath, data,img_url", refPath, data, img_url);
+            cubeBoxRef.update(data);
+          }
+        })
+
+
       })
     }
 

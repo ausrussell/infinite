@@ -1,4 +1,4 @@
-import React, { Component, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { withFirebase } from "../Firebase";
 import { Card, Checkbox, Form, Input, Button } from "antd";
 const { Meta } = Card;

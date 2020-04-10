@@ -34,7 +34,7 @@ class VaultFloor extends Component {
     }
 
     if (this.state.selectedTile && !selectedTilePresent) {
-      console.log("", this.state.selectedTile, selectedTilePresent)
+      // console.log("", this.state.selectedTile, selectedTilePresent)
       this.clearSelected()
     }
     this.setState({ tilesData: list });
@@ -49,7 +49,7 @@ class VaultFloor extends Component {
   }
 
   tileClickHandler = (item, tile) => {
-    console.log("tileClickHandler", item)
+    // console.log("tileClickHandler", item)
     this.tileCallback(item, tile);
     this.setState({ selectedTile: item.key });
   };
@@ -57,12 +57,13 @@ class VaultFloor extends Component {
   renderTile(snapshot) {
     // console.log("renderTile(snapshot)", snapshot);
     const tileData = snapshot.val();
-    const { url, color, ny, map, normalMap, bumpMap, title } = tileData;//ny for cubeboxes
+    const { url, color, px, map, normalMap, bumpMap, title } = tileData;//ny for cubeboxes
     // console.log("renderTile, url, color, ny", url, color, ny, map);
-    const tileUrl = url || ny || map || normalMap || bumpMap;
+    const tileUrl = url || px || map || normalMap || bumpMap;
     const { key, ref } = snapshot;
     tileData.key = key;
     tileData.ref = ref;
+    if (!ref) debugger;
     const { draggable } = this.props;
     const style = {
       backgroundColor: color || "#FFFFFF",

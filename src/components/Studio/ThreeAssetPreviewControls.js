@@ -1,13 +1,10 @@
-import React, { Component, useState, useEffect } from "react";
-import ReactDOM from "react-dom";
-import { withFirebase } from "../Firebase";
+import React, { useState, useEffect } from "react";
 
 import { CompactPicker } from "react-color";
 
 import { Input, Checkbox, Upload, Button, Form, Slider, Select, Row, Col, Divider } from "antd";
 import { InboxOutlined } from '@ant-design/icons';
 const { Option } = Select;
-
 
 const layout = {
     labelCol: {
@@ -30,6 +27,7 @@ const ThreeAssetPreviewControls = props => {
     const [textureType, setTextureType] = useState("map")
 
     const [densityDisabled, setDensityDisabled] = useState(true);
+    const [densityMax, setDensityMax] = useState(2);
     const [bumpScaleDisabled, setBumpScaleDisabled] = useState(true);
     const [normalScaleDisabled, setNormalScaleDisabled] = useState(true);
     const [form] = Form.useForm();
@@ -37,22 +35,23 @@ const ThreeAssetPreviewControls = props => {
     const assetRef = props.assetRef || props.selectedItem.ref;
 
     useEffect(() => {
-        const {selectedItem} = props;
+        const { selectedItem } = props;
         const updateTitle = () => {
             console.log("updateTitle", props)
             form.resetFields();
+            initDensity(selectedItem.density)
             form.setFieldsValue(
                 selectedItem
-            , [props]);
+                , [props]);
             setColor(selectedItem.color);
-            form.setFieldsValue({color:selectedItem.color})
+            form.setFieldsValue({ color: selectedItem.color })
             setDensityDisabled(!selectedItem.map);
             setNormalScaleDisabled(!selectedItem.normalMap)
             setBumpScaleDisabled(!selectedItem.bumpMap)
         }
         console.log("useEffect", props)
 
-        props.selectedItem && updateTitle()
+        selectedItem && updateTitle(props)
     }, [props]);
 
 
@@ -61,7 +60,7 @@ const ThreeAssetPreviewControls = props => {
         const newHexColor = colorInput.hex
         setColor(newHexColor);
         console.log("updateColor", color);
-        form.setFieldsValue({color:newHexColor})
+        form.setFieldsValue({ color: newHexColor })
         props.frameObject.setDataToMaterial({ color: newHexColor });
     }
 
@@ -79,7 +78,7 @@ const ThreeAssetPreviewControls = props => {
         // console.log("type",type)
         console.log("form::", textureType)
         // debugger;
-        file.assetName = textureType;
+        file.assetName = (props.type ==="surrounds") ? file.name : textureType;
         const uploadTask = fileUpload(file);
         const next = snapshot => {
             const progress = snapshot.bytesTransferred / snapshot.totalBytes;
@@ -90,9 +89,13 @@ const ThreeAssetPreviewControls = props => {
                 snapshot.ref.getDownloadURL().then(url => {
                     const pathAr = snapshot.ref.location.path.split("/");
                     const type = pathAr.pop()
+                    if (props.type === "surrounds") {
+                        onSuccess("Ok");
+
+                        debugger;
+                    } else {
                     const dbPath = pathAr.join("/");
                     const options = { [type]: url };
-                    // debugger;
                     props.firebase.updateAsset(dbPath, options)
                         .then(() => {
                             console.log("db saved uploaded", dbPath, options);
@@ -106,7 +109,8 @@ const ThreeAssetPreviewControls = props => {
                             break;
                         case "bumpMap": setBumpScaleDisabled(false);
                             break;
-                    }
+                        default: break;
+                    }}
                 })
             })
         }
@@ -116,6 +120,7 @@ const ThreeAssetPreviewControls = props => {
             complete: complete
         });
     };
+
 
     const setPreviewTexture = (textureType, url) => {
         console.log("url", url)
@@ -131,10 +136,9 @@ const ThreeAssetPreviewControls = props => {
         return e && e.fileList;
     };
 
-    const deleteHandler = () => { 
+    const deleteHandler = () => {
         props.firebase.deleteAsset(path());
         props.finishedCallback();
-
     };
 
     const removeTextureHandler = () => {
@@ -153,13 +157,29 @@ const ThreeAssetPreviewControls = props => {
             props.frameObject.fmaterial.normalMap = null;
         }
         props.frameObject.fmaterial.needsUpdate = true;
-
     };
-    const densityHandler = (value) => {
-        console.log("densityHandler", value);
-        props.frameObject.setDataToMaterial({ density: value  });
+
+    const initDensity = (value) => {
+        const maxValue = (value * 2 <20 )? value * 2 : 20
+        setDensityMax(maxValue || 2);
+        form.setFieldsValue({ densityMax: maxValue })
 
     }
+    const densityHandler = (value) => {
+        console.log("densityHandler", value);
+        // form.setFieldsValue({density: value});
+        props.frameObject.setDataToMaterial({ density: value });
+
+    }
+    const densityLimitHandler = (value) => {
+        setDensityMax(value)
+    }
+
+    const marks = {
+        0: '0',
+        [densityMax]: `${densityMax}`,
+
+    };
 
     const roughnessHandler = (value) => {
         props.frameObject.setDataToMaterial({ roughness: value });
@@ -168,11 +188,17 @@ const ThreeAssetPreviewControls = props => {
     const metalnessHandler = value => {
         props.frameObject.setDataToMaterial({ metalness: value });
     }
+
+    const opacityHandler = value => {
+        console.log("opacityHandler props.frameObject", props.frameObject)
+        props.frameObject.setDataToMaterial({ opacity: value });
+    }
+
     const normalScaleHandler = value => {
-        props.frameObject.setDataToMaterial({ normalScale: value  });
+        props.frameObject.setDataToMaterial({ normalScale: value });
     }
     const bumpScaleHandler = value => {
-        props.frameObject.setDataToMaterial({ bumpScale: value  });
+        props.frameObject.setDataToMaterial({ bumpScale: value });
     }
     const path = () => assetRef.path.pieces_.join("/");
 
@@ -186,7 +212,8 @@ const ThreeAssetPreviewControls = props => {
             console.log("onFinish saved", path, values);
         });
         props.finishedCallback();
-    }
+    };
+
 
     return (
         <Form
@@ -212,30 +239,37 @@ const ThreeAssetPreviewControls = props => {
                     </Form.Item>
                 </Col>
             </Row>
-            <Row gutter={16}>
-                <Col span={12} >
+            <Row>
+                <Col flex="0 1 370px">
                     <Form.Item
                         label="Color"
                         name="color"
-                        // valuePropName="color"
+
                     >
+
                         <CompactPicker color={color} onChangeComplete={updateColor} />
+
                     </Form.Item>
                 </Col>
-                <Col span={12} >
+                <Col flex="1 1 310px">
                     <Form.Item label="Roughness" name="roughness" >
-                        <Slider onChange={roughnessHandler} min={0} max={1} step={0.05}/>
+                        <Slider onChange={roughnessHandler} min={0} max={1} step={0.05} />
                     </Form.Item>
                     <Form.Item label="Metalness" name="metalness" >
-                        <Slider onChange={metalnessHandler} min={0} max={1} step={0.05}/>
+                        <Slider onChange={metalnessHandler} min={0} max={1} step={0.05} />
+                    </Form.Item>
+                    <Form.Item label="Opacity" name="opacity" >
+                        <Slider onChange={opacityHandler} min={0} max={1} step={0.05} />
                     </Form.Item>
                 </Col>
+
             </Row>
+
             <Divider orientation="left" style={{ color: '#333', fontWeight: 'normal' }}>
                 Optional image upload for texture
             </Divider>
             <Row gutter={16}>
-                <Col span={12} >
+                <Col span={8} >
                     <Form.Item
                         name="texture-type"
                         label="Texture type"
@@ -256,16 +290,19 @@ const ThreeAssetPreviewControls = props => {
                         </Upload.Dragger>
                     </Form.Item>
                 </Col>
-                <Col span={12} >
+                <Col span={16} >
                     <Form.Item label="Texture density" name="density" >
-                        <Slider onChange={densityHandler} disabled={densityDisabled}  min={0} max={2} step={0.05}/>
-                    </Form.Item>
+                        <Slider marks={marks} onChange={densityHandler} disabled={densityDisabled} min={0} max={densityMax} step={0.05} />
 
+                    </Form.Item>
+                    <Form.Item label="Texture density max" name="densityMax" >
+                        <Slider onChange={densityLimitHandler} disabled={densityDisabled} min={0.1} max={20} step={0.05} />
+                    </Form.Item>
                     <Form.Item label="Bump Scale" name="bumpScale">
-                        <Slider onChange={bumpScaleHandler} disabled={bumpScaleDisabled}  min={0} max={1} step={0.05}/>
+                        <Slider onChange={bumpScaleHandler} disabled={bumpScaleDisabled} min={0} max={1} step={0.05} />
                     </Form.Item>
                     <Form.Item label="Normal Scale" name="normalScale">
-                        <Slider onChange={normalScaleHandler} disabled={normalScaleDisabled}  min={0} max={1} step={0.05}/>
+                        <Slider onChange={normalScaleHandler} disabled={normalScaleDisabled} min={0} max={1} step={0.05} />
                     </Form.Item>
                 </Col>
             </Row>

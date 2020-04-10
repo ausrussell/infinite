@@ -5,20 +5,19 @@ import TextureAdder from "../../Helpers/TextureAdder"
 
 export default class Floor {
   constructor(props) {
-    console.log("just floor")
+    console.log("just floor",props)
     this.builder = props.builder;
-    this.data = props.data;
     this.addFloorMesh();
     this.textureAdder = new TextureAdder({material: this.floorMaterial});
 
-    this.export = { color: 0xf8f1f0 };
+    this.export = { color: "#f8f1f0" };
 
 
   }
   renderFloor() {
     console.log("renderFloor", this.scene, this.floorItem);
     this.addFloorMesh();
-    this.data && this.setDataToMaterial(this.data)
+    this.setDataToMaterial(this.data);
   }
   getFloorMesh() {
     return this.floorMesh;
@@ -26,10 +25,11 @@ export default class Floor {
 
   setFloorMaterial(){
     this.floorMaterial = new THREE.MeshStandardMaterial({
-      roughness: 0.8,
-      color: 0xffffff,
-      metalness: 0.2,
-      bumpScale: 0.0005
+      transparent: true
+      // roughness: 0.8,
+      // color: 0xffffff,
+      // metalness: 0.2,
+      // bumpScale: 0.0005
       // side: THREE.DoubleSide
     });
   }
@@ -38,7 +38,7 @@ export default class Floor {
       this.builder.gridWidth,
       this.builder.gridDepth
     );
-this.setFloorMaterial();
+    this.setFloorMaterial();
 
     this.floorMesh = new THREE.Mesh(this.floorPlane, this.floorMaterial);
     this.floorMesh.name = "mainFloor";
@@ -47,13 +47,13 @@ this.setFloorMaterial();
     console.log("this.floorMesh", this.floorMesh);
     this.builder.scene.add(this.floorMesh);
 
-    const geometry = new THREE.BoxGeometry(10, 10, 10);
-    const material = new THREE.MeshBasicMaterial({
-      color: 0xffffff
-      // wireframe: true
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    this.builder.scene.add(mesh);
+    // const geometry = new THREE.BoxGeometry(10, 10, 10);//uncomment to show box
+    // const material = new THREE.MeshBasicMaterial({
+    //   color: 0xffffff
+    //   // wireframe: true
+    // });
+    // const mesh = new THREE.Mesh(geometry, material);
+    // // this.builder.scene.add(mesh); 
 
   }
   setDataToMaterial(data) {

@@ -5,21 +5,19 @@ export default class Surroundings {
   constructor(builder) {
     this.builder = builder;
   }
-  
+  setDataToMaterial = item => {
+    this.surroundingsTileCallback(item)
+  }
 
   surroundingsTileCallback = item => {
     console.log("surroundingsTileCallback item", item);
 
 
     const urls = [
-      item.px,item.nx,item.py,item.ny,item.pz,item.nz
+      item.px, item.nx, item.py, item.ny, item.pz, item.nz
     ];
-
-    var reflectionCube = new THREE.CubeTextureLoader().load( urls );
-    // var refractionCube = new THREE.CubeTextureLoader().load( urls );
-    // refractionCube.mapping = THREE.CubeRefractionMapping;
-
-    // scene = new THREE.Scene();
+    console.log("surroundings urls", urls)
+    var reflectionCube = new THREE.CubeTextureLoader().load(urls);
     this.builder.scene.background = reflectionCube;
   };
 
