@@ -25,14 +25,22 @@ export default class TextureAdder {
                     this.material.color.set(item[1]);
                     break;
                 case "opacity":
-                    this.material.opacity =item[1];
-                break;
+                    this.material.opacity = item[1];
+                    break;
                 case "map":
                     this.textures["map"] = this.textureLoader.load(item[1], texture => {
                         this.loadHandler(item[0], texture);
                     })
                     console.log("set map")
-                    if (data.density) this.textures["map"].repeat.set(data.density, data.density);
+                    if (data.density) {
+                        if (Array.isArray(data.density)) {//for rectangles
+                            this.textures["map"].repeat.set(data.density[1], data.density[0]);
+                        } else {
+                            this.textures["map"].repeat.set(data.density, data.density);
+                        }
+                    }
+
+                    // this.textures["map"].repeat.set(data.density, data.density);
                     break;
                 case "bumpMap":
                     this.textures["bumpMap"] = this.textureLoader.load(item[1], texture => {
@@ -54,7 +62,15 @@ export default class TextureAdder {
                     break;
                 case "density":
                     console.log("case set desnity", item[1], this.textures["map"])
-                    if (this.textures["map"]) this.textures["map"].repeat.set(item[1], item[1]);
+
+                    if (this.textures["map"]) {
+                        console.log("setting density", Array.isArray(item[1]), item[1][1], item[1][0])
+                        if (Array.isArray(item[1])) {//for rectangles
+                            this.textures["map"].repeat.set(item[1][1], item[1][0]);
+                        } else {
+                            this.textures["map"].repeat.set(item[1], item[1]);
+                        }
+                    }
                     break;
                 case "metalness":
                     this.material.metalness = item[1];

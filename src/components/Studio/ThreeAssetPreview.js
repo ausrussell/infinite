@@ -29,27 +29,27 @@ class ThreeAssetPreview extends Component {
         this.gridDepth = 12 * wallWidth;
         this.typeMap = {
             frame: {
-              add: this.addFrame,
-              obj: "group",
-              cameraPos:[0,0,36]  
+                add: this.addFrame,
+                obj: "group",
+                cameraPos: [0, 0, 36]
             },
             floor: {
-               add: this.addFloor,
-               obj: "floorMesh",
-              cameraPos:[0,60,260]
+                add: this.addFloor,
+                obj: "floorMesh",
+                cameraPos: [0, 60, 260]
             },
             wall: {
-                add:this.addWall,
-                obj:"wallGroup",
-                cameraPos:[0,0,110]
+                add: this.addWall,
+                obj: "wallGroup",
+                cameraPos: [0, 0, 110]
 
             },
             surrounds: {
-                add:this.addSurrounds,
-                obj:null,
-                cameraPos:[0,0,110]
+                add: this.addSurrounds,
+                obj: null,
+                cameraPos: [0, 0, 110]
 
-            }  
+            }
         }
     }
 
@@ -74,8 +74,8 @@ class ThreeAssetPreview extends Component {
     }
 
     handleTileSelected() {
+        console.log("handleTileSelected", this.props.item)
         this.setState({ selectedItem: this.props.item });
-        debugger;
         this.resetFrame();
         this.frameObject.setDataToMaterial(this.props.item);
         if (this.props.item.roughness) this.frameObject.setDataToMaterial({ roughness: this.props.item.roughness });
@@ -114,7 +114,7 @@ class ThreeAssetPreview extends Component {
 
     addFloor = () => {
         const options = {
-            builder:this
+            builder: this
         }
         this.frameObject = new Floor(options);
         console.log("addFloor lookAt", this.frameObject.floorMesh.position)
@@ -124,13 +124,16 @@ class ThreeAssetPreview extends Component {
 
     addWall = () => {
         const options = {
-            builder:this,
+            builder: this,
             pos: 1,
             preview: true
         }
         this.frameObject = new WallObject(options);
         this.frameObject.animateWallBuild();
         // this.camera.lookAt(new THREE.Vector3(0,60,0))
+        // debugger;
+        this.meshRatio = this.frameObject.wallMesh.geometry.parameters.width / this.frameObject.wallMesh.geometry.parameters.height;
+        console.log("this.meshRatio", this.meshRatio)
         this.camera.target = this.frameObject.wallMesh;
         console.log("addFloor this.scene", this.camera)
     }
@@ -138,7 +141,7 @@ class ThreeAssetPreview extends Component {
     addSurrounds = () => {
         console.log("addSurrounds", this)
         const options = {
-            builder:this
+            builder: this
         }
         this.frameObject = new Surroundings(this);
         // this.camera.target = this.frameObject.wallMesh;
@@ -146,8 +149,9 @@ class ThreeAssetPreview extends Component {
     }
 
     resetFrame() {
-        this.scene.remove(this.typeMap[this.type]["obj"]);
-        this.typeMap[this.type]["add"]();
+            this.scene.background = null;
+            this.scene.remove(this.frameObject[this.typeMap[this.type]["obj"]]);
+            this.typeMap[this.type]["add"]();
     }
 
     addCustomSceneObjects = () => {
@@ -189,7 +193,7 @@ class ThreeAssetPreview extends Component {
         this.setState({ assetRef: null, selectedItem: null });
     }
 
-    
+
 
     render() {
         const { assetRef, selectedItem } = this.state;
@@ -205,16 +209,16 @@ class ThreeAssetPreview extends Component {
         return (<div>
             <div style={{ height: 400, marginBottom: 16 }} ref={ref => (this.el = ref)} />
             {(this.frameObject && (selectedItem || assetRef)) ?
-                (<ThreeAssetPreviewControls  frameObject={this.frameObject} finishedCallback={this.finishedCallback}
-                             type={this.type} assetRef={assetRef} selectedItem={selectedItem} firebase={this.props.firebase}/>)
+                (<ThreeAssetPreviewControls frameObject={this.frameObject} finishedCallback={this.finishedCallback}
+                    type={this.type} assetRef={assetRef} selectedItem={selectedItem} firebase={this.props.firebase} meshRatio={this.meshRatio} />)
                 :
                 (<div>Select from Vault below to edit a {this.type} or...
                     <div> <Button onClick={this.createNewHandler}>Create New {this.type.toUpperCase()}</Button></div>
-                    </div>)}
+                </div>)}
 
         </div>
         )
-            
+
     }
 }
 
