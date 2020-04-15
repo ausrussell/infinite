@@ -13,54 +13,70 @@ class GalleryEditDropdown extends Component {
   }
 
   componentDidMount() {
-    this.props.firebase.getGalleryEditList(this.fillList);
+    const options = {
+      refPath: "users/" + this.props.firebase.currentUID + "/galleryDesc",
+      callback: this.fillList,
+      orderField: "title"
+    }
+    this.listCall = this.props.firebase.getList(options);
+  }
+
+  componentWillUnmount() {
+    this.listCall && this.props.firebase.detachRefListener(this.listCall);
+    this.props.firebase.detachRefListener(this.assetCall);
   }
 
   fillList = data => {
     console.log("Galleries callback", data);
     const list = [];
+    this.dataList = {};
+
     if (data) {
-      data.forEach(function(childSnapshot) {
+      data.forEach( (childSnapshot) => {
         list.push(childSnapshot);
+        this.dataList[childSnapshot.key] = childSnapshot.val();
       });
     }
     this.setState({ galleriesList: list });
     console.log("Galleries plansCallback", list);
   };
 
-  getGalleryData = id => {
-    console.log("onChange getGalleryData", id, this.currentId);
-    if (this.currentId === id) return;
-    this.props.firebase.getGalleryById(id).on("value", snapshot => {
-      console.log("getGalleryData", snapshot.val());
-      console.log("onChange getGalleryById", id, this.currentId);
-      if (this.currentId !== id) {
-        this.callback(snapshot.val(), id);
-        this.currentId = id;
-      }
-    });
-    // .then(data => this.callback(data))
+  getGalleryData =  (id) => {
+    console.log("galleriesList",id,this.dataList[id])
+    this.desc = this.dataList[id];
+    const options = {
+      refPath: "users/" + this.props.firebase.currentUID + "/galleryData/",
+      callback: this.returnData,
+      once: true 
+    }
+
+    this.assetCall = this.props.firebase.getAsset(options)
+
   };
+  returnData = (snapshot) => {
+    const dataToReturn = {
+      galleryDesc: this.desc,
+      galleryData: snapshot.val()
+    }
+    console.log("dataToReturn",dataToReturn);
+    this.callback(dataToReturn)
+
+  }
 
   listItem(data) {
     const { Option } = Select;
 
     const galleryData = data.val();
     const { key } = data;
-    const { name } = galleryData;
+    const { title } = galleryData;
     return (
       <Option value={key} key={data.key}>
-        {name}
+        {title}
       </Option>
     );
   }
   render() {
     const { Option } = Select;
-    // {this.state.galleriesList.map(data => (
-    //   <GalleryEditListItem data={data} key={data.key} />
-    // ))}
-    // <Option value={0}>Select a Gallery to edit</Option>
-    // onChange={({ target }) => this.getGalleryData(target.value)}
 
     return (
       <Select

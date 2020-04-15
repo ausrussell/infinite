@@ -7,7 +7,7 @@ const GalleryTitle = props => {
       value={props.content}
       onChange={props.onTitleChangeHandler}
       className="floorplan-title-field"
-      placeholder="Gallery 1"
+      placeholder="Gallery Name"
     />
   );
 };

@@ -29,9 +29,10 @@ import { TransformControls } from "./TransformControls";
 
 import Draggable from "./Draggable";
 
+import BuilderHeader from "./BuilderHeader"
+
 import GalleryTitle from "./GalleryTitle";
 
-import GalleryEditDropdown from "../Gallery/GalleryEditDropdown";
 
 const wallWidth = 20;
 
@@ -49,6 +50,7 @@ class Builder extends Component {
     draggableVaultElementActive: null,
     draggableVaultItem: null,
     galleryTitle: "",
+    galleryDesc: {},
     lights: [],
     selectedSpotlight: null,
     generalLight: null
@@ -219,7 +221,6 @@ class Builder extends Component {
     this.dragging = false;
     let intersect = this.checkForIntersecting();
     this.holderOver = intersect;
-    debugger;
     if (this.currentWallOver || this.holderOver) {
       const addImageData = {
         itemData: itemData,
@@ -270,12 +271,27 @@ class Builder extends Component {
 
   artClickHandler(item, draggableVaultElement) {
     console.log("artClickHandler", item);
-    this.setState({
-      draggableVaultElementActive: true,
-      draggableVaultItem: item
-    });
-    this.draggableImageRef = React.createRef();
-    this.dragging = true;
+    if (this.state.selectingArt) {
+      this.selectedArt(item)
+    } else {
+      this.setState({
+        draggableVaultElementActive: true,
+        draggableVaultItem: item
+      });
+      this.draggableImageRef = React.createRef();
+      this.dragging = true;
+    }
+  }
+
+  selectingArtHandler = () => {
+    this.setState({ selectingArt: !this.state.selectingArt })
+  }
+
+  selectedArt(item) {
+    const desc = this.state.galleryDesc;
+    desc.galleryImg = item;
+    this.setState({galleryDesc: desc})
+    this.selectingArtHandler();
   }
 
 
@@ -330,7 +346,6 @@ class Builder extends Component {
 
   onEditDropdownChangeHandler = (value, id) => {
     console.log("onEditDropdownChangeHandler", value);
-    // debugger;
     this.removeLights();
 
 
@@ -421,10 +436,7 @@ class Builder extends Component {
 
   saveGallery = () => {
     this.galleryData = {};
-    this.galleryData.name = this.state.galleryTitle;
-    this.galleryData.nameEncoded = encodeURIComponent(
-      this.state.galleryTitle.replace(" ", "_")
-    );
+
     console.log("saveGallery galleryData", this.galleryData);
     this.galleryData.floorplan = this.state.floorplan;
     this.galleryData.floor = this.floor.getExport();
@@ -439,6 +451,7 @@ class Builder extends Component {
     });
 
     this.galleryData.generalLight = this.generalLightController.getExport();
+    return this.galleryData;
     this.makeGalleryDbSave();
   };
 
@@ -1054,7 +1067,6 @@ class Builder extends Component {
     const newWallLight = new WallLight(options);
     this.lights.push(newWallLight);
     newWallLight.displayHelper();
-    // debugger;
   }
 
   getElevatorFloors() {
@@ -1175,23 +1187,13 @@ class Builder extends Component {
     // console.log("render planner", this.state.draggableVaultElement);
     return (
       <ErrorBoundary>
-        <div className="page-header-area">
-          <div className="floorplan-title">
-            <GalleryTitle
-              content={this.state.galleryTitle}
-              onTitleChangeHandler={this.onTitleChangeHandler}
-            />
-            <div className="edit-gallery-dropdown">
-              <GalleryEditDropdown
-                callback={this.onEditDropdownChangeHandler}
-              />
-            </div>
-            <SaveButton onClick={this.saveGallery} />
-          </div>
-          <h3 className="floorplan-title">
-            Floorplan: {this.state.floorplan && this.state.floorplan.title}
-          </h3>
-        </div>
+        {this.props.firebase.currentUID &&
+          (<BuilderHeader
+            onEditDropdownChangeHandler={this.onEditDropdownChangeHandler}
+            saveGallery={this.saveGallery}
+            galleryDesc={this.state.galleryDesc}
+            setSelectingArt={this.selectingArtHandler}
+            selectingArt={this.state.selectingArt} />)}
         <MainCanvas refer={mount => (this.mount = mount)} />
         {this.state.draggableVaultElementActive && (
           <Draggable
@@ -1229,13 +1231,7 @@ class Builder extends Component {
   }
 }
 
-const SaveButton = props => {
-  return (
-    <button className="primary-button" onClick={() => props.onClick()}>
-      Save
-    </button>
-  );
-};
+
 
 const DraggableVaultElement = React.forwardRef((props, ref) => (
   <div className="draggable-vault-element">

@@ -10,7 +10,6 @@ import VaultFloor from "../Elevator/VaultFloor";
 import AssetEditor from "./AssetEditor";
 
 import ThreeAssetPreview from './ThreeAssetPreview';
-import CubeMapUploader from './CubeMapUploader';
 
 
 const { TabPane } = Tabs;
@@ -23,48 +22,6 @@ const ArtEditor = (props) => {
   </div>
   )
 }
-
-const CubeMapEditor = (props) => {
-  console.log("CubeMapEditor props", props);
-  
-  return (<div>
-    {props.item ? (<AssetEditor item={props.item} />) : (<div>Select an item from the vault below to edit or delete</div>)}
-    <CubeMapUploader />
-  </div>
-  )
-}
-
-const CubeBox = () => {
-
-  const dragOverHandler = e => {
-    console.log("cubebox over", e, e.target);
-  };
-  const fileDragLeaveHandler = e => {
-    console.log("CubeBox fileDragLeaveHandler", e);
-  };
-
-  const fileDropHandler = (item, uploadTask) => {
-    console.log("fileDropHandler item, uploadTask", item, uploadTask);
-  };
-
-  const fileLoadedHandler = (item, uploadTask) => {
-    console.log("CubeBox:: fileLoadedHandler item, uploadTask", item, uploadTask);
-  };
-
-  return (
-    <Card type="inner" title="Upload new asset">
-      <div>Drag zip file to upload Cube boxes</div>
-      <Uploader
-        type="cubebox"
-        button="Upload zip"
-        fileDragover={dragOverHandler}
-        fileDragLeaveHandler={fileDragLeaveHandler}
-        fileDrop={(item, uploadTask) => fileDropHandler(item, uploadTask)}
-        fileLoadedHandler={fileLoadedHandler}
-      />
-    </Card>
-  );
-};
 
 class StudioPage extends Component {
   state = {
@@ -165,6 +122,15 @@ class StudioPage extends Component {
 
       4: {
         name: "Surrounds",
+        y: 940,
+        floorComponent: VaultFloor,
+        refPath: "users/" + this.props.firebase.currentUID + "/surrounds",
+        level: 4,
+        tileCallback: this.surroundingsTileCallback.bind(this),
+        editorComponent: this.cubeMapeditor
+      },
+      4: {
+        name: "Galleries",
         y: 940,
         floorComponent: VaultFloor,
         refPath: "users/" + this.props.firebase.currentUID + "/surrounds",

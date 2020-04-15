@@ -85,6 +85,7 @@ class Firebase {
 
   updateAsset = (path, object) => {
     console.log("updateAsset", path, object)
+    delete object.ref;
     const ref = this.database
       .ref(path)
     return ref.update(object)
@@ -108,10 +109,10 @@ class Firebase {
       });
   }
 
-  getNewAssetRef(type){
+  getNewAssetRef(type) {
     const newAssetRef = this.database
-    .ref("users/" + this.currentUID + "/" + type)
-    .push();
+      .ref("users/" + this.currentUID + "/" + type)
+      .push();
     return newAssetRef
   }
 
@@ -122,7 +123,7 @@ class Firebase {
       "users/" + this.currentUID + "/" + path + "/" + name
     );
     // imageRef.dbPath =  "users/" + this.currentUID + "/" + path;
-    console.log("storeAsset","users/" + this.currentUID + "/" + path + "/" + name)
+    console.log("storeAsset", "users/" + this.currentUID + "/" + path + "/" + name)
     return ref.put(file);
   }
 
@@ -132,10 +133,10 @@ class Firebase {
     childRef.delete()
   }
 
-  deleteValue(path,key) {
+  deleteValue(path, key) {
     const ref = this.database.ref(path)
     console.log("deleteValue path", path, key)
-    return ref.update({[key]: null})
+    return ref.update({ [key]: null })
   }
 
   deleteAsset = (path, item) => {
@@ -169,36 +170,12 @@ class Firebase {
     return galleryRef;
   };
 
-  storeGalleryGltf(galleryData, scene) {
-    const storageRef = this.storage.ref();
-    const galleryRef = storageRef.child(
-      "galleries/" + this.currentUID + "/gallery/" + galleryData.name + ".gltf"
-    );
-    const sceneStr = JSON.stringify(scene);
 
-    const blob = new Blob(
-      [sceneStr],
-      { type: "application/json" } //type: 'application/octet-stream'
-    );
-    galleryRef.put(blob).then(snapshot => {
-      console.log("snapshot", snapshot.ref);
-      console.log("galleryRef", galleryRef.fullPath);
-      galleryRef.getDownloadURL().then(url => {
-        console.log("galleryRef url", url);
-        galleryData.galleryRef = url;
-        const newGalleryRef = this.database.ref("galleries").push();
-        newGalleryRef.set(galleryData);
-      });
-    });
-    // const newGalleryRef = this.database.ref("galleries").push();
-    // newGalleryRef.set(galleryData);
-  }
 
   getGalleryByName = (name, callback) => {
     console.log("getGalleryByName", name);
     const galleryRef = this.database.ref("galleries");
     return galleryRef.orderByChild("name").equalTo(name.replace("_", " "));
-    // .on("value", callback);
   };
 
   detachRefListener(ref) {
@@ -212,16 +189,38 @@ class Firebase {
   };
 
   getGalleryList = callback => {
-    const galleryRef = this.database.ref("galleries");
+    debugger;
+    const galleryRef = app.database.ref("publicGalleries");
     galleryRef.orderByChild("name").on("value", callback);
-    console.log("getGalleryList");
+    return galleryRef;
   };
 
   getGalleryEditList = callback => {
     const galleryRef = this.database.ref("galleries");
     galleryRef.orderByChild("name").on("value", callback); //need to add query by user
     console.log("getGalleryEditList");
+
+    const galleryDescs = this.database.ref(
+      "users/" + this.currentUID + "galleryDescs"
+    );
+    return galleryDescs
   };
+
+  getList = ({ refPath, callback, orderField }) => {
+    // const ref = this.database.ref(refPath);
+    const ref = app.database().ref(refPath);
+    ref.orderByChild(orderField).on("value", callback);
+    return ref;
+  }
+
+  getAsset = ({ refPath, callback, once }) => {
+    const ref = app.database().ref(refPath);
+    if (once) {
+      ref.once("value", callback);
+    } else{
+    ref.on("value", callback);}
+    return ref;
+  }
 
   removePlan = key => {
     this.database
@@ -248,7 +247,7 @@ class Firebase {
     this.tilesRef = refPath;
     this.newArtRef = app.database().ref(refPath);
     this.newArtRef.on("value", callback);
-    console.log("this.newArtRef",this.newArtRef)
+    console.log("this.newArtRef", this.newArtRef)
     return this.newArtRef;
   };
 
