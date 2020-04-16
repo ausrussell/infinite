@@ -3,13 +3,7 @@ import React, { Component } from "react";
 import { withFirebase } from "../Firebase";
 import { List, Avatar } from 'antd';
 import { EnvironmentOutlined, ArrowRightOutlined } from '@ant-design/icons';
-const IconText = ({ icon, text, onClick, item }) => {
-  console.log("IconText",icon, text, onClick);
-  return (  <span onClick={() => onClick(text, item)}>
-    {React.createElement(icon, { style: { marginRight: 8 } })}
-    {text}
-  </span>)
-};
+
 const GalleryListItem = props => {
   console.log("props.data", props.data);
   const galleryData = props.data.val();
@@ -70,27 +64,7 @@ class GalleryList extends Component {
       <List
         itemLayout="vertical"
         dataSource={this.state.galleriesList}
-        renderItem={item => (
-          <List.Item style={{backgroundColor: "#F5F5F6", padding: 10}}
-          extra={
-            <img
-              width={172}
-              alt={`${item.title} Gallery`}
-              src={item.galleryImg.url}
-            />
-          }
-          actions={[
-            <IconText icon={EnvironmentOutlined} text="Locate" key="list-vertical-star-o" onClick={this.onClickHandler.bind(this)} item={item} />,
-            <IconText icon={ArrowRightOutlined} text="Visit" key="list-vertical-star-o" />,
-
-          ]}>
-            <List.Item.Meta
-              title={<a href="https://ant.design">{item.title}</a>}
-              description={item.description}
-
-            />
-          </List.Item>
-        )}
+        renderItem={item => <CustomItem item={item} onClickHandler={this.onClickHandler} /> }
       />
 
 
@@ -99,5 +73,34 @@ class GalleryList extends Component {
     );
   }
 }
+const IconText = ({ icon, text, onClick, item }) => {
+  console.log("IconText",icon, text, onClick);
+  return (  <span onClick={() => onClick(text, item)}>
+    {React.createElement(icon, { style: { marginRight: 8 } })}
+    {text}
+  </span>)
+};
+const CustomItem = ({item, onClickHandler}) => {
+  return(
+  <List.Item style={{backgroundColor: "#F5F5F6", padding: 10}}
+  extra={
+    <img
+      width={172}
+      alt={`${item.title} Gallery`}
+      src={item.galleryImg && `${item.galleryImg.url}`}
+    />
+  }
+  actions={[
+    <IconText icon={EnvironmentOutlined} text="Locate" key="list-vertical-star-o" onClick={(text, item) => onClickHandler("Locate",item)} item={item} />,
+    <IconText icon={ArrowRightOutlined} text="Visit" key="list-vertical-star-o" />,
+
+  ]}>
+    <List.Item.Meta
+      title={<a href="https://ant.design">{item.title}</a>}
+      description={item.description}
+
+    />
+  </List.Item>
+)}
 
 export default withFirebase(GalleryList);

@@ -170,6 +170,10 @@ class Firebase {
     return galleryRef;
   };
 
+  pushAsset =  path => {
+    return this.database.ref(path).push();
+  }
+
 
 
   getGalleryByName = (name, callback) => {

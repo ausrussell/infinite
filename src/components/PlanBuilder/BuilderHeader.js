@@ -10,6 +10,16 @@ const { Meta } = Card;
 const { Panel } = Collapse;
 
 const MapModal = (props) => {
+    const [center, setCenter] = useState({location:props.setCenter});
+    useEffect(() => {
+        console.log("useEffect", props)
+        const updateFields = () => {
+            setCenter(props.setCenter)
+        }
+
+        updateFields(props)
+    }, [props]);
+    console.log("MapModal", props)
     const latLngCallBack = (latLng) => {
         console.log("latLngCallBack", latLng);
         props.locationSet(latLng)
@@ -23,14 +33,14 @@ const MapModal = (props) => {
         onOk={handleOk}
     >
 
-        <GoogleApiWrapper modal={true} latLngCallBack={latLngCallBack} setCenter={props.setCenter} />
+        <GoogleApiWrapper modal={true} latLngCallBack={latLngCallBack} setCenter={center} />
     </Modal>)
 }
 
 const BuilderHeader = props => {
     console.log("BuilderHeader props", props)
     const [title, setTitle] = useState(props.title || "");
-    const [id, setId] = useState(props.id || "");
+    const [id, setId] = useState("");
     const [imgUrl, setImgUrl] = useState("");
     const [imgTitle, setImgTitle] = useState("");
     const [galleryImg, setGalleryImg] = useState({});
@@ -42,14 +52,45 @@ const BuilderHeader = props => {
 
 
     useEffect(() => {
+        console.log("useEffect", props)
         const updateFields = () => {
             // setTitle(props.title);
             // setLocation(props.galleryDesc.location);
-            if (props.galleryDesc.galleryImg) {
-                setImgUrl(props.galleryDesc.galleryImg.url);
-                setImgTitle(props.galleryDesc.galleryImg.title);
-                setGalleryImg(props.galleryDesc.galleryImg)
+
+
+            if (props.plannerGallery && id !== "") {
+                let returnVal = props.firebase.pushAsset("users/" + props.firebase.currentUID + "/galleryDesc/")
+                console.log("returnVal.key", returnVal.key);
+
+                returnVal.then(snapshot => {
+                    console.log("snapshot key", snapshot.key, id)
+                    console.log("returnVal.key", returnVal.key);
+                    setId(returnVal.key)
+
+                })
+
+            } else {
+                form.resetFields();
+                const { galleryDesc } = props;
+                setTitle(galleryDesc.title);
+                console.log("rops.galleryId", props.galleryId)
+                setId(props.galleryId);
+                setLocation(galleryDesc.location);
+                console.log("reset location to ",galleryDesc.location)
+                if (galleryDesc.galleryImg) {
+                    setImgUrl(galleryDesc.galleryImg.url);
+                    setImgTitle(galleryDesc.galleryImg.title);
+                    setGalleryImg(galleryDesc.galleryImg)
+                } else {
+                    setImgUrl("");
+                    setImgTitle("");
+                    setGalleryImg({})
+                }
+                form.setFieldsValue(
+                    galleryDesc
+                    , [galleryDesc]);
             }
+
         }
 
         updateFields(props)
@@ -64,38 +105,28 @@ const BuilderHeader = props => {
         );
 
     }
-    const onEditDropdownChangeHandler = ({ galleryDesc, galleryData }) => {
-        // console.log("BuilderHeader onEditDropdownChangeHandler", val, id)
-        console.log("galleryDesc, galleryData", galleryDesc, galleryData)
-        setLocation(galleryDesc.location);
-        const id = Object.keys(galleryData)[0];
-        setTitle(galleryDesc.title);
-        setId(id);
-        if (galleryDesc.galleryImg) {
-            setImgUrl(galleryDesc.galleryImg.url);
-            setImgTitle(galleryDesc.galleryImg.title);
-            setGalleryImg(galleryDesc.galleryImg)
-        }
-        form.setFieldsValue(
-            galleryDesc
-            , [galleryDesc]);
-        props.onEditDropdownChangeHandler(Object.values(galleryData)[0], Object.keys(galleryData)[0]);
+    const onEditDropdownChangeHandler = (returnData) => {
+        console.log("BuilderHeader onEditDropdownChangeHandler", returnData)//galleryDesc, galleryData, id
+
+        props.onEditDropdownChangeHandler(returnData);
     }
     const selectArt = () => {
         props.setSelectingArt()
     }
-    const onFinish = async (values) => {
-        Object.keys(values).forEach(key => { values[key] = values[key] || null });
+    const processValuesAndSave = async (values) => {
+        debugger;
         setGalleryImg.updateTime = new Date();
         console.log("props.galleryDesc.galleryImg", props.galleryDesc.galleryImg);
         delete galleryImg.ref;
         values.galleryImg = galleryImg;
-        values.location = location;
-        const galleryData = props.saveGallery()
-        values.nameEncoded= encodeURIComponent(
-            values.title.replace(" ", "_")
-          );
+        values.location = location || { lat: 36.80885384408701 + Math.random() * 2, lng: -123.27939428681641 + Math.random() * 2 };
+        Object.keys(values).forEach(key => { values[key] = values[key] || null });
 
+        const galleryData = props.saveGallery()
+        values.nameEncoded = encodeURIComponent(
+            values.title.replace(" ", "_")
+        );
+        console.log("save at id", id)
         const path = "users/" + props.firebase.currentUID + "/galleryDesc/" + id;
         const dbSave = props.firebase.updateAsset(path, values);
 
@@ -114,6 +145,10 @@ const BuilderHeader = props => {
         }
         setTitle(values.title);
         setActiveKey(null);
+    }
+    const onFinish = async (values) => {
+        processValuesAndSave(values)
+
 
     }
     const showMapModal = () => {
@@ -135,7 +170,7 @@ const BuilderHeader = props => {
                 form={form}
                 onFinish={onFinish}
             >
-                {title && (<Collapse defaultActiveKey={['1']} style={{ marginBottom: 16 }}>
+                {(title || props.plannerGallery) && (<Collapse defaultActiveKey={['1']} style={{ marginBottom: 16 }}>
                     <Panel header="Add/Edit Gallery details" key="1">
                         <Row gutter={8}>
                             <Col span={8}>
@@ -186,7 +221,7 @@ const BuilderHeader = props => {
                 <Row>
                     <Col span={8}>
                         <Form.Item>
-                            <Button type="primary" htmlType="submit" disabled={!title}>
+                            <Button type="primary" htmlType="submit">
                                 Save
                             </Button>
                         </Form.Item>

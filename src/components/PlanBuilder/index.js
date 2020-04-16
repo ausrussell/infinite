@@ -53,7 +53,9 @@ class Builder extends Component {
     galleryDesc: {},
     lights: [],
     selectedSpotlight: null,
-    generalLight: null
+    generalLight: null,
+    plannerGallery: false,
+    galleryId:null
   };
   constructor(props) {
     super(props);
@@ -344,17 +346,18 @@ class Builder extends Component {
     this.setState({ galleryTitle: target.value });
   };
 
-  onEditDropdownChangeHandler = (value, id) => {
-    console.log("onEditDropdownChangeHandler", value);
+  onEditDropdownChangeHandler = ({galleryDesc, galleryData, id}) => {
+    console.log("onEditDropdownChangeHandler", galleryDesc, galleryData, id);
     this.removeLights();
 
 
     // if (this.editGalleryId === id) return;
     this.editGalleryId = id;
+    
     console.log("this.editGalleryId", this.editGalleryId);
 
-    const { name, floorplan, walls, floor, lights, generalLight } = value;
-    this.setState({ galleryTitle: name, floorplan: floorplan });
+    const { name, floorplan, walls, floor, lights, generalLight } = galleryData;
+    this.setState({ galleryTitle: name, floorplan: floorplan, plannerGallery: false,  galleryDesc:galleryDesc, galleryId:id});
 
     this.floorPlan = floorplan.data;
     // disposeHierarchy(this.scene, () => this.loadGalleryToEdit());
@@ -374,6 +377,7 @@ class Builder extends Component {
     this.setupListeners();
     this.initialCameraAnimation();
     this.setSceneMeshes();
+    // this.setState({plannerGallery: false})
   };
 
   setEditGeneralLight(generalLight) {
@@ -885,7 +889,16 @@ class Builder extends Component {
     this.setupListeners();
     this.initialCameraAnimation();
     this.setSceneMeshes();
+    // let returnVal = props.firebase.pushAsset("users/" + props.firebase.currentUID + "/galleryDesc/")
+    //             returnVal.then(snapshot => {
+    //             console.log("snapshot key", snapshot.key, id)
+    //             console.log("returnVal.key", returnVal.key)
+    //             setId("hey")
+    //             console.log("id",id)
+    //             processValuesAndSave(values);
 
+    //         })
+    this.setState({plannerGallery: true})
     // this.addTransformControls();
   };
 
@@ -1184,16 +1197,19 @@ class Builder extends Component {
   }
   // (<Draggable><DraggableVaultElement /></<Draggable>)
   render() {
-    // console.log("render planner", this.state.draggableVaultElement);
+    // console.log("render planner", this.state.draggableVaultElementur
+    const {plannerGallery, galleryId} = this.state;
     return (
       <ErrorBoundary>
-        {this.props.firebase.currentUID &&
+        {(this.props.firebase.currentUID || plannerGallery) &&
           (<BuilderHeader
             onEditDropdownChangeHandler={this.onEditDropdownChangeHandler}
             saveGallery={this.saveGallery}
             galleryDesc={this.state.galleryDesc}
             setSelectingArt={this.selectingArtHandler}
-            selectingArt={this.state.selectingArt} />)}
+            selectingArt={this.state.selectingArt}
+            plannerGallery={this.state.plannerGallery}
+            galleryId={galleryId} />)}
         <MainCanvas refer={mount => (this.mount = mount)} />
         {this.state.draggableVaultElementActive && (
           <Draggable

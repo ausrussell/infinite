@@ -23,7 +23,7 @@ class GalleryEditDropdown extends Component {
 
   componentWillUnmount() {
     this.listCall && this.props.firebase.detachRefListener(this.listCall);
-    this.props.firebase.detachRefListener(this.assetCall);
+    this.assetCall && this.props.firebase.detachRefListener(this.assetCall);
   }
 
   fillList = data => {
@@ -43,9 +43,10 @@ class GalleryEditDropdown extends Component {
 
   getGalleryData =  (id) => {
     console.log("galleriesList",id,this.dataList[id])
+    this.selectedId = id
     this.desc = this.dataList[id];
     const options = {
-      refPath: "users/" + this.props.firebase.currentUID + "/galleryData/",
+      refPath: "users/" + this.props.firebase.currentUID + "/galleryData/" + id,
       callback: this.returnData,
       once: true 
     }
@@ -54,9 +55,11 @@ class GalleryEditDropdown extends Component {
 
   };
   returnData = (snapshot) => {
+    console.log("returnData snapshot ",snapshot)
     const dataToReturn = {
       galleryDesc: this.desc,
-      galleryData: snapshot.val()
+      galleryData: snapshot.val(),
+      id: this.selectedId
     }
     console.log("dataToReturn",dataToReturn);
     this.callback(dataToReturn)
