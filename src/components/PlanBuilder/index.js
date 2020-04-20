@@ -25,7 +25,7 @@ import Elevator from "../Elevator";
 
 import ErrorBoundary from "../ErrorBoundary";
 
-import { TransformControls } from "./TransformControls";
+import { TransformControls } from "./TransformControls_Apr19";
 
 import Draggable from "./Draggable";
 
@@ -300,18 +300,22 @@ class Builder extends Component {
   hoverArtMesh(artMesh) {
     // console.log("hoverArtMesh", artMesh, this.dragging);
     if (!this.dragging) {
+      console.log("show z",artMesh.parent.wallPos === 0)
+
       this.transformControls.showZ = artMesh.parent.wallPos === 0;
       this.transformControls.showX = artMesh.parent.wallPos === 1;
       this.transformControls.attach(artMesh);
+      this.transformControls.setSpace("world");
+
       this.activeArtMesh = artMesh;
 
-      this.transformControls2.setSpace("world");
+      // this.transformControls2.setSpace("world");
 
-      this.transformControls2.showZ = artMesh.parent.wallPos === 0;
-      this.transformControls2.showX = artMesh.parent.wallPos === 1;
-      // this.transformControls2.showY = true;
+      // this.transformControls2.showZ = artMesh.parent.wallPos === 0;
+      // this.transformControls2.showX = artMesh.parent.wallPos === 1;
+      // // this.transformControls2.showY = true;
 
-      this.transformControls2.attach(artMesh);
+      // this.transformControls2.attach(artMesh);
     }
   }
 
@@ -349,8 +353,6 @@ class Builder extends Component {
   onEditDropdownChangeHandler = ({galleryDesc, galleryData, id}) => {
     console.log("onEditDropdownChangeHandler", galleryDesc, galleryData, id);
     this.removeLights();
-
-
     // if (this.editGalleryId === id) return;
     this.editGalleryId = id;
     

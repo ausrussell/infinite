@@ -66,7 +66,6 @@ const BuilderHeader = props => {
                     console.log("snapshot key", snapshot.key, id)
                     console.log("returnVal.key", returnVal.key);
                     setId(returnVal.key)
-
                 })
 
             } else {
@@ -127,18 +126,18 @@ const BuilderHeader = props => {
             values.title.replace(" ", "_")
         );
         console.log("save at id", id)
-        const path = "users/" + props.firebase.currentUID + "/galleryDesc/" + id;
-        const dbSave = props.firebase.updateAsset(path, values);
+        const descPath = "users/" + props.firebase.currentUID + "/galleryDesc/" + id;
+        const dbSave = props.firebase.updateAsset(descPath, values);
 
         await dbSave;
-        const descPath = "users/" + props.firebase.currentUID + "/galleryData/" + id;
-        const descPathSave = props.firebase.updateAsset(descPath, galleryData);
-        await descPathSave;
+        const dataPath = "users/" + props.firebase.currentUID + "/galleryData/" + id;
+        const dataSave = props.firebase.updateAsset(dataPath, galleryData);
+        await dataSave;
 
         if (form.getFieldValue("public")) {
             const galleriesPath = "publicGalleries/" + id;
             const galleryData = {
-                dataPath: path
+                dataPath: dataPath
             }
             Object.assign(galleryData, values)
             props.firebase.updateAsset(galleriesPath, galleryData)

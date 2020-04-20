@@ -21,12 +21,12 @@ import {
 	Quaternion,
 	Raycaster,
 	SphereBufferGeometry,
+	TextureLoader, //I added
 	TorusBufferGeometry,
 	Vector3
-} from "../../../build/three.module.js";
+} from "three";//change
 
 var TransformControls = function (camera, domElement) {
-
 	Object3D.call(this);
 
 	domElement = (domElement !== undefined) ? domElement : document;
@@ -130,7 +130,7 @@ var TransformControls = function (camera, domElement) {
 		domElement.addEventListener("mousemove", onPointerHover, false);
 		domElement.addEventListener("touchmove", onPointerHover, false);
 		domElement.addEventListener("touchmove", onPointerMove, false);
-		document.addEventListener("mouseup", onPointerUp, false);
+		domElement.addEventListener("mouseup", onPointerUp, false);//change
 		domElement.addEventListener("touchend", onPointerUp, false);
 		domElement.addEventListener("touchcancel", onPointerUp, false);
 		domElement.addEventListener("touchleave", onPointerUp, false);
@@ -142,92 +142,73 @@ var TransformControls = function (camera, domElement) {
 		domElement.removeEventListener("mousedown", onPointerDown);
 		domElement.removeEventListener("touchstart", onPointerDown);
 		domElement.removeEventListener("mousemove", onPointerHover);
-		document.removeEventListener("mousemove", onPointerMove);
+		domElement.removeEventListener("mousemove", onPointerMove);//change
 		domElement.removeEventListener("touchmove", onPointerHover);
 		domElement.removeEventListener("touchmove", onPointerMove);
-		document.removeEventListener("mouseup", onPointerUp);
+		domElement.removeEventListener("mouseup", onPointerUp);//change
 		domElement.removeEventListener("touchend", onPointerUp);
 		domElement.removeEventListener("touchcancel", onPointerUp);
 		domElement.removeEventListener("touchleave", onPointerUp);
 
 		this.traverse(function (child) {
-
 			if (child.geometry) child.geometry.dispose();
 			if (child.material) child.material.dispose();
-
 		});
-
 	};
 
 	// Set current object
 	this.attach = function (object) {
-
 		this.object = object;
 		this.visible = true;
-
+		this.object.ratio =
+			object.geometry.parameters.width / object.geometry.parameters.height;
 		return this;
-
 	};
 
 	// Detatch from object
 	this.detach = function () {
-
 		this.object = undefined;
 		this.visible = false;
 		this.axis = null;
 
 		return this;
-
 	};
 
 	// Defined getter, setter and store for a property
 	function defineProperty(propName, defaultValue) {
-
 		var propValue = defaultValue;
 
 		Object.defineProperty(scope, propName, {
-
 			get: function () {
-
 				return propValue !== undefined ? propValue : defaultValue;
-
 			},
 
 			set: function (value) {
-
 				if (propValue !== value) {
-
 					propValue = value;
 					_plane[propName] = value;
 					_gizmo[propName] = value;
 
 					scope.dispatchEvent({ type: propName + "-changed", value: value });
 					scope.dispatchEvent(changeEvent);
-
 				}
-
 			}
-
 		});
 
 		scope[propName] = defaultValue;
 		_plane[propName] = defaultValue;
 		_gizmo[propName] = defaultValue;
-
 	}
 
 	// updateMatrixWorld  updates key transformation variables
 	this.updateMatrixWorld = function () {
-
 		if (this.object !== undefined) {
-
 			this.object.updateMatrixWorld();
 			this.object.parent.matrixWorld.decompose(parentPosition, parentQuaternion, parentScale);
 			this.object.matrixWorld.decompose(worldPosition, worldQuaternion, worldScale);
 
 			parentQuaternionInv.copy(parentQuaternion).inverse();
 			worldQuaternionInv.copy(worldQuaternion).inverse();
-
 		}
 
 		this.camera.updateMatrixWorld();
@@ -248,8 +229,20 @@ var TransformControls = function (camera, domElement) {
 		var intersect = ray.intersectObjects(_gizmo.picker[this.mode].children, true)[0] || false;
 
 		if (intersect) {
-
-			this.axis = intersect.object.name;
+			if (!intersect.object.visible) {
+				const intersectedChildren = ray.intersectObjects(_gizmo.picker[this.mode].children, true);
+				this.axis = null;
+				for (let i = 0; i < intersectedChildren.length; i++) {
+					// console.log("intersectedChildren[i]", intersectedChildren[i], i, )
+					if (intersectedChildren[i].object.visible) {
+						this.axis = intersectedChildren[i].object.name;
+						// console.log("set axis to this child axis", this.axis)
+						continue;
+					}
+				}
+			} else {
+				this.axis = intersect.object.name;
+			}
 
 		} else {
 
@@ -336,6 +329,7 @@ var TransformControls = function (camera, domElement) {
 		ray.setFromCamera(pointer, this.camera);
 
 		var planeIntersect = ray.intersectObjects([_plane], true)[0] || false;
+		console.log("planeIntersect", planeIntersect)
 
 		if (planeIntersect === false) return;
 
@@ -771,6 +765,21 @@ var TransformControlsGizmo = function () {
 	var lineGeometry = new BufferGeometry();
 	lineGeometry.addAttribute('position', new Float32BufferAttribute([0, 0, 0, 1, 0, 0], 3));
 
+	var loader = new TextureLoader();
+	var loadImagery = function (targetMesh, imageUrl) {
+		loader.load(imageUrl, imagery => setUpImagery(targetMesh, imagery));
+	};
+	var setUpImagery = (targetMesh, imagery) => {
+		targetMesh.map = imagery;
+		console.log("adding imagery",imagery)
+	};
+
+	var matMoveIcon = matWhiteTransparent.clone();
+	matMoveIcon.opacity = 0.4;
+	matMoveIcon.color.set(0x000000);
+	loadImagery(matMoveIcon, "../imagery/move-option.png");
+
+
 	var CircleGeometry = function (radius, arc) {
 
 		var geometry = new BufferGeometry();
@@ -822,7 +831,7 @@ var TransformControlsGizmo = function () {
 			[new Mesh(new OctahedronBufferGeometry(0.1, 0), matWhiteTransparent.clone()), [0, 0, 0], [0, 0, 0]]
 		],
 		XY: [
-			[new Mesh(new PlaneBufferGeometry(0.295, 0.295), matYellowTransparent.clone()), [0.15, 0.15, 0]],
+			[new Mesh(new PlaneBufferGeometry(0.295, 0.295), matMoveIcon), [0.15, 0.15, 0]],
 			[new Line(lineGeometry, matLineYellow), [0.18, 0.3, 0], null, [0.125, 1, 1]],
 			[new Line(lineGeometry, matLineYellow), [0.3, 0.18, 0], [0, 0, Math.PI / 2], [0.125, 1, 1]]
 		],
@@ -1460,7 +1469,7 @@ var TransformControlsGizmo = function () {
 				handle.material.color.lerp(new Color(1, 1, 1), 0.5);
 
 			} else if (this.axis) {
-				console.log("this.axis", this.axis)
+				// console.log("this.axis", this.axis)
 				if (handle.name === this.axis) {
 
 					handle.material.opacity = 1.0;
@@ -1491,6 +1500,7 @@ var TransformControlsGizmo = function () {
 	};
 
 };
+
 
 TransformControlsGizmo.prototype = Object.assign(Object.create(Object3D.prototype), {
 

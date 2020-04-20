@@ -51,14 +51,15 @@ class Gallery extends Component {
     console.log("Gallery this.props", this.props);
     this.setUpScene();
     this.galleryRef = this.props.firebase.getGalleryByName(
-      this.props.match.params.galleryName
+      this.props.match.params.galleryName,
+      this.processGallery
     );
-    this.galleryRef.on("value", this.processGallery);
+    // this.galleryRef.on("child_added", this.processGallery);
   }
 
   componentWillUnmount() {
     console.log("unmount");
-    this.props.firebase.detachRefListener(this.galleryRef);
+    // this.galleryRef && this.props.firebase.detachRefListener(this.galleryRef);
   }
 
   setupListeners() {
@@ -110,29 +111,16 @@ class Gallery extends Component {
     this.lightGroup = this.generalLight.getLight();
     this.scene.add(this.lightGroup);
   }
-  processGallery = snapshot => {
-    console.log("processGallery", snapshot.val());
+  processGallery = (data) => {
+    console.log("processGallery", data);
     if (this.galleryData) this.emptyScene();
-    snapshot.forEach(data => {
-      console.log("processGallery", data.key, data.val());
-      this.galleryData = data.val();
-      console.log("this.galleryData.galleryRef", this.galleryData.floorplan);
-      this.setState({ galleryData: data.val() });
+    // this.galleryData = data;
+    this.setState({ galleryData: data }, this.setScene);
+    // this.setScene();
+    this.setupListeners();
+    this.setCamera();
+    this.animate();
 
-      this.setScene();
-      // this.floorplan = this.galleryData.floorplan.data;
-      // this.frameGroups = this.galleryData.frameGroups;
-      // this.voxelsX = this.floorplan.length;
-      // this.voxelsY = this.floorplan[0].length;
-      // this.wallData = this.galleryData.wallData;
-      //
-      // this.setWalls();
-      // this.renderWalls();
-      // this.renderFrames();
-      this.setupListeners();
-      this.setCamera();
-      this.animate();
-    });
   };
   emptyScene() {
     debugger;
@@ -151,7 +139,7 @@ class Gallery extends Component {
     // Load a glTF resource
     const options = {
       scene: this.scene,
-      sceneData: this.galleryData
+      sceneData: this.state.galleryData
     };
     this.sceneLoader = new SceneLoader(options);
     this.sceneLoader.renderData();
@@ -221,13 +209,12 @@ class Gallery extends Component {
 
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(() => this.animate());
-    // this.props.stats.update();
   }
 
   render() {
     return (
       <ErrorBoundary>
-        <h1>gallery: {this.state.galleryData.name}</h1>
+        <h1>gallery: {this.state.galleryData.title}</h1>
         <MainCanvas refer={mount => (this.mount = mount)} />
       </ErrorBoundary>
     );

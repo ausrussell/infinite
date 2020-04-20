@@ -35,6 +35,7 @@ class WallObject {
 
     this.renderWall();
     this.textureAdder = new TextureAdder({ material: this.wallMaterial });
+    console.log("this wall texture", this.texture)
     texture && this.textureAdder.setDataToMaterial(this.texture);
 
     if (options.preview) {
@@ -133,7 +134,7 @@ class WallObject {
     });
 
     wallAni.animate(performance.now());
-    this.opacity = 1;
+    this.opacity = (this.texture) ? this.texture.opacity : 1;
     this.wallMaterial.opacity = this.opacity;
   }
   drawing = progress => {

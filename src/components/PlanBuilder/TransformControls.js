@@ -651,6 +651,7 @@ var TransformControls = function(camera, domElement) {
   };
 
   this.setSpace = function(space) {
+    console.log("setSpace",space)
     scope.space = space;
   };
 
@@ -865,7 +866,7 @@ var TransformControlsGizmo = function() {
       [
         new Mesh(
           new OctahedronBufferGeometry(0.1, 0),
-          matWhiteTransparent.clone()
+          matGreen.clone()//matWhiteTransparent
         ),
         [0, 0, 0],
         [0, 0, 0]
@@ -942,7 +943,7 @@ var TransformControlsGizmo = function() {
       [
         new Mesh(
           new CylinderBufferGeometry(0.2, 0, 1, 4, 1, false),
-          matInvisible
+          matWhiteTransparent//matInvisible
         ),
         [0.6, 0, 0],
         [0, 0, -Math.PI / 2]
@@ -952,7 +953,7 @@ var TransformControlsGizmo = function() {
       [
         new Mesh(
           new CylinderBufferGeometry(0.2, 0, 1, 4, 1, false),
-          matInvisible
+          matGreen//matInvisible
         ),
         [0, 0.6, 0]
       ]
@@ -961,16 +962,20 @@ var TransformControlsGizmo = function() {
       [
         new Mesh(
           new CylinderBufferGeometry(0.2, 0, 1, 4, 1, false),
-          matInvisible
+          matBlue//matInvisible
         ),
         [0, 0, 0.6],
         [Math.PI / 2, 0, 0]
       ]
     ],
-    XYZ: [[new Mesh(new OctahedronBufferGeometry(0.2, 0), matInvisible)]],
+    XYZ: [[new Mesh(new OctahedronBufferGeometry(0.2, 0),
+      matYellow//matInvisible
+       )]],
     XY: [
       // [new Mesh(new PlaneBufferGeometry(0.4, 0.4), matInvisible), [0.2, 0.2, 0]]
-      [new Mesh(new PlaneBufferGeometry(0.295, 0.295), matInvisible), [0.15, 0.15, 0]]
+      [new Mesh(new PlaneBufferGeometry(0.295, 0.295), 
+        matRed//matInvisible
+        ), [0.15, 0.15, .02]]
 
     ],
     YZ: [
@@ -1477,13 +1482,13 @@ var TransformControlsGizmo = function() {
   this.add((this.picker["translate"] = setupGizmo(pickerTranslate)));
   this.add((this.picker["rotate"] = setupGizmo(pickerRotate)));
   this.add((this.picker["scale"] = setupGizmo(pickerScale)));
-  // this.add((this.helper["translate"] = setupGizmo(helperTranslate)));
+  this.add((this.helper["translate"] = setupGizmo(helperTranslate)));
   // this.add((this.helper["rotate"] = setupGizmo(helperRotate)));
   // this.add((this.helper["scale"] = setupGizmo(helperScale)));
 
   // Pickers should be hidden always
 
-  this.picker["translate"].visible = false;
+  // this.picker["translate"].visible = false;
   this.picker["rotate"].visible = false;
   this.picker["scale"].visible = false;
 
@@ -1495,6 +1500,8 @@ var TransformControlsGizmo = function() {
     //I've removed this
     // if (this.mode === "scale") space = "local"; // scale always oriented to local rotation
 
+// console.log("space",space)
+    // console.log("updateMatrixWorld",identityQuaternion)
     var quaternion =
       space === "local" ? this.worldQuaternion : identityQuaternion;
 
@@ -1821,8 +1828,7 @@ var TransformControlsGizmo = function() {
         handle.visible && (handle.name.indexOf("X") === -1 || this.showX);
       handle.visible =
         handle.visible && (handle.name.indexOf("Y") === -1 || this.showY);
-      handle.visible =
-        handle.visible && (handle.name.indexOf("Z") === -1 || this.showZ);
+      handle.visible =  handle.visible && (handle.name.indexOf("Z") === -1 || this.showZ);
       handle.visible =
         handle.visible &&
         (handle.name.indexOf("E") === -1 ||
@@ -1839,10 +1845,11 @@ var TransformControlsGizmo = function() {
       handle.material.opacity = handle.material._opacity;
 
       if (!this.enabled) {
-        // console.log("!this.enabled");
+        console.log("!this.enabled");
         handle.material.opacity *= 0.5;
         handle.material.color.lerp(new Color(1, 1, 1), 0.5);
       } else if (this.axis) {
+        console.log("this.axis",this.axis)
         if (handle.name === this.axis) {
           handle.material.opacity = 1.0;
           handle.material.color.lerp(new Color(1, 1, 1), 0.5); //0.5
@@ -1906,6 +1913,8 @@ var TransformControlsPlane = function() {
     var space = this.space;
 
     this.position.copy(this.worldPosition);
+    // console.log("updateMatrixWorld this.worldPosition",this.worldPosition)
+    // console.log("updateMatrixWorld space",space)
 
     if (this.mode === "scale") space = "local"; // scale always oriented to local rotation
 

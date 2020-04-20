@@ -92,6 +92,7 @@ export class MapContainer extends Component {
       google={this.props.google}
       props
       selected={this.props.setCenter || this.props.selected}
+      modal={this.props.modal}
     >
       {this.props.modal ? (<Marker position={this.props.setCenter} onClick={this.onMarkerClick} name={'current location'} draggable={true} onDragend={this.onMarkerDragEnd} />) :
         this.props.list.map((item, index) => {

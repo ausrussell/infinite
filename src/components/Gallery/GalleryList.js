@@ -3,7 +3,10 @@ import React, { Component } from "react";
 import { withFirebase } from "../Firebase";
 import { List, Avatar } from 'antd';
 import { EnvironmentOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { Route } from "react-router-dom";
 
+
+const galleryPlaceholder = 'https://firebasestorage.googleapis.com/v0/b/infinite-a474a.appspot.com/o/images%2Fhanger_placeholder.png?alt=media&token=4f847f15-48d6-43d9-92df-80eea32394f5';
 const GalleryListItem = props => {
   console.log("props.data", props.data);
   const galleryData = props.data.val();
@@ -38,6 +41,12 @@ class GalleryList extends Component {
   onClickHandler = (action, item) => {
     console.log("e",action, item)
     if (action==="Locate") this.props.selectCallback(item);
+
+    if (action==="Visit") {
+      const {history,nameEncoded} = item
+      history.push({ pathname: "/Gallery/" + nameEncoded})
+    }
+
   }
 
   fillList = data => {
@@ -59,17 +68,11 @@ class GalleryList extends Component {
   // </ul>
   render() {
     return (
-
-
       <List
         itemLayout="vertical"
         dataSource={this.state.galleriesList}
         renderItem={item => <CustomItem item={item} onClickHandler={this.onClickHandler} /> }
       />
-
-
-
-
     );
   }
 }
@@ -81,18 +84,27 @@ const IconText = ({ icon, text, onClick, item }) => {
   </span>)
 };
 const CustomItem = ({item, onClickHandler}) => {
+  //<ButtonToNavigate {...routeProps} />
   return(
   <List.Item style={{backgroundColor: "#F5F5F6", padding: 10}}
   extra={
     <img
       width={172}
       alt={`${item.title} Gallery`}
-      src={item.galleryImg && `${item.galleryImg.url}`}
+      src={item.galleryImg ? `${item.galleryImg.url}` : galleryPlaceholder}
     />
   }
   actions={[
-    <IconText icon={EnvironmentOutlined} text="Locate" key="list-vertical-star-o" onClick={(text, item) => onClickHandler("Locate",item)} item={item} />,
-    <IconText icon={ArrowRightOutlined} text="Visit" key="list-vertical-star-o" />,
+    <span onClick={() => onClickHandler("Locate",item)}><EnvironmentOutlined key="list-vertical-star-o" style={ {marginRight: 8 } }/>Locate</span>,
+    <Route
+    path="/"
+    render={routeProps => {
+      Object.assign(routeProps, item);
+      return <span onClick={() => onClickHandler("Visit",routeProps)}  ><ArrowRightOutlined key="list-vertical-star-o" style={ {marginRight: 8 } }/>Visit</span>;
+    }}
+  />
+    
+
 
   ]}>
     <List.Item.Meta
