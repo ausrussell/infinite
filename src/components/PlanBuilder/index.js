@@ -55,7 +55,8 @@ class Builder extends Component {
     selectedSpotlight: null,
     generalLight: null,
     plannerGallery: false,
-    galleryId:null
+    galleryId: null,
+    surrounds: {}
   };
   constructor(props) {
     super(props);
@@ -264,6 +265,7 @@ class Builder extends Component {
 
   surroundingsTileCallback(item) {
     this.surroundings.surroundingsTileCallback(item);
+    this.setState({ surrounds: item })
   }
 
   frameClickHandler(item) {
@@ -292,7 +294,7 @@ class Builder extends Component {
   selectedArt(item) {
     const desc = this.state.galleryDesc;
     desc.galleryImg = item;
-    this.setState({galleryDesc: desc})
+    this.setState({ galleryDesc: desc })
     this.selectingArtHandler();
   }
 
@@ -300,22 +302,22 @@ class Builder extends Component {
   hoverArtMesh(artMesh) {
     // console.log("hoverArtMesh", artMesh, this.dragging);
     if (!this.dragging) {
-      console.log("show z",artMesh.parent.wallPos === 0)
-
+      console.log("show z", artMesh.parent.wallPos === 0)
+      // this.transformControls.setSpace("local");
       this.transformControls.showZ = artMesh.parent.wallPos === 0;
       this.transformControls.showX = artMesh.parent.wallPos === 1;
       this.transformControls.attach(artMesh);
-      this.transformControls.setSpace("world");
+      // this.transformControls.setSpace("world");
 
       this.activeArtMesh = artMesh;
 
       // this.transformControls2.setSpace("world");
 
-      // this.transformControls2.showZ = artMesh.parent.wallPos === 0;
-      // this.transformControls2.showX = artMesh.parent.wallPos === 1;
-      // // this.transformControls2.showY = true;
+      this.transformControls2.showZ = artMesh.parent.wallPos === 0;
+      this.transformControls2.showX = artMesh.parent.wallPos === 1;
+      // this.transformControls2.showY = true;
 
-      // this.transformControls2.attach(artMesh);
+      this.transformControls2.attach(artMesh);
     }
   }
 
@@ -339,7 +341,7 @@ class Builder extends Component {
   }
 
   transformObjectChangeHandler() {
-    console.log("transformObjectChangeHandler");
+    // console.log("transformObjectChangeHandler");
     if (!this.objectChanged && this.activeArtMesh) {
       this.objectChanged = true;
       this.activeArtMesh.parent.holderClass.removeArtFrame();
@@ -350,16 +352,16 @@ class Builder extends Component {
     this.setState({ galleryTitle: target.value });
   };
 
-  onEditDropdownChangeHandler = ({galleryDesc, galleryData, id}) => {
+  onEditDropdownChangeHandler = ({ galleryDesc, galleryData, id }) => {
     console.log("onEditDropdownChangeHandler", galleryDesc, galleryData, id);
     this.removeLights();
     // if (this.editGalleryId === id) return;
     this.editGalleryId = id;
-    
+
     console.log("this.editGalleryId", this.editGalleryId);
 
-    const { name, floorplan, walls, floor, lights, generalLight } = galleryData;
-    this.setState({ galleryTitle: name, floorplan: floorplan, plannerGallery: false,  galleryDesc:galleryDesc, galleryId:id});
+    const { name, floorplan, walls, floor, lights, generalLight, surrounds } = galleryData;
+    this.setState({ galleryTitle: name, floorplan: floorplan, plannerGallery: false, galleryDesc: galleryDesc, galleryId: id });
 
     this.floorPlan = floorplan.data;
     // disposeHierarchy(this.scene, () => this.loadGalleryToEdit());
@@ -369,7 +371,7 @@ class Builder extends Component {
 
     this.setEditFloor(floor);
     this.setEditWalls(walls);
-
+    this.surroundings.surroundingsTileCallback(surrounds)
 
     generalLight && this.setEditGeneralLight(generalLight);
     this.setEditWallLights(lights);
@@ -457,6 +459,7 @@ class Builder extends Component {
     });
 
     this.galleryData.generalLight = this.generalLightController.getExport();
+    this.galleryData.surrounds = this.surroundings.getExport();
     return this.galleryData;
     this.makeGalleryDbSave();
   };
@@ -900,7 +903,7 @@ class Builder extends Component {
     //             processValuesAndSave(values);
 
     //         })
-    this.setState({plannerGallery: true})
+    this.setState({ plannerGallery: true })
     // this.addTransformControls();
   };
 
@@ -930,9 +933,10 @@ class Builder extends Component {
     walls.forEach(wall => {
       const { col, row, pos, sides, texture } = wall;
       const options = { x: col, y: row, pos: pos, builder: this, texture: texture };
-      this.newWall = new WallObject(options);
-      if (sides) this.newWall.addSidesFromData(sides);
-      this.wallEntities = [...this.wallEntities, this.newWall];
+      const newWall = new WallObject(options);
+      console.log("newWall", newWall)
+      if (sides) newWall.addSidesFromData(sides);
+      this.wallEntities = [...this.wallEntities, newWall];
     });
     this.setState({ wallEntities: this.wallEntities });
     console.log("this.wallEntities", this.wallEntities);
@@ -1200,7 +1204,7 @@ class Builder extends Component {
   // (<Draggable><DraggableVaultElement /></<Draggable>)
   render() {
     // console.log("render planner", this.state.draggableVaultElementur
-    const {plannerGallery, galleryId} = this.state;
+    const { plannerGallery, galleryId } = this.state;
     return (
       <ErrorBoundary>
         {(this.props.firebase.currentUID || plannerGallery) &&

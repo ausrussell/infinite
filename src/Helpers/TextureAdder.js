@@ -14,9 +14,8 @@ export default class TextureAdder {
         this.material.needsUpdate = true;
     };
     setDataToMaterial(data) {
-        // console.log("setMaterial method", data)
+        console.log("setMaterial method", this.material,data)
         // frameData = frame;
-        // console.log("TextureAdder material", this.material)
 
         Object.entries(data).forEach(item => {
             // console.log("item", item, item[0])

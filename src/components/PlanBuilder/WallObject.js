@@ -34,8 +34,10 @@ class WallObject {
     }
 
     this.renderWall();
+    console.log("constructor this.wallMaterial.opacity",this.wallMaterial.opacity)
+
     this.textureAdder = new TextureAdder({ material: this.wallMaterial });
-    console.log("this wall texture", this.texture)
+    console.log("this wall texture", this.texture, this.wallMaterial, this.wallMaterial.opacity)
     texture && this.textureAdder.setDataToMaterial(this.texture);
 
     if (options.preview) {
@@ -93,11 +95,13 @@ class WallObject {
   }
 
   setWallMaterial() {
+    console.log("setting material with opacity",this.opacity)
     this.wallMaterial = new THREE.MeshStandardMaterial({
       color: 0xe1f5fe,
       opacity: this.opacity,
       transparent: true
     });
+    console.log("setWallMaterial this.wallMaterial.opacity",this.wallMaterial.opacity)
   }
 
   renderWall() {
@@ -108,6 +112,7 @@ class WallObject {
     );
     this.setWallMaterial();
     this.wallMesh = new THREE.Mesh(geometry, this.wallMaterial);
+    
     this.wallMesh.castShadow = true;
     this.wallMesh.name = "wallMesh";
     this.wallGroup.receiveShadow = true;
@@ -134,7 +139,7 @@ class WallObject {
     });
 
     wallAni.animate(performance.now());
-    this.opacity = (this.texture) ? this.texture.opacity : 1;
+    this.opacity = (this.texture && this.texture.opacity) ? this.texture.opacity : 1;
     this.wallMaterial.opacity = this.opacity;
   }
   drawing = progress => {

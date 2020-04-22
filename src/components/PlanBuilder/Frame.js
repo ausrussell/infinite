@@ -9,7 +9,7 @@ class Frame {
     this.group = new THREE.Group();
     this.group.name = "artHolder";
     this.group.holderClass = this;
-    this.group.side = this.side;
+    this.group.side = side;
     this.group.setFrameColor = frameData => this.setDataToMaterial(frameData);
     this.group.removeTexture = () => this.removeTexture();
 
@@ -39,6 +39,8 @@ class Frame {
   getExport() {
     this.export.groupPosition = this.group.position;
     this.export.frame = this.frameData;
+    this.export.side = this.side;
+
     this.export.art = {
       file: this.artMesh.file, //iMaterial.map,
       width: this.artMesh.geometry.parameters.width * this.artMesh.scale.x,
@@ -63,6 +65,7 @@ class Frame {
   }
 
   removeTexture(){
+    console.log("remove frame texture")
     this.fmaterial.dispose();
     this.frameMesh.material = null;
     this.setDefaultFrameMaterial();
@@ -328,7 +331,7 @@ class Frame {
     console.log("frame", frame);
     this.frameData = frame;
     this.setFrameMesh(this.artMesh.geometry);
-    this.frameMesh.material.opacity = 0;
+    this.fmaterial.opacity = 0;
     console.log("setFrame this.frameMesh", this.frameMesh);
     this.setDataToMaterial(frame)
     this.group.add(this.frameMesh);
@@ -351,18 +354,25 @@ class Frame {
       timing: "circ",
       draw: progress => this.fadingIn(progress)
     });
-
+    console.log("set final Opacity ", this.fmaterial.opacity);
+    // debugger;
+this.finalOpacity = (this.fmaterial.opacity > 0)?this.fmaterial.opacity: 1;
     fadeAni.animate(performance.now());
   }
   fadingIn = progress => {
     progress += 0.01;
     this.show(progress);
-    if (this.frameMesh) this.frameMesh.material.opacity = progress;
+    if (this.frameMesh) this.fmaterial.opacity = this.finalOpacity * progress;
+    // this.fmaterial.opacity = .5;
+    // console.log("this.finalOpacity * progress",this.finalOpacity * progress,this.finalOpacity ,progress)
   };
 
   addFrameFromData(item) {
     console.log("addFrameFromData", item);
+
     const { groupPosition, art, frame } = item;
+    if (frame.opacity) debugger;
+
     this.setGroup(groupPosition);
     this.setArt(art);
     this.setFrame(frame);
