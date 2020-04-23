@@ -2,6 +2,8 @@ import Floor from "../PlanBuilder/Floor";
 import WallDisplayObject from "./WallDisplayObject";
 import { WallLightDisplay } from "./WallLightDisplay";
 import { GeneralLightDisplay } from "./GeneralLightDisplay";
+import Surroundings from "../PlanBuilder/Surroundings";
+
 
 const wallWidth = 20;
 class SceneLoader {
@@ -20,6 +22,7 @@ class SceneLoader {
     this.renderWalls();
     this.renderGeneralLight();
     this.renderLights();
+    this.renderSurrounds();
   }
   renderFloor() {
     const options = {
@@ -61,6 +64,12 @@ class SceneLoader {
 
       this.wallLights.push(WallLightDisplay(options));
     });
+  }
+
+  renderSurrounds(){
+    const { surrounds } = this.sceneData;
+    this.surrounds = new Surroundings(this);
+    surrounds && this.surrounds.setDataToMaterial(surrounds);
   }
 }
 

@@ -8,13 +8,14 @@ body {
 }
 
 .ant-layout{
-  background-color: inherit important!;
+  /* background-color: inherit important!; */
 }
 
 .tile-holder {
-  display: flex;
-  overflow: auto;
+  /* display: flex; */
+  /* overflow: auto; */
   background: #8094a1;
+  padding: 16px 8px;
 }
 
 .tile {

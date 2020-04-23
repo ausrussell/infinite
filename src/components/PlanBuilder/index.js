@@ -1101,7 +1101,6 @@ class Builder extends Component {
     let floors = {
       0: {
         name: "Art",
-        y: 0,
         floorComponent: VaultFloor,
         refPath: "users/" + this.props.firebase.currentUID + "/art",
         level: 0,
@@ -1110,42 +1109,36 @@ class Builder extends Component {
       },
       1: {
         name: "Frames",
-        y: 235,
         floorComponent: VaultFloor,
         refPath: "users/" + this.props.firebase.currentUID + "/frame",
-        // refPath: "master/frametiles",
         level: 1,
-        tileCallback: this.frameClickHandler.bind(this) //to do
+        tileCallback: this.frameClickHandler.bind(this),
+        selectable: true
       },
       2: {
         name: "Floors",
-        y: 470,
         floorComponent: VaultFloor,
         refPath: "users/" + this.props.firebase.currentUID + "/floor",
-
-        // refPath: "master/floortiles",
         level: 2,
         tileCallback: this.floorTileCallback.bind(this)
       },
       3: {
         name: "Walls",
-        y: 705,
         floorComponent: VaultFloor,
         refPath: "users/" + this.props.firebase.currentUID + "/wall",
         level: 3,
-        tileCallback: this.wallTileCallback.bind(this)
+        tileCallback: this.wallTileCallback.bind(this),
+        selectable: true
       },
       4: {
         name: "Lights",
-        y: 940,
         floorComponent: this.lightFloor,
         builder: this,
         level: 4,
         floorCalledCallback: this.lightFloorCalledCallback.bind(this)
       },
       5: {
-        name: "Surroundings",
-        y: 1175,
+        name: "Surrounds",
         floorComponent: VaultFloor,
         refPath: "users/" + this.props.firebase.currentUID + "/surrounds",
         level: 5,

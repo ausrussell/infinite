@@ -1,5 +1,7 @@
 import React, { Component } from "react";
 import { withFirebase } from "../Firebase";
+import { Card, Row, Col, Button } from "antd";
+
 
 class VaultFloor extends Component {
   state = {
@@ -12,7 +14,6 @@ class VaultFloor extends Component {
     this.tileCallback = props.tileCallback;
   }
   componentDidMount() {
-    console.log("mounted vault UID", this.props.firebase.currentUID);
     const { refPath } = this.props;
     this.tilesCall = this.props.firebase.getTiles(refPath, this.getTilesCallback);
   }
@@ -38,20 +39,29 @@ class VaultFloor extends Component {
       this.clearSelected()
     }
     this.setState({ tilesData: list });
-    console.log("getTilesCallback list", list);
+    // console.log("getTilesCallback list", list);
   };
 
-  clearSelected() {
+  clearSelected = () => {
     console.log("clearSelected");
     this.setState({ selectedTile: null });
     this.tileCallback(null);
 
   }
+  unsetSelected = () => {
+    this.setState({ selectedTile: null });
+
+  }
 
   tileClickHandler = (item, tile) => {
-    // console.log("tileClickHandler", item)
     this.tileCallback(item, tile);
     this.setState({ selectedTile: item.key });
+  };
+
+  coverStyle = {
+    backgroundSize: "cover",
+    height: 100,
+    width: "100%"
   };
 
   renderTile(snapshot) {
@@ -63,28 +73,41 @@ class VaultFloor extends Component {
     const { key, ref } = snapshot;
     tileData.key = key;
     tileData.ref = ref;
-    if (!ref) debugger;
-    const { draggable } = this.props;
-    const style = {
-      backgroundColor: color || "#FFFFFF",
-      backgroundImage: "url(" + tileUrl + ")",
-      backgroundSize: "cover"
-    };
+    const { draggable, selectable } = this.props;
+    const specificTileStyle = {backgroundImage: "url(" + tileUrl + ")",
+    backgroundColor: color || "#FFFFFF"}
+    Object.assign(specificTileStyle,this.coverStyle)
+    const isSelected = (tileData.key === this.state.selectedTile)
+    const headStyle = (title) ? null:{
+      color:666,
+      fontStyle: "italic"
+    }
 
+    const cover= (<div style={specificTileStyle} >
+      {selectable && isSelected && (<div className="tile-selected-cancel"><div>Selected: Click above to apply</div><Button loading>Cancel</Button></div>)}
+      </div>);
+    
+const tileClicker=isSelected? () => this.unsetSelected() : () => this.tileClickHandler(tileData, "not draggable");
 
     return draggable ? (
       <Tile
         key={key}
-        style={style}
         onMouseDown={() => this.tileClickHandler(tileData)}
-        title={title}
+        title={title || "Untitled"}
+        tileUrl={tileUrl}
+        cover={cover}
+        headStyle={headStyle}
       />
     ) : (
         <Tile
-          style={style}
-          onClick={() => this.tileClickHandler(tileData, "not draggable")}
+          onClick={tileClicker}
           key={key}
-          title={title}
+          title={title|| "Untitled"}
+        tileUrl={tileUrl}
+        cover={cover}
+        headStyle={headStyle}
+        hoverable={true}
+        isSelected={isSelected}
         />
       );
   }
@@ -95,7 +118,9 @@ class VaultFloor extends Component {
     return (
       <div className="tile-holder">
         {tilesData.length > 0 ? (
-          tilesData.map(data => this.renderTile(data))
+          <Row gutter={16}>
+            {tilesData.map(data => this.renderTile(data))}
+          </Row>
         ) : (
             <div className="vault-floor-empty">Nothing on this floor, yet!</div>
           )}
@@ -104,14 +129,28 @@ class VaultFloor extends Component {
   }
 }
 
+const cardStyle = {
+  height: 140,
+  width: 140,
+  margin: 'auto', marginBottom: 16
+}
+
 const Tile = props => {
-  const { style, onClick, onMouseDown, title } = props;
-  //console.log("Tile", props);
+  const { onClick, onMouseDown, title, hoverable, cover, headStyle  } = props;
+
   return (
-    <div className="tile" onClick={onClick}>
-      <div className="tile-title">{title}</div>
-      <div className="tile-image" style={style} onMouseDown={onMouseDown} />
-    </div>
+    <Col>
+      <Card size="small" style={cardStyle}
+        title={title}
+        cover={cover}
+        headStyle={headStyle}
+        hoverable={hoverable}
+        onClick={onClick}
+        onMouseDown={onMouseDown}
+
+>
+      </Card>
+    </Col>
   );
 };
 

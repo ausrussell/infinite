@@ -12,14 +12,11 @@ const { Panel } = Collapse;
 const MapModal = (props) => {
     const [center, setCenter] = useState({location:props.setCenter});
     useEffect(() => {
-        console.log("useEffect", props)
         const updateFields = () => {
             setCenter(props.setCenter)
         }
-
         updateFields(props)
     }, [props]);
-    console.log("MapModal", props)
     const latLngCallBack = (latLng) => {
         console.log("latLngCallBack", latLng);
         props.locationSet(latLng)
@@ -32,7 +29,6 @@ const MapModal = (props) => {
         bodyStyle={{ height: 500 }}
         onOk={handleOk}
     >
-
         <GoogleApiWrapper modal={true} latLngCallBack={latLngCallBack} setCenter={center} />
     </Modal>)
 }
@@ -54,20 +50,13 @@ const BuilderHeader = props => {
     useEffect(() => {
         console.log("useEffect", props)
         const updateFields = () => {
-            // setTitle(props.title);
-            // setLocation(props.galleryDesc.location);
-
-
             if (props.plannerGallery && id !== "") {
                 let returnVal = props.firebase.pushAsset("users/" + props.firebase.currentUID + "/galleryDesc/")
-                console.log("returnVal.key", returnVal.key);
-
                 returnVal.then(snapshot => {
                     console.log("snapshot key", snapshot.key, id)
                     console.log("returnVal.key", returnVal.key);
                     setId(returnVal.key)
                 })
-
             } else {
                 form.resetFields();
                 const { galleryDesc } = props;
@@ -89,7 +78,6 @@ const BuilderHeader = props => {
                     galleryDesc
                     , [galleryDesc]);
             }
-
         }
 
         updateFields(props)
@@ -113,9 +101,7 @@ const BuilderHeader = props => {
         props.setSelectingArt()
     }
     const processValuesAndSave = async (values) => {
-        debugger;
         setGalleryImg.updateTime = new Date();
-        console.log("props.galleryDesc.galleryImg", props.galleryDesc.galleryImg);
         delete galleryImg.ref;
         values.galleryImg = galleryImg;
         values.location = location || { lat: 36.80885384408701 + Math.random() * 2, lng: -123.27939428681641 + Math.random() * 2 };
@@ -125,10 +111,8 @@ const BuilderHeader = props => {
         values.nameEncoded = encodeURIComponent(
             values.title.replace(" ", "_")
         );
-        console.log("save at id", id)
         const descPath = "users/" + props.firebase.currentUID + "/galleryDesc/" + id;
         const dbSave = props.firebase.updateAsset(descPath, values);
-
         await dbSave;
         const dataPath = "users/" + props.firebase.currentUID + "/galleryData/" + id;
         const dataSave = props.firebase.updateAsset(dataPath, galleryData);

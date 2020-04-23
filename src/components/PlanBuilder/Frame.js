@@ -355,7 +355,7 @@ class Frame {
       draw: progress => this.fadingIn(progress)
     });
     console.log("set final Opacity ", this.fmaterial.opacity);
-    // debugger;
+
 this.finalOpacity = (this.fmaterial.opacity > 0)?this.fmaterial.opacity: 1;
     fadeAni.animate(performance.now());
   }
@@ -369,10 +369,7 @@ this.finalOpacity = (this.fmaterial.opacity > 0)?this.fmaterial.opacity: 1;
 
   addFrameFromData(item) {
     console.log("addFrameFromData", item);
-
     const { groupPosition, art, frame } = item;
-    if (frame.opacity) debugger;
-
     this.setGroup(groupPosition);
     this.setArt(art);
     this.setFrame(frame);
