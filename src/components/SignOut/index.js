@@ -5,24 +5,18 @@ import { compose } from "recompose";
 
 import { withFirebase } from "../Firebase";
 
-class SignOutButtonBase extends Component {
-  constructor(props) {
-    super(props);
-    console.log("SignOutButton", props);
-  }
-  onClick = () => {
-    this.props.firebase
+const SignOutButtonBase = (props) =>{ 
+  const onClick = () => {
+    props.firebase
       .doSignOut()
-      .then(() => this.props.history.push(ROUTES.HOME));
+      .then(() => props.history.push(ROUTES.HOME));
   };
-
-  render() {
     return (
-      <button type="button" onClick={this.onClick}>
+      <span onClick={onClick}>
         Sign Out
-      </button>
+      </span>
     );
-  }
+  
 }
 
 const SignOutButton = compose(

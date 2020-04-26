@@ -1,7 +1,15 @@
 import React, { Component } from "react";
 import { withFirebase } from "../Firebase";
 import * as BUTTONS from "./buttons";
+import { Card, Row, Col, Button } from "antd";
+// import Icon from "@ant-design/icons"
+import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 
+const coverStyle = {
+  backgroundSize: "cover",
+  height: 100,
+  width: "100%"
+};
 class PreFab extends Component {
   state = {
     userFloorplans: []
@@ -19,7 +27,7 @@ class PreFab extends Component {
     console.log("Prefab plansCallback", data);
     const list = [];
     if (data) {
-      data.forEach(function(childSnapshot) {
+      data.forEach(function (childSnapshot) {
         list.push(childSnapshot);
       });
     }
@@ -66,37 +74,62 @@ class PreFab extends Component {
     this.props.firebase.removePlan(key);
   }
 
+  cardStyle = {
+    // height: 140,
+    width: 140,
+    // margin: 'auto', 
+    // marginBottom: 16
+  }
+
+
   renderFloorplanTile(snapshot) {
     const planData = snapshot.val();
     const { title, data } = planData;
     const { key } = snapshot;
+    //   <div key={key} className="tile tile-center-content">
+    //   <button
+    //     onClick={() => this.removePlan(key)}
+    //     className="remove-plan-button"
+    //   >
+    //     x
+    //   </button>
+    //   <BUTTONS.PlannerButtonRoute plan={key} title={title} />
+    //   <div className="tile-title">{title}</div>
+    //   <div onClick={() => this.props.tileCallback(planData)}>
+    //     <CanvasTile plan={data} />
+    //   </div>
+    // </div>
     return (
-      <div key={key} className="tile tile-center-content">
-        <button
-          onClick={() => this.removePlan(key)}
-          className="remove-plan-button"
-        >
-          x
-        </button>
-        <BUTTONS.PlannerButtonRoute plan={key} title={title} />
-        <div className="tile-title">{title}</div>
-        <div onClick={() => this.props.tileCallback(planData)}>
-          <CanvasTile plan={data} />
-        </div>
-      </div>
+      <Col key={key}>
+        <Card size="small" style={this.cardStyle}
+          title={title}
+          cover={<CanvasTile plan={data} />}
+          bodyStyle={{ padding: 0 }}
+          actions={[
+            <EditOutlined key="edit"  onClick={() => this.props.tileCallback(planData)} />,
+            <DeleteOutlined key="delete" onClick={() => this.removePlan(key)}/>,
+            <BUTTONS.PlannerButtonRoute key="build" plan={key} title={title} />
+
+          ]}>
+
+        </Card>
+      </Col>
     );
   }
+  // <div className="tile">
+  //         </div>
+  // <button onClick={this.useLocalStorage}>Last session</button>
+
 
   render() {
     const { userFloorplans } = this.state;
     return (
       <div>
         <div className="tile-holder">
-          <div className="tile">
-            <button onClick={this.useLocalStorage}>Last session</button>
-          </div>
+          <Row gutter={[16, 16]}>
 
-          {userFloorplans.map(data => this.renderFloorplanTile(data))}
+            {userFloorplans.map(data => this.renderFloorplanTile(data))}
+          </Row>
         </div>
       </div>
     );
@@ -144,7 +177,7 @@ class CanvasTile extends Component {
     }
   }
   render() {
-    return <canvas ref={this.canvas} />;
+    return (<div style={{height:80, overflow:"hidden"}}><canvas ref={this.canvas} /></div> );
   }
 }
 

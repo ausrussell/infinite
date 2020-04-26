@@ -8,6 +8,8 @@ module.exports = {
   plugins: [
     {
       plugin: CracoAntDesignPlugin
-    }
+    },
+
+
   ]
 };

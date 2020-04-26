@@ -8,6 +8,7 @@ import Elevator from "../Elevator";
 import PlanCanvas from "./PlanCanvas";
 import * as BUTTONS from "./buttons";
 
+
 import * as Stats from "stats-js";
 
 const paddedWall = 15;
@@ -60,7 +61,7 @@ class Planner extends Component {
 
   componentDidMount() {
     this.setState({ walls: this.setWalls() }); //, this.renderCanvas
-    this.setupStats();
+    // this.setupStats();
     // this.stats = new Stats();
     // this.stats.showPanel(1); // 0: fps, 1: ms, 2: mb, 3+: custom
     // document.body.appendChild(this.stats.dom);
@@ -214,13 +215,11 @@ class Planner extends Component {
     0: {
       level: 0,
       name: "Help",
-      y: 0,
       floorComponent: Instructions
     },
     1: {
       level: 1,
       name: "Floorplans",
-      y: 235,
       floorComponent: PreFab,
       tileCallback: this.tileClickHandler
     }
@@ -231,7 +230,7 @@ class Planner extends Component {
   };
 
   statsCallback() {
-    this.stats.update();
+    // this.stats.update();
   }
 
   render() {

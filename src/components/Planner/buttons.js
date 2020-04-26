@@ -1,5 +1,6 @@
 import React from "react";
 import { Route } from "react-router-dom";
+import { CheckOutlined } from '@ant-design/icons';
 
 export const SaveButton = props => {
   return (
@@ -22,14 +23,10 @@ export const PlannerButtonRoute = props => (
 const ButtonToNavigate = props => {
   const { title, history, plan } = props;
   return (
-    <button
-      type="button"
-      className="primary-button"
+    <CheckOutlined
       onClick={() =>
         history.push({ pathname: "/Builder", state: { plan, title } })
       }
-    >
-      Build {title}
-    </button>
+    />
   );
 };

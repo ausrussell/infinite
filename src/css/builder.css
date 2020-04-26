@@ -1,15 +1,3 @@
-body {
-  margin: 0;
-  padding: 0;
-  /* overflow: hidden; */
-  position: relative;
-  color: #444;
-  /* background-color: #263238; */
-}
-
-.ant-layout{
-  /* background-color: inherit important!; */
-}
 
 .tile-holder {
   /* display: flex; */

@@ -204,7 +204,7 @@ const BuilderHeader = props => {
                 <Row>
                     <Col span={8}>
                         <Form.Item>
-                            <Button type="primary" htmlType="submit">
+                            <Button type="primary" htmlType="submit" disabled={!id}>
                                 Save
                             </Button>
                         </Form.Item>

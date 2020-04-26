@@ -6,11 +6,11 @@ import { withFirebase } from "../Firebase";
 
 import { AuthUserContext, withAuthentication } from "../Session";
 import { Transition, Spring, animated, config } from "react-spring/renderprops";
+import { Menu } from 'antd';
 
 class Navigation extends Component {
   state = {
-    deskOpen: false,
-    user: null
+    current: "map"
   };
   constructor(props) {
     super(props);
@@ -27,105 +27,87 @@ class Navigation extends Component {
     });
   }
 
+
   componentWillUnmount() {
     this.listener();
   }
 
-  onDeskClick = () => {
-    this.setState({ deskOpen: !this.state.deskOpen });
+  onClick = e => {
+    console.log('click ', e);
+    this.setState({
+      current: e.key,
+    });
   };
-  render() {
-    const { deskOpen } = this.state;
-    const styles = {
-      opacity: deskOpen ? 1 : 0,
-      height: deskOpen ? "auto" : 0
-      // width: vaultOpen ? "100%" : "0%",
-      // color: "#fff"
-    };
-    // if (this.props.firebase.currentUser) {
-    //   ? this.props.firebase.currentUser
-    //   : null;
-    // // }
-    console.log("render in Navigation firebase this.state", this.state);
-    const userName = this.state.user ? this.state.user.displayName : null;
-    console.log("userName", userName);
-    return (
-      <div className="navigation-holder">
-        <div>{userName || "Public"}</div>
-        <DeskButton onClick={() => this.onDeskClick()} />
 
-        <Spring from={{ opacity: 0, height: 0 }} to={styles}>
-          {props => {
-            return (
-              <div style={props}>
-                <AuthUserContext.Consumer>
-                  {authUser =>
-                    authUser ? (
-                      <NavigationAuth user={userName} authUser={authUser} />
-                    ) : (
-                      <NavigationNonAuth />
-                    )
-                  }
-                </AuthUserContext.Consumer>
-              </div>
-            );
-          }}
-        </Spring>
-      </div>
+  render() {
+    return (
+
+      <AuthUserContext.Consumer>
+        {authUser =>
+          authUser ? (
+            <NavigationAuth selectedKeys={[this.state.current]} onClick={this.onClick} />
+          ) : (
+              <NavigationNonAuth />
+            )
+        }
+      </AuthUserContext.Consumer>
+
     );
   }
 }
 
-const DeskButton = props => {
-  return (
-    <button className="desk-button" onClick={props.onClick}>
-      Desk
-    </button>
-  );
-};
+{/* <Menu.Item key="admin">
+<Link to={ROUTES.ADMIN}>Admin</Link>
+</Menu.Item> */}
 
-const NavigationAuth = (user, authuser) => {
+
+const NavigationAuth = (props) => {
+  const { selectedKeys } = props;
   // console.log("NavigationAuth , user, authuser", user, authuser);
   return (
-    <ul className="navigation-list">
-      <li>
-        <Link to={ROUTES.LANDING}>Landing</Link>
-      </li>
-      <li>
-        <Link to={ROUTES.HOME}>Home</Link>
-      </li>
-      <li>
-        <Link to={ROUTES.ACCOUNT}>Account</Link>
-      </li>
-      <li>
-        <Link to={ROUTES.ADMIN}>Admin</Link>
-      </li>
-      <li>
-        <Link to={ROUTES.STUDIO}>Studio</Link>
-      </li>
+    <Menu selectedKeys={selectedKeys} mode="horizontal" onClick={props.onClick}>
 
-      <li>
-        <Link to={ROUTES.PLANNER}>Planner</Link>
-      </li>
-      <li>
+      <Menu.Item key="map">
+        <Link to={ROUTES.LANDING}>Map</Link>
+      </Menu.Item>
+      <Menu.Item key="account">
+        <Link to={ROUTES.ACCOUNT}>Account</Link>
+      </Menu.Item>
+
+      <Menu.Item key="studio">
+
+        <Link to={ROUTES.STUDIO}>Studio</Link>
+      </Menu.Item>
+      <Menu.Item key="floorplan">
+
+        <Link to={ROUTES.PLANNER}>Floorplan</Link>
+      </Menu.Item>
+      <Menu.Item key="builder">
+
         <Link to={ROUTES.BUILDER}>Builder</Link>
-      </li>
-      <li>
+      </Menu.Item>
+      <Menu.Item key="signout">
+
         <SignOutButton />
-      </li>
-    </ul>
+      </Menu.Item>
+    </Menu>
+
   );
 };
 
-const NavigationNonAuth = () => (
-  <ul>
-    <li>
-      <Link to={ROUTES.LANDING}>Landing</Link>
-    </li>
-    <li>
-      <Link to={ROUTES.SIGN_IN}>Sign In</Link>
-    </li>
-  </ul>
-);
+const NavigationNonAuth = (props) => {
+  const { selectedKeys } = props;
+  return (
+    <Menu selectedKeys={selectedKeys} mode="horizontal" onClick={props.onClick}>
+
+      <Menu.Item key="map">
+        <Link to={ROUTES.LANDING}>Map</Link>
+      </Menu.Item>
+
+      <Menu.Item key="signin">
+        <Link to={ROUTES.SIGN_IN}>Sign In</Link>
+      </Menu.Item>
+    </Menu>)
+};
 
 export default withAuthentication(Navigation);

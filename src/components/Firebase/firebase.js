@@ -30,6 +30,7 @@ class Firebase {
   }
 
   setupNewUser = (user, { displayName }) => {
+    debugger;
     user.user.updateProfile({
       displayName: displayName
     });
@@ -41,9 +42,9 @@ class Firebase {
 
   // *** Auth API ***
 
-  doCreateUserWithEmailAndPassword = ({ email, passwordOne }) =>
+  doCreateUserWithEmailAndPassword = ({ email, password }) =>
     this.auth
-      .createUserWithEmailAndPassword(email, passwordOne)
+      .createUserWithEmailAndPassword(email, password)
       .catch(error => {
         console.error(error); //Handle error
       });

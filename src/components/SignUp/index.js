@@ -4,119 +4,109 @@ import { compose } from "recompose";
 // import { FirebaseContext } from "../Firebase";
 import { withFirebase } from "../Firebase";
 import * as ROUTES from "../../constants/routes";
+import { Form, Row, Col, Card, Input, Button } from "antd";
 
-const SignUpPage = () => (
+
+
+const SignUpPage = () => {
+  return (
   <div>
-    <h1>SignUp</h1>
     <SignUpForm />
   </div>
-);
+);}
 
-const INITIAL_STATE = {
-  username: "",
-  email: "",
-  displayName: "",
-  passwordOne: "",
-  passwordTwo: "",
-  error: null
-};
 
-class SignUpFormBase extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { ...INITIAL_STATE };
-  }
-
-  onSubmit = event => {
-    // const { email, passwordOne, displayName } = this.state;
-    this.props.firebase
-      .doCreateUserWithEmailAndPassword(this.state) //email, passwordOne,
-      .then(authUser => this.props.firebase.setupNewUser(authUser, this.state))
+const SignUpFormBase = (props) => {
+  console.log("SignUpFormBase props",props)
+  const [form] = Form.useForm();
+  const onSubmit = values => {
+    console.log("values",values)
+    props.firebase
+      .doCreateUserWithEmailAndPassword(values) //email, passwordOne,
+      .then(authUser => props.firebase.setupNewUser(authUser, values))
       .then(() => {
-        this.setState({ ...INITIAL_STATE });
-        this.props.history.push(ROUTES.HOME);
+        props.history.push(ROUTES.LANDING);
       })
-      // .then(authUser => {
-      //   console.log("SignUpFormBase this.state", this.state);
-      //
-      //   this.props.firebase.setupNewUser(authUser, this.state).then(data => {
-      //     debugger;
-      //     console.log("data onSubmit", data);
-      //     this.setState({ ...INITIAL_STATE });
-      //     this.props.history.push(ROUTES.HOME);
-      //   });
-      // })
-      .catch(error => {
-        this.setState({ error });
-      });
-
-    event.preventDefault();
   };
-
-  onChange = event => {
-    this.setState({ [event.target.name]: event.target.value });
-  };
-
-  render() {
-    const {
-      username,
-      displayName,
-      email,
-      passwordOne,
-      passwordTwo,
-      error
-    } = this.state;
-    const isInvalid =
-      passwordOne !== passwordTwo ||
-      passwordOne === "" ||
-      email === "" ||
-      username === "";
 
     return (
-      <form onSubmit={event => this.onSubmit(event)}>
-        <input
-          name="username"
-          value={username}
-          onChange={this.onChange}
+      <Row style={{marginTop:32}}>
+      <Col span={12} offset={6} className="center-standard-form">
+      <Card title="Join In">
+      <Form layout="vertical" onFinish={onSubmit} name="registration" form={form}>
+      <Form.Item name="username"
+          label="Username"
+          rules={[{ required: true, message: 'Please enter a username' }]}
+          >
+        <Input placeholder="Full Name" />
+</Form.Item>
+<Form.Item name="displayName"
+          label="Display Name"
+
+          rules={[{ required: true, message: 'Please input your display name', whitespace: true }]}>
+        <Input placeholder="Display Name" />
+        </Form.Item>
+
+  <Form.Item name="email"
           type="text"
-          placeholder="Full Name"
-        />
-        <input
-          name="displayName"
-          value={displayName}
-          onChange={this.onChange}
-          type="text"
-          placeholder="Display Name"
-        />
-        <input
-          name="email"
-          value={email}
-          onChange={this.onChange}
-          type="text"
-          placeholder="Email Address"
-        />
-        <input
-          name="passwordOne"
-          value={passwordOne}
-          onChange={this.onChange}
-          type="password"
-          placeholder="Password"
-        />
-        <input
-          name="passwordTwo"
-          value={passwordTwo}
-          onChange={this.onChange}
-          type="password"
+          label="Email"
+          rules={[
+            {
+              type: 'email',
+              message: 'The input is not a valid E-mail'
+            },
+            {
+              required: true,
+              message: 'Please input your E-mail!',
+            },
+          ]}>
+          
+        <Input placeholder="Email Address" />
+        </Form.Item>
+        <Form.Item name="password"
+          
+          label="Password"
+
+          rules={[{ required: true, message: 'Please enter a password' }]}
+>
+        <Input placeholder="Password" />
+        </Form.Item>
+        <Form.Item name="passwordTwo"
+          label="Confirm Password"
           placeholder="Confirm Password"
-        />
-        <button disabled={isInvalid} type="submit">
+          dependencies={['password']}
+          rules={[
+            {
+              required: true,
+              message: 'Please confirm your password!',
+            },
+            ({ getFieldValue }) => ({
+              validator(rule, value) {
+                if (!value || getFieldValue('password') === value) {
+                  return Promise.resolve();
+                }
+                return Promise.reject('The two passwords that you entered do not match!');
+              },
+            }),
+          ]}
+>
+
+        <Input />
+        </Form.Item>
+        <Form.Item>
+
+        <Button type="primary" htmlType="submit">
           Sign Up
-        </button>
-        {error && <p>{error.message}</p>}
-      </form>
+        </Button>
+        </Form.Item>
+
+      </Form>
+      </Card>
+      </Col>
+      </Row>
     );
   }
-}
+
 
 const SignUpForm = compose(
   withRouter,

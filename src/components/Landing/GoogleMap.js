@@ -3,15 +3,9 @@ import { GoogleApiWrapper, GoogleMapReact, GoogleMap, Map, InfoWindow, Marker } 
 import React, { Component } from "react";
 import '../../css/map.css';
 
-
 import CurrentLocation from './CurrentLocation';
-import { ExpandOutlined, StarOutlined, StarFilled, StarTwoTone } from '@ant-design/icons';
+// import { ExpandOutlined, StarOutlined, StarFilled, StarTwoTone } from '@ant-design/icons';
 import svgMarker from './svgMarker';
-const CircleThing = () => {
-  return (
-    <div className="marker" style={{ height: 50, width: 50, backgroundColor: "purple", borderRadius: 20 }}> Circle thing</div>
-  )
-}
 
 const mapStyles = {
   width: '100%',

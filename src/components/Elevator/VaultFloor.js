@@ -118,7 +118,7 @@ const tileClicker=isSelected? () => this.unsetSelected() : () => this.tileClickH
     return (
       <div className="tile-holder">
         {tilesData.length > 0 ? (
-          <Row gutter={16}>
+          <Row gutter={[16, 16]}>
             {tilesData.map(data => this.renderTile(data))}
           </Row>
         ) : (
@@ -132,7 +132,6 @@ const tileClicker=isSelected? () => this.unsetSelected() : () => this.tileClickH
 const cardStyle = {
   height: 140,
   width: 140,
-  margin: 'auto', marginBottom: 16
 }
 
 const Tile = props => {
