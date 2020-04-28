@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, useState, useEffect } from "react";
 import "../../css/maker.css";
 import Wall from "./Wall";
 import PreFab from "./PreFab";
@@ -6,8 +6,7 @@ import { withAuthentication } from "../Session";
 // import { withFirebase } from "../Firebase";
 import Elevator from "../Elevator";
 import PlanCanvas from "./PlanCanvas";
-import * as BUTTONS from "./buttons";
-
+import FloorplanHeader from './FloorplanHeader';
 
 import * as Stats from "stats-js";
 
@@ -48,7 +47,8 @@ class Planner extends Component {
     walls: {},
     title: "",
     nowBuild: false,
-    buildFloorKey: null
+    buildFloorKey: null,
+    data: {}
   };
   constructor(props) {
     super(props);
@@ -76,7 +76,7 @@ class Planner extends Component {
     }
   }
 
-  componentWillUnmount() {}
+  componentWillUnmount() { }
 
   setLocalStorage(plan) {
     const dataStringified = JSON.stringify(plan);
@@ -102,7 +102,6 @@ class Planner extends Component {
 
   buildWallFromCoords(x, y, dir) {
     //dir is top or left
-    console.log("buildWallFromCoords", this.getWallsFromCoords(4, 4));
     this.state.walls[4][4][dir === "left" ? 0 : 1].setBuilt();
     this.renderWalls();
   }
@@ -146,6 +145,7 @@ class Planner extends Component {
           new Wall("left", this.ctx, i, j),
           new Wall("top", this.ctx, i, j)
         ];
+        console.log("set wall", i, j)
       }
     }
     console.table(walls);
@@ -156,7 +156,7 @@ class Planner extends Component {
     return this.state.walls[i][j];
   }
 
-  onSaveClick() {
+  onSaveClickWallData = () => {
     const voxels = [];
     for (let i in this.state.walls) {
       voxels[i] = [];
@@ -165,15 +165,15 @@ class Planner extends Component {
         voxels[i][j] = { walls: [walls[0].built, walls[1].built] };
       }
     }
-
-    const plan = {
-      title: this.state.title,
-      data: voxels,
-      timestamp: Date.now()
-    };
-    this.setLocalStorage(plan);
-    this.pushToDatabase(plan);
-    this.setState({ nowBuild: true });
+    return voxels
+    // const plan = {
+    //   title: this.state.title,
+    //   data: voxels,
+    //   timestamp: Date.now()
+    // };
+    // this.setLocalStorage(plan);
+    // this.pushToDatabase(plan);
+    // this.setState({ nowBuild: true });
   }
 
   clearWalls(plan) {
@@ -183,6 +183,7 @@ class Planner extends Component {
   useStoredPlan(plan) {
     this.changePlan(plan, this.setIfBuiltFn);
     console.log("make this plan", plan);
+    this.setState({ data: plan })
   }
 
   setIfBuiltFn = (i, j, plan) => {
@@ -203,11 +204,12 @@ class Planner extends Component {
         changeFunction(i, j, plan);
       }
     }
-    this.setState({ timestamp: Date.now() });
   }
 
-  tileClickHandler = ({ data }) => {
-    console.log("tileClickHandler", data);
+  tileClickHandler = (returnedData) => {
+    console.log("tileClickHandler", returnedData);
+    const { data, key } = returnedData;
+    this.setState({ title: returnedData.title, id: key })
     this.clearWalls(data);
     this.useStoredPlan(data);
   };
@@ -225,37 +227,22 @@ class Planner extends Component {
     }
   };
 
-  onTitleChangeHandler = ({ target }) => {
-    this.setState({ title: target.value });
-  };
-
   statsCallback() {
     // this.stats.update();
+  }
+
+  reset = () => {
+    this.clearWalls(this.state.walls);
+    this.setState({ id: "" });
   }
 
   render() {
     const { nowBuild } = this.state;
     return (
-      <div className="maker-page">
-        <h1>Maker</h1>
+      <div>
+        <FloorplanHeader title={this.state.title} id={this.state.id} reset={this.reset} onSaveClickWallData={this.onSaveClickWallData} />
         <div className="content-column-holder">
           <div className="content-column">
-            <div className="floorplan-title">
-              <FloorplanTitle
-                content={this.state.title}
-                onTitleChangeHandler={this.onTitleChangeHandler}
-              />
-            </div>
-            <div className="button-holder">
-              {nowBuild ? (
-                <BUTTONS.PlannerButtonRoute
-                  plan={this.state.buildFloorKey}
-                  title={this.state.title}
-                />
-              ) : (
-                <BUTTONS.SaveButton onClick={() => this.onSaveClick()} />
-              )}
-            </div>
 
             <div className="canvas-holder">
               <PlanCanvas

@@ -30,7 +30,6 @@ class Firebase {
   }
 
   setupNewUser = (user, { displayName }) => {
-    debugger;
     user.user.updateProfile({
       displayName: displayName
     });
@@ -73,9 +72,10 @@ class Firebase {
       .push();
     newPostRef.set({
       data: data,
-      title: title
+      title: title,
+      timestamp:timestamp
     });
-    return newPostRef.getKey();
+    return newPostRef;
   };
 
   updateTitle = (path, title) => {
@@ -159,7 +159,6 @@ class Firebase {
   }
 
   storeGallery = (galleryData, id) => {
-    // debugger;
     let galleryRef;
     if (id) {
       galleryRef = this.database.ref("galleries/" + id);
@@ -212,7 +211,6 @@ getGalleryById = id => {
 };
 
 getGalleryList = callback => {
-  debugger;
   const galleryRef = app.database.ref("publicGalleries");
   galleryRef.orderByChild("name").on("value", callback);
   return galleryRef;
@@ -222,7 +220,6 @@ getGalleryEditList = callback => {
   const galleryRef = this.database.ref("galleries");
   galleryRef.orderByChild("name").on("value", callback); //need to add query by user
   console.log("getGalleryEditList");
-
   const galleryDescs = this.database.ref(
     "users/" + this.currentUID + "galleryDescs"
   );

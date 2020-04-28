@@ -11,6 +11,8 @@ const mapStyles = {
   width: '100%',
   height: '100%'
 };
+const defaultIconURL = "https://firebasestorage.googleapis.com/v0/b/infinite-a474a.appspot.com/o/images%2Fwhite_cube.png?alt=media&token=f852da15-6e33-448a-ab0f-2da3fdac8149"
+
 
 export class MapContainer extends Component {
   state = {
@@ -53,33 +55,10 @@ export class MapContainer extends Component {
 
 
   render() {
-    //   const icon = { url: 'https://firebasestorage.googleapis.com/v0/b/infinite-a474a.appspot.com/o/users%2FzHXGGNge3bS76tWjQ9wlhacZ8wD2%2Fart%2FIMG_0052.JPG?alt=media&token=c31af1f7-df93-46a9-b34e-c634ff259d14', scaledSize: { width: 32, height: 32 } };
-    //   const Markers = this.props.list.map((item, index) => {
-    //     console.log("marker item", item)
-    //     return (
-    //       <Marker 
-    //         position={item.location}
-    //         name={item.title}
-    //         key={index}
-    //         onClick={this.onMarkerClick}
-    //         icon={{url:item.galleryImg.url, scaledSize: { width: 32, height: 32 }}}
-    //       />
-    //     )
-    //   })
-    //   const initialCenter =
-    //   {
-    //     lat: 37.816482707999,
-    //     lng: -122.25793661469727
-    //   }
-    const defaultIconURL = "https://firebasestorage.googleapis.com/v0/b/infinite-a474a.appspot.com/o/images%2Fwhite_cube.png?alt=media&token=f852da15-6e33-448a-ab0f-2da3fdac8149"
-    const otherCenter = this.props.setCenter ||
-    {
-      lat: 3.826482707999,
-      lng: -122.25793661469727
-    }
+
+
     const centerSet = (this.props.setCenter && this.props.setCenter.lat);
     console.log("this.props.setCenter ={!centerSet}", this.props.setCenter)
-    // initialCenter={(centerSet) ? this.props.setCenter : otherCenter}
 
     return (<CurrentLocation
       centerAroundCurrentLocation={!centerSet}

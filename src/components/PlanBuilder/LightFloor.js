@@ -19,8 +19,7 @@ const GeneralLightControls = props => {
     setColor(color.hex);
   };
   return (
-    <Row gutter={16}>
-      <Col className="gutter-inner-row" span={12}>
+<div>
         <div className="control-item">
           <div className="control-slider">
             <div className="control-item-name">Intensity</div>
@@ -29,11 +28,10 @@ const GeneralLightControls = props => {
             </div>
           </div>
         </div>
-      </Col>
-      <Col className="gutter-inner-row" span={12}>
         <CompactPicker color={color} onChangeComplete={handleChangeComplete} />
-      </Col>
-    </Row>
+        </div>
+
+
   );
 };
 
@@ -144,10 +142,10 @@ class LightFloor extends Component {
 
     console.log("selectedSpotlight", selectedSpotlight);
     return (
-      <div>
+      <Row>
 
-{     generalLight && (<Row gutter={16} className="lights-gutter-row">
-        <Col className="gutter-row" span={12}>
+{     generalLight && (<Row gutter={[16,16]}>
+        <Col className="gutter-row"  flex="auto">
         <div className="gutter-box">
             <h3>Spotlights</h3>
             <Tooltip title="Add a spotlight">
@@ -167,7 +165,7 @@ class LightFloor extends Component {
             )}
           </div>
         </Col>
-        <Col className="gutter-row" span={12}>
+        <Col className="gutter-row"  flex="270px">
           <div className="gutter-box">
             <h3>General Lighting</h3>
             <GeneralLightControls generalLight={generalLight} />
@@ -176,7 +174,7 @@ class LightFloor extends Component {
       </Row>)}
 
 
-      </div>
+      </Row>
     )
   
   }

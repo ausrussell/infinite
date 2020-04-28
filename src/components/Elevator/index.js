@@ -47,9 +47,9 @@ class Elevator extends PureComponent {
     this.setState({ draggableElement: element });
   }
   handleFloorClick = floorNo => {
-    this.setState({ y: this.floorRefs[floorNo].offsetTop, currentFloor: floorNo });
+    if (this.floorRefs.length) this.setState({ y: this.floorRefs[floorNo].offsetTop});//don't scroll if floors not mounted
+    this.setState({currentFloor: floorNo });
     this.floorCalledCallback && this.floorCalledCallback(this.floors[floorNo]);
-
   };
 
   // User interaction should stop animation in order to prevent scroll-hijacking

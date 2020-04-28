@@ -77,7 +77,7 @@ class Builder extends Component {
     // this.gltfExporter = new GLTFExporter();
   }
   componentDidMount() {
-    this.setupStats();
+    // this.setupStats();
     this.setUpScene();
     // this.processFloorplan();
   }
@@ -128,14 +128,28 @@ class Builder extends Component {
       this.onMouseDown.bind(this),
       false
     );
-    // window.addEventListener("resize", () => this.onWindowResize(), false);
+    window.addEventListener("resize", this.onWindowResize, false);
     this.setupFlaneurControls();
   }
 
   removeListeners() {
     this.mount.removeEventListener("mousemove", this.onMouseMove);
     this.mount.removeEventListener("mousedown", this.onMouseDown);
+    window.removeEventListener("resize", this.onWindowResize);
+
   }
+
+  onWindowResize = () => {
+    const width = this.mount.clientWidth;
+    const height = this.mount.clientHeight;
+    console.log("onWindowResize",width, height)
+
+    this.renderer.setSize( width, height );
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
+  }
+
+
 
   onMouseMove(e) {
     this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -1113,14 +1127,17 @@ class Builder extends Component {
         refPath: "users/" + this.props.firebase.currentUID + "/frame",
         level: 1,
         tileCallback: this.frameClickHandler.bind(this),
-        selectable: true
+        selectable: true,
+        addMaster: true
       },
       2: {
         name: "Floors",
         floorComponent: VaultFloor,
         refPath: "users/" + this.props.firebase.currentUID + "/floor",
         level: 2,
-        tileCallback: this.floorTileCallback.bind(this)
+        tileCallback: this.floorTileCallback.bind(this),
+        addMaster: true
+
       },
       3: {
         name: "Walls",
@@ -1128,7 +1145,9 @@ class Builder extends Component {
         refPath: "users/" + this.props.firebase.currentUID + "/wall",
         level: 3,
         tileCallback: this.wallTileCallback.bind(this),
-        selectable: true
+        selectable: true,
+        addMaster: true
+
       },
       4: {
         name: "Lights",
@@ -1142,7 +1161,9 @@ class Builder extends Component {
         floorComponent: VaultFloor,
         refPath: "users/" + this.props.firebase.currentUID + "/surrounds",
         level: 5,
-        tileCallback: this.surroundingsTileCallback.bind(this)
+        tileCallback: this.surroundingsTileCallback.bind(this),
+        addMaster: true
+
       }
     };
     return floors;
@@ -1192,11 +1213,9 @@ class Builder extends Component {
 
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(() => this.animate());
-    this.stats && this.stats.update();
+    // this.stats && this.stats.update();
   }
-  // (<Draggable><DraggableVaultElement /></<Draggable>)
   render() {
-    // console.log("render planner", this.state.draggableVaultElementur
     const { plannerGallery, galleryId } = this.state;
     return (
       <ErrorBoundary>

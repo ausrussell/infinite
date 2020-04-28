@@ -185,7 +185,9 @@ class PlanCanvas extends Component {
         const walls = this.getWallsFromProps(i, j);
         if (j < voxelsY - 1) walls[0].draw(this.ctx); //left
         if (i < voxelsX - 1) walls[1].draw(this.ctx); //top
-        if (walls[0].built + walls[1].built > 0) walls[0].drawPost();
+        
+        if (walls[0].built + walls[1].built > 0 && walls[0].ctx) {
+          walls[0].drawPost();}
       }
     }
     // debugger;
@@ -269,8 +271,8 @@ class PlanCanvas extends Component {
       Math.floor(x / voxelSizePlus),
       Math.floor(y / voxelSizePlus)
     );
-    return this.props.walls[Math.floor(x / voxelSizePlus)][
-      Math.floor(y / voxelSizePlus)
+    return this.props.walls[Math.max(0,Math.floor(x / voxelSizePlus))][
+      Math.max(0,Math.floor(y / voxelSizePlus))
     ];
   }
 
@@ -282,7 +284,7 @@ class PlanCanvas extends Component {
       Math.floor(x / voxelSizePlus),
       Math.floor(y / voxelSizePlus)
     );
-    return [Math.floor(x / voxelSizePlus), Math.floor(y / voxelSizePlus)];
+    return [Math.max(0,Math.floor(x / voxelSizePlus)), Math.max(0,Math.floor(y / voxelSizePlus))];
   }
 
   getArrayFromWall(wall) {

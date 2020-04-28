@@ -4,6 +4,8 @@ import { CompactPicker } from "react-color";
 
 import { Input, Checkbox, Upload, Button, Form, Slider, Select, Row, Col, Divider } from "antd";
 import { InboxOutlined } from '@ant-design/icons';
+import HelpModal from '../Navigation/HelpModal'
+
 const { Option } = Select;
 
 const layout = {
@@ -245,11 +247,15 @@ const ThreeAssetPreviewControls = props => {
                     >
                         <Input placeholder="Title" />
                     </Form.Item>
-                </Col><Col span={8}>
-                    <Form.Item name="shareable" valuePropName="checked">
-                        <Checkbox>Allow others to borrow this</Checkbox>
-                    </Form.Item>
                 </Col>
+                <Col span={(props.help) ? 5 : 8}>
+                        <Form.Item name="shareable" valuePropName="checked">
+                            <Checkbox>Allow others to borrow this</Checkbox>
+                        </Form.Item>
+                    </Col>
+                    <Col span={3}>333
+                    {props.help && <HelpModal content={props.help}/>}
+                    </Col>
             </Row>
             <Form.Item name="dragger-texture" valuePropName="files" getValueFromEvent={normFile}>
                 <Upload.Dragger name="files" customRequest={customRequest} >
@@ -288,10 +294,14 @@ const ThreeAssetPreviewControls = props => {
                         >
                             <Input placeholder="Title" />
                         </Form.Item>
-                    </Col><Col span={8}>
+                    </Col>
+                    <Col span={(props.help) ? 5 : 8}>
                         <Form.Item name="shareable" valuePropName="checked">
                             <Checkbox>Allow others to borrow this</Checkbox>
                         </Form.Item>
+                    </Col>
+                    <Col span={3}>333
+                    {props.help && <HelpModal content={props.help}/>}
                     </Col>
                 </Row>
                 <Row>

@@ -16,21 +16,19 @@ import GeneralLight from "../PlanBuilder/GeneralLight";
 import FrameDisplayObject from "./FrameDisplayObject";
 // import GLTFLoader from "three-gltf-loader";
 import SceneLoader from "./SceneLoader";
+import PageTitle from '../Navigation/PageTitle';
+import {GalleryHelp} from './GalleryHelp'
+
 const wallWidth = 20;
 
 class Gallery extends Component {
   state = {
-    wallOver: {},
-    wallSideOver: "",
-    selectedTile: null,
-    vaultOpen: false,
     galleryData: {}
   };
   constructor(props) {
     super(props);
     console.log("Gallery", props.match.params.galleryName);
     this.flaneurMode = "Gallery";
-    // debugger;
     this.walls = props.walls;
     this.wallHeight = 60;
 
@@ -43,7 +41,6 @@ class Gallery extends Component {
     console.log(this.walls, this.voxelsX);
     this.clock = new THREE.Clock();
     this.frameObjects = [];
-    // this.loader = new GLTFLoader();
     this.wallMeshes = [];
   }
 
@@ -54,7 +51,6 @@ class Gallery extends Component {
       this.props.match.params.galleryName,
       this.processGallery
     );
-    // this.galleryRef.on("child_added", this.processGallery);
   }
 
   componentWillUnmount() {
@@ -214,7 +210,9 @@ class Gallery extends Component {
   render() {
     return (
       <ErrorBoundary>
-        <h1>gallery: {this.state.galleryData.title}</h1>
+        <div className="page-header-area">
+            <PageTitle title={this.state.galleryData.title} help={GalleryHelp} />
+        </div>
         <MainCanvas refer={mount => (this.mount = mount)} />
       </ErrorBoundary>
     );

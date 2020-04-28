@@ -10,13 +10,15 @@ import VaultFloor from "../Elevator/VaultFloor";
 import AssetEditor from "./AssetEditor";
 
 import ThreeAssetPreview from './ThreeAssetPreview';
+import PageTitle from '../Navigation/PageTitle';
+
+import {SurroundsHelp} from './SurroundsHelp'
+
 
 
 const { TabPane } = Tabs;
 
 const ArtEditor = (props) => {
-  console.log("CubeMapEditor props", props);
-
   return (<div>
     {props.item ? (<AssetEditor item={props.item} />) : (<div>Select an item from the vault below to edit or delete</div>)}
   </div>
@@ -68,7 +70,7 @@ class StudioPage extends Component {
   }
 
   getElevatorFloors() {
-    this.cubeMapeditor = (<ThreeAssetPreview item={this.state.selectedItem}  type="surrounds"/>);
+    this.cubeMapeditor = (<ThreeAssetPreview item={this.state.selectedItem}  type="surrounds" help={SurroundsHelp} />);
     this.artEditor = (<ArtEditor item={this.state.selectedItem} />)
     this.frameEditor = (<ThreeAssetPreview item={this.state.selectedItem}  type="frame"/>)
     this.floorEditor = (<ThreeAssetPreview item={this.state.selectedItem}  type="floor"/>)
@@ -128,15 +130,6 @@ class StudioPage extends Component {
         level: 4,
         tileCallback: this.surroundingsTileCallback.bind(this),
         editorComponent: this.cubeMapeditor
-      },
-      4: {
-        name: "Galleries",
-        y: 940,
-        floorComponent: VaultFloor,
-        refPath: "users/" + this.props.firebase.currentUID + "/surrounds",
-        level: 4,
-        tileCallback: this.surroundingsTileCallback.bind(this),
-        editorComponent: this.cubeMapeditor
       }
     };
     return floorsX;
@@ -155,18 +148,16 @@ class StudioPage extends Component {
 
     return (
       <div>
-        <h1>Studio</h1>
-        <Row >
+      <PageTitle title={'Studio'} />
+        <Row>
           <Col span={16} offset={4} className="center-standard-form">
-            <Card title="Studio">
-              <Card type="inner">
-                <div>Here you can upload resources for your galleries.</div>
+            <Card>
+                <div>Here you can add and edit the different resources for your galleries.</div>
                 <Tabs activeKey={floorCalled.toString()} onChange={this.tabClickHandler}>
                   {Object.values(floors).map(floor => this.renderTab(floor))
                   }
                 </Tabs>
 
-              </Card>
 
             </Card>
           </Col>

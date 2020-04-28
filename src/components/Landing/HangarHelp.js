@@ -5,6 +5,7 @@ const { Title } = Typography;
 
 export const HangarHelp = {
     title: 'Welcome',
+    size:"full",
     content:
         (<div><p>Thanks for joining in, having a look, testing this prototype out, and making your own galleries!</p>
             <p>Only Two steps to make a gallery once you've signed in</p>
@@ -25,13 +26,16 @@ export const HangarHelp = {
     </p>
 
             <Title level={4}>Roadmap</Title>
+            <ul>
+                <li>Fix the big bugs - let me know the buggiest ones, please</li>
+                </ul>
             <p>These are the features I'm moving to next but am keen to hear what would make this work better for you</p>
             <ul>
                 <li>Descriptions for artworks and wall text</li>
-                <li>Tours - so users can be lead through your gallery in a simple way of your design</li>
+                <li>Tours - so users can glide through your gallery in a simple way of your design</li>
                 <li>Video - on the walls</li>
                 <li>Sculpture - 3D art</li>
-                <li>Shareable art and materials - my idea is a user could borrow a work from someone else's gallery, and viewers of the borrowed work can use it as a portal to visit the original owner's gallery</li>
+                <li>Shareable art and materials - a user borrows a work from someone else's gallery, and viewers of the borrowed work can use it as a portal to visit the original owner's gallery</li>
                 <li>Open studios - monthly shows highlghting works from the community</li>
                 <li>Shop - so artists can sell their work</li>
             </ul>

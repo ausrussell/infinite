@@ -108,7 +108,7 @@ const CustomItem = ({item, onClickHandler}) => {
 
   ]}>
     <List.Item.Meta
-      title={<a href="https://ant.design">{item.title}</a>}
+      title={item.title}
       description={item.description}
 
     />

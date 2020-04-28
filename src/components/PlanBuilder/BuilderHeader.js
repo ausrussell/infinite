@@ -3,6 +3,11 @@ import { Input, Button, Form, Slider, Select, Row, Col, Divider, Checkbox, Card,
 import GalleryEditDropdown from "../Gallery/GalleryEditDropdown";
 import { withFirebase } from "../Firebase";
 import GoogleApiWrapper from "../Landing/GoogleMap";
+import PageTitle from '../Navigation/PageTitle';
+import { Route } from "react-router-dom";
+import { ArrowRightOutlined } from '@ant-design/icons';
+
+
 
 
 const { TextArea } = Input;
@@ -10,7 +15,7 @@ const { Meta } = Card;
 const { Panel } = Collapse;
 
 const MapModal = (props) => {
-    const [center, setCenter] = useState({location:props.setCenter});
+    const [center, setCenter] = useState({ location: props.setCenter });
     useEffect(() => {
         const updateFields = () => {
             setCenter(props.setCenter)
@@ -64,7 +69,7 @@ const BuilderHeader = props => {
                 console.log("rops.galleryId", props.galleryId)
                 setId(props.galleryId);
                 setLocation(galleryDesc.location);
-                console.log("reset location to ",galleryDesc.location)
+                console.log("reset location to ", galleryDesc.location)
                 if (galleryDesc.galleryImg) {
                     setImgUrl(galleryDesc.galleryImg.url);
                     setImgTitle(galleryDesc.galleryImg.title);
@@ -131,24 +136,26 @@ const BuilderHeader = props => {
     }
     const onFinish = async (values) => {
         processValuesAndSave(values)
-
-
     }
+
     const showMapModal = () => {
         setMapVisible(true)
     }
 
     const closeModal = () => {
-        console.log("closeModal")
         setMapVisible(null)
+    }
+
+    const onVisitHandler = (routeProps) => {
+        const { history } = routeProps;
+        history.push({ pathname: "/Gallery/" + props.galleryDesc.nameEncoded })
     }
 
     return (
         <div className="page-header-area">
-            <h2>{title}</h2>
+            <PageTitle title={title ? 'Building gallery: ' + title : "Builder"} />
             <Form
                 layout="vertical"
-                // name="uploadForm"
                 name="gallery-editor"
                 form={form}
                 onFinish={onFinish}
@@ -202,16 +209,22 @@ const BuilderHeader = props => {
                     </Panel>
                 </Collapse>)}
                 <Row>
-                    <Col span={8}>
+                    <Col span={3}>
                         <Form.Item>
                             <Button type="primary" htmlType="submit" disabled={!id}>
                                 Save
                             </Button>
                         </Form.Item>
                     </Col>
-                    <Col span={8}>
+                    <Col span={5}>
 
-
+                        <Route
+                            path="/"
+                            render={routeProps => {
+                                // Object.assign(routeProps, item);
+                                return <Button disabled={!id} onClick={() => onVisitHandler(routeProps)}  >Visit<ArrowRightOutlined key="list-vertical-star-o" style={{}} /></Button>;
+                            }}
+                        />
                     </Col>
 
                     <Col span={8}>

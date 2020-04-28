@@ -22,8 +22,7 @@ class Navigation extends Component {
       console.log("onAuthStateChanged", authUser);
 
       this.setState({ user: authUser });
-      console.log("listener in Navigation", authUser);
-      // this.props.push(this.state);
+      console.log("Navigation componentDidMount", authUser);
     });
   }
 
@@ -60,38 +59,30 @@ class Navigation extends Component {
 <Link to={ROUTES.ADMIN}>Admin</Link>
 </Menu.Item> */}
 
-
 const NavigationAuth = (props) => {
   const { selectedKeys } = props;
   // console.log("NavigationAuth , user, authuser", user, authuser);
+  //   <Menu.Item key="account">
+  //   <Link to={ROUTES.ACCOUNT}>Account</Link>
+  // </Menu.Item>
   return (
     <Menu selectedKeys={selectedKeys} mode="horizontal" onClick={props.onClick}>
-
       <Menu.Item key="map">
         <Link to={ROUTES.LANDING}>Map</Link>
       </Menu.Item>
-      <Menu.Item key="account">
-        <Link to={ROUTES.ACCOUNT}>Account</Link>
-      </Menu.Item>
-
-      <Menu.Item key="studio">
-
-        <Link to={ROUTES.STUDIO}>Studio</Link>
-      </Menu.Item>
       <Menu.Item key="floorplan">
-
         <Link to={ROUTES.PLANNER}>Floorplan</Link>
       </Menu.Item>
       <Menu.Item key="builder">
-
         <Link to={ROUTES.BUILDER}>Builder</Link>
       </Menu.Item>
+      <Menu.Item key="studio">
+        <Link to={ROUTES.STUDIO}>Studio</Link>
+      </Menu.Item>
       <Menu.Item key="signout">
-
         <SignOutButton />
       </Menu.Item>
     </Menu>
-
   );
 };
 

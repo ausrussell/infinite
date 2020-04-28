@@ -78,6 +78,7 @@ class Wall {
     // );
   }
   drawPost() {
+if (!this.ctx) debugger;
     this.ctx.fillStyle = this.styleMap[2];
     this.ctx.fillRect(
       this.col * voxelSizePlus + 5,
@@ -87,7 +88,7 @@ class Wall {
     );
   }
   removeWall() {
-    console.log("removeWall", this.col, this.row);
+    // console.log("removeWall", this.col, this.row);
     this.style = 0;
     this.built = 0;
   }

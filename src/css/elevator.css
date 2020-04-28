@@ -3,7 +3,7 @@
   position: fixed;
   bottom: 0px;
   left: 0px;
-  width: 100%;
+  width: 100vw;
   display: flex;
   box-sizing: border-box;
   justify-content: flex-end;
@@ -24,9 +24,9 @@
 }
 
 .open .vault-doors {
-  display: flex;
-  justify-content: stretch;
-  flex: 1;
+  /* display: flex;
+  justify-content: stretch;*/
+  flex: 1; 
 }
 
 .closed .vault-doors {
@@ -238,11 +238,11 @@
 }
 
 .lights-gutter-row {
-  width: 1080px;
+  /* width: 1080px; */
 }
 
 .lights-gutter-row .gutter-row {
-  width: 540px;
+  /* width: 540px; */
 }
 
 .control-item {

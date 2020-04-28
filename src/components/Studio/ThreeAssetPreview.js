@@ -103,7 +103,7 @@ class ThreeAssetPreview extends Component {
         });
         this.renderer.setSize(width, height);
         this.el.appendChild(this.renderer.domElement); // mount using React ref};
-        const controls = new OrbitControls(this.camera, this.renderer.domElement);
+        new OrbitControls(this.camera, this.renderer.domElement);
     }
     addFrame = () => {
         this.frameObject = new Frame();
@@ -130,8 +130,6 @@ class ThreeAssetPreview extends Component {
         }
         this.frameObject = new WallObject(options);
         this.frameObject.animateWallBuild();
-        // this.camera.lookAt(new THREE.Vector3(0,60,0))
-        // debugger;
         this.meshRatio = this.frameObject.wallMesh.geometry.parameters.width / this.frameObject.wallMesh.geometry.parameters.height;
         console.log("this.meshRatio", this.meshRatio)
         this.camera.target = this.frameObject.wallMesh;
@@ -140,12 +138,7 @@ class ThreeAssetPreview extends Component {
 
     addSurrounds = () => {
         console.log("addSurrounds", this)
-        const options = {
-            builder: this
-        }
         this.frameObject = new Surroundings(this);
-        // this.camera.target = this.frameObject.wallMesh;
-        console.log("addSurrounds this.scene", this.camera)
     }
 
     resetFrame() {
@@ -210,7 +203,7 @@ class ThreeAssetPreview extends Component {
             <div style={{ height: 400, marginBottom: 16 }} ref={ref => (this.el = ref)} />
             {(this.frameObject && (selectedItem || assetRef)) ?
                 (<ThreeAssetPreviewControls frameObject={this.frameObject} finishedCallback={this.finishedCallback}
-                    type={this.type} assetRef={assetRef} selectedItem={selectedItem} firebase={this.props.firebase} meshRatio={this.meshRatio} />)
+                    type={this.type} assetRef={assetRef} selectedItem={selectedItem} firebase={this.props.firebase} meshRatio={this.meshRatio} help={this.props.help} />)
                 :
                 (<div>Select from Vault below to edit a {this.type} or...
                     <div> <Button onClick={this.createNewHandler}>Create New {this.type.toUpperCase()}</Button></div>

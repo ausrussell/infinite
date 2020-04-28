@@ -86,6 +86,7 @@ class PreFab extends Component {
     const planData = snapshot.val();
     const { title, data } = planData;
     const { key } = snapshot;
+    planData.key = key;
     //   <div key={key} className="tile tile-center-content">
     //   <button
     //     onClick={() => this.removePlan(key)}
@@ -99,6 +100,7 @@ class PreFab extends Component {
     //     <CanvasTile plan={data} />
     //   </div>
     // </div>
+    console.log("key", key, data)
     return (
       <Col key={key}>
         <Card size="small" style={this.cardStyle}
@@ -106,8 +108,8 @@ class PreFab extends Component {
           cover={<CanvasTile plan={data} />}
           bodyStyle={{ padding: 0 }}
           actions={[
-            <EditOutlined key="edit"  onClick={() => this.props.tileCallback(planData)} />,
-            <DeleteOutlined key="delete" onClick={() => this.removePlan(key)}/>,
+            <EditOutlined key="edit" onClick={() => this.props.tileCallback(planData)} />,
+            <DeleteOutlined key="delete" onClick={() => this.removePlan(key)} />,
             <BUTTONS.PlannerButtonRoute key="build" plan={key} title={title} />
 
           ]}>
@@ -149,6 +151,15 @@ class CanvasTile extends Component {
   }
 
   componentDidMount() {
+    this.buildCanvas();
+  }
+
+  componentDidUpdate(prevProps) {
+    console.log("componentDidUpdate CanvasTile",prevProps.plan,this.props.plan)
+    if (prevProps.plan !== this.props.plan) this.buildCanvas();
+  }
+
+  buildCanvas() {
     const canvas = this.canvas.current;
     this.ctx = canvas.getContext("2d");
     canvas.width = this.tileEdgeSize;
@@ -177,7 +188,7 @@ class CanvasTile extends Component {
     }
   }
   render() {
-    return (<div style={{height:80, overflow:"hidden"}}><canvas ref={this.canvas} /></div> );
+    return (<div style={{ height: 80, overflow: "hidden" }}><canvas ref={this.canvas} /></div>);
   }
 }
 

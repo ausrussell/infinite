@@ -12,9 +12,6 @@ const AccountPage = () => (
     <Row>
       <Col span={12} offset={6} className="center-standard-form">
         <Card title="Account Management">
-          <Card type="inner" title="Reset Password">
-            <PasswordForgetForm />
-          </Card>
           <Card type="inner" title="Change Password">
             <PasswordChangeForm />
           </Card>
