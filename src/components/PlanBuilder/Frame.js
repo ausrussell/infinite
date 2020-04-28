@@ -125,7 +125,7 @@ class Frame {
     }
   }
 
-  removeFromWall() {
+  removeFromWall = () => {
     this.wall.removeFrame(this, this.side);
   }
 

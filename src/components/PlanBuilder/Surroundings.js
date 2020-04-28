@@ -4,6 +4,7 @@ import * as THREE from "three";
 export default class Surroundings {
   constructor(builder) {
     this.builder = builder;
+    this.export = {};
   }
 
 
@@ -32,6 +33,7 @@ export default class Surroundings {
   }
 
   getExport = () => {
-    delete this.export.ref;
+    // debugger;
+    this.export && delete this.export.ref;
     return this.export;}
 }

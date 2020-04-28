@@ -494,7 +494,9 @@ class Builder extends Component {
     };
     let intersect0 = this.rayIntersectOptions(options);
     console.log("intersect0", intersect0);
-    if (!intersect0) return;
+    if (!intersect0) {
+      this.removeDraggedArt();
+      return;}
     let onWall = this.getWallFromIntersect(intersect0);
     console.log(
       "resetTranslatedArt this.activeArtMesh.parent.holderClass.wall",
@@ -520,13 +522,37 @@ class Builder extends Component {
   transformMouseUpHandler(event) {
     console.log("transformMouseUpHandler", event.mode)
     const intersect = this.checkForIntersecting();
-    if (!intersect) this.unhoverArtMesh();
+    // debugger;
+
+    // if (!intersect) {
+    //   this.unhoverArtMesh();
+    //   this.removeDraggedArt();
+    // }
     if (event.mode === "translate" && this.objectChanged) {
       this.resetTranslatedArt();
     }
     if (event.mode === "scale" && this.objectChanged) {
       this.resetScaledArt();
     }
+  }
+
+  removeDraggedArt(){
+    this.detachTransformControls();
+
+    // debugger;
+    this.activeArtMesh.parent.holderClass.removeFromWall();
+
+    this.activeArtMesh.parent.parent.remove(this.activeArtMesh.parent);
+    // this.activeArtMesh.parent.remove(this.activeArtMesh.parent.children[1]);
+    
+
+
+    // this.activeArtMesh.parent.holderClass.removeFromWall();
+    // this.activeArtMesh.parent.holderClass.wall.disposeHierarchy(this.activeArtMesh)
+    // this.activeArtMesh.parent.holderClass.wall.removeFrame(
+    //   this.activeArtMesh.parent.holderClass,
+    //   onWall.wallSideOver
+    // );
   }
 
   getWallFromIntersect(intersect) {

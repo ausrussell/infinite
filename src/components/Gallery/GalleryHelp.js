@@ -5,13 +5,14 @@ const { Title } = Typography;
 const iconStyle= { fontSize: '26px' };
 const colStyle= { textAlign: 'center' }
 
-export const GalleryHelp = {
+export const GalleryHelp = (props) => {return {
     title: 'Moving round the gallery',
     width:"60vw",
+    callback:props.callback,
     content:
         (<Row>
             <Col span={18}>
-                <Row gutter={[32,32]}>
+                <Row gutter={16}>
                     <Col span={6} offset={3}>
                     </Col>
                     <Col span={6} style={colStyle}>
@@ -24,7 +25,7 @@ export const GalleryHelp = {
                     </Col>
                 </Row>
 
-                <Row>
+                <Row gutter={16}>
                     <Col span={6} offset={3} style={colStyle}>
                         Turn Left
 <Title level={3}>A</Title>
@@ -39,7 +40,7 @@ export const GalleryHelp = {
                         <CaretRightOutlined style={iconStyle} />
                     </Col>
                 </Row>
-                <Row>
+                <Row gutter={16}>
                     <Col span={6} offset={3}>
 
                     </Col>
@@ -76,4 +77,5 @@ export const GalleryHelp = {
             </Col>
         </Row>
         )
+    }
 }

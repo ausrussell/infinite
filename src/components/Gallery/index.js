@@ -42,6 +42,7 @@ class Gallery extends Component {
     this.clock = new THREE.Clock();
     this.frameObjects = [];
     this.wallMeshes = [];
+    this.GalleryHelp = GalleryHelp({callback: this.helpCallback})
   }
 
   componentDidMount() {
@@ -55,11 +56,27 @@ class Gallery extends Component {
 
   componentWillUnmount() {
     console.log("unmount");
+    window.removeEventListener("resize", this.onWindowResize);
+    this.flaneurControls.dispose();
     // this.galleryRef && this.props.firebase.detachRefListener(this.galleryRef);
   }
 
   setupListeners() {
+    this.focusGallery()
+
     this.setupFlaneurControls();
+    window.addEventListener("resize", this.onWindowResize, false);
+
+  }
+
+  onWindowResize = () => {
+    const width = this.mount.clientWidth;
+    const height = this.mount.clientHeight;
+    console.log("onWindowResize",width, height)
+
+    this.renderer.setSize( width, height );
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
   }
   //scene setup and animation
   setUpScene() {
@@ -75,11 +92,15 @@ class Gallery extends Component {
     this.renderer.setSize(width, height);
     this.mount.appendChild(this.renderer.domElement);
     // this.addLight();
-    this.addHelperGrid();
+    // this.addHelperGrid();
 
     this.renderer.render(this.scene, this.camera);
+    // this.mount.firstElementChild.focus();
   }
 
+  focusGallery = () => {
+    this.mount.focus();
+  }
   setupFlaneurControls() {
     this.flaneurControls = new FlaneurControls(this.camera, this);
   }
@@ -191,6 +212,10 @@ class Gallery extends Component {
     });
   }
 
+  helpCallback = () => {
+    setTimeout(() => this.flaneurControls.setFocus(), 500);//to overcome ant d difficult refocussing
+  }
+
   setFloor() {
     this.gridWidth = this.voxelsX * this.wallWidth;
     this.gridDepth = this.voxelsY * this.wallWidth;
@@ -211,7 +236,7 @@ class Gallery extends Component {
     return (
       <ErrorBoundary>
         <div className="page-header-area">
-            <PageTitle title={this.state.galleryData.title} help={GalleryHelp} />
+            <PageTitle title={this.state.galleryData.title} help={this.GalleryHelp} />
         </div>
         <MainCanvas refer={mount => (this.mount = mount)} />
       </ErrorBoundary>

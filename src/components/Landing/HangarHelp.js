@@ -5,7 +5,7 @@ const { Title } = Typography;
 
 export const HangarHelp = {
     title: 'Welcome',
-    size:"full",
+    size: "full",
     content:
         (<div><p>Thanks for joining in, having a look, testing this prototype out, and making your own galleries!</p>
             <p>Only Two steps to make a gallery once you've signed in</p>
@@ -27,8 +27,9 @@ export const HangarHelp = {
 
             <Title level={4}>Roadmap</Title>
             <ul>
+                <li>Improved image resizing - please use smaller image files for now</li>
                 <li>Fix the big bugs - let me know the buggiest ones, please</li>
-                </ul>
+            </ul>
             <p>These are the features I'm moving to next but am keen to hear what would make this work better for you</p>
             <ul>
                 <li>Descriptions for artworks and wall text</li>

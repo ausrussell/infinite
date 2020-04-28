@@ -60,11 +60,12 @@ class FlaneurControls {
 
     if (this.domElement !== document) {
       this.domElement.setAttribute("tabindex", -1);
+      this.domElement.focus();
     }
 
     this.mouse = new THREE.Vector2();
     this.raycaster = new THREE.Raycaster();
-    // this.bindEvents();
+    this.bindEvents();
     this.handleResize();
     this.createClickFloor();
     this.loadImagery();
@@ -103,7 +104,16 @@ class FlaneurControls {
     }
   }
 
+  setFocus(){
+    if (this.domElement !== document) {
+      console.log("flaneur setFocus")
+
+      this.domElement.focus();
+    }    
+  }
+
   onMouseDown = event => {
+    console.log("flaneur onMouseDown", document.activeElement)
     if (this.domElement !== document) {
       this.domElement.focus();
     }
@@ -159,6 +169,7 @@ class FlaneurControls {
   };
 
   onKeyDown = event => {
+    console.log("document.activeElement",document.activeElement)
     switch (event.keyCode) {
       case 38: /*up*/
       case 87:
