@@ -158,6 +158,12 @@ class Firebase {
 
   }
 
+  removeRef = (path) => {
+    console.log("removeRef",path)
+    let ref = this.database.ref(path);
+    ref.remove()
+  }
+
   storeGallery = (galleryData, id) => {
     let galleryRef;
     if (id) {
@@ -184,11 +190,6 @@ class Firebase {
       console.log("getGalleryByName then ", snapshot.val())
       const returnedValues = snapshot.val();
       console.log("getGalleryByName returnedValues",returnedValues)
-      // const options = {
-      //   refPath: returnedValues.dataPath,
-      //   callback: callback
-      // }
-      // // this.getAsset(options)
       const ref = app.database().ref(returnedValues.dataPath);
       ref.on("value", (snapshot) => {
         console.log("getGalleryByName snapshot data", snapshot.val());
@@ -297,7 +298,7 @@ storeArt = file => {
   const storageRef = this.storage.ref();
   const path = file.assetType;
   const imageRef = storageRef.child(
-    "users/" + this.currentUID + "/" + file.assetType + "/" + file.name
+    "users/" + this.currentUID + "/" + path + "/" + file.name
   );
   file.uid = this.currentUID;
   return imageRef.put(file);

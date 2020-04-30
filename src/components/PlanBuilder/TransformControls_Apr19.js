@@ -123,19 +123,19 @@ var TransformControls = function (camera, domElement) {
 	defineProperty("rotationAngle", rotationAngle);
 	defineProperty("eye", eye);
 
-	{
+	// {
 
-		domElement.addEventListener("mousedown", onPointerDown, false);
-		domElement.addEventListener("touchstart", onPointerDown, false);
-		domElement.addEventListener("mousemove", onPointerHover, false);
-		domElement.addEventListener("touchmove", onPointerHover, false);
-		domElement.addEventListener("touchmove", onPointerMove, false);
-		domElement.addEventListener("mouseup", onPointerUp, false);//change
-		domElement.addEventListener("touchend", onPointerUp, false);
-		domElement.addEventListener("touchcancel", onPointerUp, false);
-		domElement.addEventListener("touchleave", onPointerUp, false);
+	domElement.addEventListener("mousedown", onPointerDown, false);
+	domElement.addEventListener("touchstart", onPointerDown, false);
+	domElement.addEventListener("mousemove", onPointerHover, false);
+	domElement.addEventListener("touchmove", onPointerHover, false);
+	domElement.addEventListener("touchmove", onPointerMove, false);
+	domElement.addEventListener("mouseup", onPointerUp, false);//change
+	domElement.addEventListener("touchend", onPointerUp, false);
+	domElement.addEventListener("touchcancel", onPointerUp, false);
+	domElement.addEventListener("touchleave", onPointerUp, false);
 
-	}
+	// }
 
 	this.dispose = function () {
 
@@ -709,8 +709,6 @@ TransformControls.prototype = Object.assign(Object.create(Object3D.prototype), {
 
 var TransformControlsGizmo = function () {
 
-	'use strict';
-
 	Object3D.call(this);
 
 	this.type = 'TransformControlsGizmo';
@@ -1235,7 +1233,8 @@ var TransformControlsGizmo = function () {
 			if (handle.tag === 'helper') {
 
 				handle.visible = false;
-continue;//my addition to hide helpers
+			}//my addition to hide helpers
+			if (false) {
 				if (handle.name === 'AXIS') {
 
 					handle.position.copy(this.worldPositionStart);
@@ -1346,7 +1345,7 @@ continue;//my addition to hide helpers
 			// Align handles to current local or world rotation
 
 			handle.quaternion.copy(quaternion);
-//my changes to fix appearance of translate and scale planes
+			//my changes to fix appearance of translate and scale planes
 			if (handle.name === "XY" && this.object) {
 				if (this.object.parent.side === "back") {
 					handle.scale.x *= - 1;
@@ -1355,7 +1354,7 @@ continue;//my addition to hide helpers
 					} else if (handle.tag === 'XYfront') {
 						handle.visible = false;
 					}
-				} 
+				}
 				else {
 					if (handle.tag === 'XYback') {
 						handle.visible = false;
@@ -1579,10 +1578,7 @@ continue;//my addition to hide helpers
 			} else if (this.axis) {
 				// console.log("this.axis", this.axis)
 				if (handle.name === this.axis) {
-// console.log("set this opacity to 1", handle.name, handle)
 					handle.material.opacity = 1.0;
-					// if (handle.tag ==="XYback") handle.material.opacity = 0;
-					// handle.material.color.lerp(new Color(1, 1, 1), 0.5);
 
 				} else if (this.axis.split('').some(function (a) {
 
@@ -1621,8 +1617,6 @@ TransformControlsGizmo.prototype = Object.assign(Object.create(Object3D.prototyp
 
 
 var TransformControlsPlane = function () {
-
-	'use strict';
 
 	Mesh.call(this,
 		new PlaneBufferGeometry(100000, 100000, 2, 2),
@@ -1692,6 +1686,8 @@ var TransformControlsPlane = function () {
 					case 'XYZ':
 					case 'E':
 						dirVector.set(0, 0, 0);
+						break;
+					default:
 						break;
 
 				}

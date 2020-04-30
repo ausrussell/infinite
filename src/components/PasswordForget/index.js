@@ -108,7 +108,7 @@ export default PasswordForgetPage;
 // const WrappedHorizontalLoginForm = Form.create({ name: 'horizontal_login' })(HorizontalLoginForm);
 //.create({ name: "horizontal_login" }
 const PasswordForgetForm = withFirebase(
-  Form
+  PasswordForgetFormBase
 );
 
 // const PasswordForgetForm = withFirebase(PasswordForgetFormBase);

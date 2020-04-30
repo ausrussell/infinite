@@ -1,9 +1,8 @@
-import React, { Component, useState, useEffect } from "react";
+import React, { Component } from "react";
 import "../../css/maker.css";
 import Wall from "./Wall";
 import PreFab from "./PreFab";
 import { withAuthentication } from "../Session";
-// import { withFirebase } from "../Firebase";
 import Elevator from "../Elevator";
 import PlanCanvas from "./PlanCanvas";
 import FloorplanHeader from './FloorplanHeader';
@@ -25,18 +24,6 @@ const Instructions = () => {
         <li>shift + click to remove wall</li>
       </ul>
     </div>
-  );
-};
-
-const FloorplanTitle = props => {
-  return (
-    <input
-      type="text"
-      value={props.content}
-      onChange={props.onTitleChangeHandler}
-      className="floorplan-title-field"
-      placeholder="Floorplan 1"
-    />
   );
 };
 
@@ -237,7 +224,6 @@ class Planner extends Component {
   }
 
   render() {
-    const { nowBuild } = this.state;
     return (
       <div>
         <FloorplanHeader title={this.state.title} id={this.state.id} reset={this.reset} onSaveClickWallData={this.onSaveClickWallData} />

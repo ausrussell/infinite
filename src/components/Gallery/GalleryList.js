@@ -1,24 +1,12 @@
 import React, { Component } from "react";
 
 import { withFirebase } from "../Firebase";
-import { List, Avatar } from 'antd';
+import { List } from 'antd';
 import { EnvironmentOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import { Route } from "react-router-dom";
 
 
 const galleryPlaceholder = 'https://firebasestorage.googleapis.com/v0/b/infinite-a474a.appspot.com/o/images%2Fhanger_placeholder.png?alt=media&token=4f847f15-48d6-43d9-92df-80eea32394f5';
-const GalleryListItem = props => {
-  console.log("props.data", props.data);
-  const galleryData = props.data.val();
-  const { key } = props.data;
-  console.log("key, galleryData", key, galleryData);
-  const { name, nameEncoded } = galleryData;
-  return (
-    <li>
-      <a href={"./gallery/" + nameEncoded}>{name}</a>
-    </li>
-  );
-};
 
 class GalleryList extends Component {
   state = {
@@ -71,19 +59,13 @@ class GalleryList extends Component {
       <List
         itemLayout="vertical"
         dataSource={this.state.galleriesList}
-        renderItem={item => <CustomItem item={item} onClickHandler={this.onClickHandler} /> }
+        renderItem={item => <GalleryListItem item={item} onClickHandler={this.onClickHandler} /> }
       />
     );
   }
 }
-const IconText = ({ icon, text, onClick, item }) => {
-  console.log("IconText",icon, text, onClick);
-  return (  <span onClick={() => onClick(text, item)}>
-    {React.createElement(icon, { style: { marginRight: 8 } })}
-    {text}
-  </span>)
-};
-const CustomItem = ({item, onClickHandler}) => {
+
+const GalleryListItem = ({item, onClickHandler}) => {
   //<ButtonToNavigate {...routeProps} />
   return(
   <List.Item style={{backgroundColor: "#F5F5F6", padding: 10}}

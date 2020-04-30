@@ -18,8 +18,6 @@ class VaultFloor extends Component {
   componentDidMount() {
     this.list = []
     if (this.props.addMaster) {
-      const pathEnd = this.refPath.split('/').pop();
-      // console.log("pathParts",pathParts)
       this.tilesCall = this.props.firebase.getTiles(this.refPath, this.getMasterTilesCallback);
     }
     else {
@@ -40,9 +38,6 @@ class VaultFloor extends Component {
     const pathParts = this.refPath.split('/');
     const masterKey = masterRefPath.split('/').pop();
     if (masterKey !== pathParts[1]) this.masterTilesCall = this.props.firebase.getTiles(masterRefPath + '/' + pathParts[2], this.getTilesCallback);
-
-
-    // this.tilesCall = this.props.firebase.getTiles(this.refPath, this.getTilesCallback);
   }
 
   getTilesCallback = data => {
@@ -78,6 +73,7 @@ class VaultFloor extends Component {
 
   tileClickHandler = (item, tile) => {
     this.tileCallback(item, tile);
+
     this.setState({ selectedTile: item.key });
   };
 

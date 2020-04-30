@@ -1,16 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-const mapStyles = {
-  map: {
-    // position: 'absolute',
-    width: '100%',
-    height: 500
-
-    // height: 'calc(100vh - 126px)'
-  }
-};
-
 export class CurrentLocation extends React.Component {
 
   constructor(props) {
@@ -25,11 +15,8 @@ export class CurrentLocation extends React.Component {
     };
     this.mapStyles = {
       map: {
-        // position: 'absolute',
         width: '100%',
         height: (this.props.modal) ? 500 : 'calc(100vh - 126px)'
-
-        // height: 'calc(100vh - 126px)'
       }
     };
   }
@@ -38,7 +25,7 @@ export class CurrentLocation extends React.Component {
       if (navigator && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
           const coords = pos.coords;
-          console.log("coords", coords)
+          // console.log("coords", coords)
           this.setState({
             currentLocation: {
               lat: coords.latitude,
@@ -55,19 +42,15 @@ export class CurrentLocation extends React.Component {
     this.loadMap();
   }
   componentDidUpdate(prevProps, prevState) {
-    console.log("componentDidUpdate", prevProps, prevState)
     if (prevProps.google !== this.props.google) {
-      console.log("componentDidUpdate this.props.google", this.props.google)
 
       this.loadMap();
     }
 
     if (this.props.selected && (prevProps.selected !== this.props.selected)) {
-      console.log("componentDidUpdate item selected", this.props.selected)
       this.panTo()
     }
     if (prevState.currentLocation !== this.state.currentLocation) {
-      console.log("componentDidUpdate prevState.currentLocation", prevState.currentLocation, this.state.currentLocation)
       this.recenterMap();
     }
 
@@ -80,7 +63,6 @@ export class CurrentLocation extends React.Component {
   }
 
   panTo() {
-    console.log("pan to set state", this.props.selected)
     this.setState({
       currentLocation: this.props.selected.location || this.props.selected
     }, this.recenterMap);
@@ -110,7 +92,6 @@ export class CurrentLocation extends React.Component {
 
       // maps.Map() is constructor that instantiates the map
       this.map = new maps.Map(node, mapConfig);
-      console.log("this.map", this.map)
     }
   }
 
@@ -120,7 +101,7 @@ export class CurrentLocation extends React.Component {
 
     const google = this.props.google;
     const maps = google.maps;
-    console.log("recenterMap center", this.state, this.state.currentLocation)
+    // console.log("recenterMap center", this.state, this.state.currentLocation)
     if (map) {
       let center = new maps.LatLng(current.lat, current.lng);
       map.panTo(center);
@@ -128,7 +109,6 @@ export class CurrentLocation extends React.Component {
   }
 
   onChildMouseDown = (hoverKey, childProps, mouse) => {
-    console.log("current location onChildMouseDown", hoverKey, childProps, mouse)
   }
 
   renderChildren() {

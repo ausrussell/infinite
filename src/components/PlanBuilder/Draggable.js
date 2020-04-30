@@ -44,7 +44,8 @@ export default class Draggable extends React.Component {
     window.removeEventListener("mouseup", this.handleMouseUp);
   }
 
-  handleMouseDown = ({ clientX, clientY }) => {
+  handleMouseDown = ({ e, clientX, clientY }) => {
+    e.preventDefault();
     console.log("handleMouseDown");
     window.addEventListener("mousemove", this.handleMouseMove);
     window.addEventListener("mouseup", this.handleMouseUp);
@@ -61,6 +62,7 @@ export default class Draggable extends React.Component {
   };
 
   handleMouseMove = e => {
+    e.preventDefault();
     const { clientX, clientY } = e;
     const { isDragging } = this.state;
     const { onDrag } = this.props;

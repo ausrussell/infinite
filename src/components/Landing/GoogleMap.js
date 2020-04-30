@@ -1,18 +1,12 @@
 
-import { GoogleApiWrapper, GoogleMapReact, GoogleMap, Map, InfoWindow, Marker } from 'google-maps-react';//
+import { GoogleApiWrapper, InfoWindow, Marker } from 'google-maps-react';//
 import React, { Component } from "react";
 import '../../css/map.css';
 
 import CurrentLocation from './CurrentLocation';
 // import { ExpandOutlined, StarOutlined, StarFilled, StarTwoTone } from '@ant-design/icons';
-import svgMarker from './svgMarker';
 
-const mapStyles = {
-  width: '100%',
-  height: '100%'
-};
 const defaultIconURL = "https://firebasestorage.googleapis.com/v0/b/infinite-a474a.appspot.com/o/images%2Fwhite_cube.png?alt=media&token=f852da15-6e33-448a-ab0f-2da3fdac8149"
-
 
 export class MapContainer extends Component {
   state = {
@@ -24,7 +18,6 @@ export class MapContainer extends Component {
   constructor(props) {
     super(props);
     console.log("MapContainer props", props)
-    console.log("getCustomSvg", svgMarker)
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -48,15 +41,7 @@ export class MapContainer extends Component {
     this.props.latLngCallBack({ lat: latLng.lat(), lng: latLng.lng() });
   }
 
-  getSvgMarker() {
-    console.log("getSvgMarker");
-    return
-  }
-
-
   render() {
-
-
     const centerSet = (this.props.setCenter && this.props.setCenter.lat);
     console.log("this.props.setCenter ={!centerSet}", this.props.setCenter)
 

@@ -46,7 +46,6 @@ class Builder extends Component {
     wallEntities: [],
     width: null,
     height: null,
-    authUser: null,
     draggableVaultElementActive: null,
     draggableVaultItem: null,
     galleryTitle: "",
@@ -56,7 +55,6 @@ class Builder extends Component {
     generalLight: null,
     plannerGallery: false,
     galleryId: null,
-    surrounds: {}
   };
   constructor(props) {
     super(props);
@@ -267,6 +265,27 @@ class Builder extends Component {
     console.log("removed spotlight", index, spotLight, this.lights);
   }
 
+  //tileclick handlers
+
+  artClickHandler(item, draggableVaultElement) {
+    console.log("artClickHandler", item, draggableVaultElement);
+    if (this.state.selectingArt) {
+      this.selectedArt(item)
+    } else {
+      this.setState({
+        draggableVaultElementActive: true,
+        draggableVaultItem: item
+      });
+      this.draggableImageRef = React.createRef();
+      this.dragging = true;
+    }
+  }
+
+  frameClickHandler(item) {
+    // console.log("type", item.type, item.color);
+    this.setState({ selectedTile: item });
+  }
+
   floorTileCallback(item) {
     this.floor.resetMaterial();
     this.floor.floorTileCallback(item);
@@ -279,27 +298,8 @@ class Builder extends Component {
 
   surroundingsTileCallback(item) {
     this.surroundings.surroundingsTileCallback(item);
-    this.setState({ surrounds: item })
   }
 
-  frameClickHandler(item) {
-    // console.log("type", item.type, item.color);
-    this.setState({ selectedTile: item });
-  }
-
-  artClickHandler(item, draggableVaultElement) {
-    console.log("artClickHandler", item);
-    if (this.state.selectingArt) {
-      this.selectedArt(item)
-    } else {
-      this.setState({
-        draggableVaultElementActive: true,
-        draggableVaultItem: item
-      });
-      this.draggableImageRef = React.createRef();
-      this.dragging = true;
-    }
-  }
 
   selectingArtHandler = () => {
     this.setState({ selectingArt: !this.state.selectingArt })
@@ -474,6 +474,7 @@ class Builder extends Component {
 
     this.galleryData.generalLight = this.generalLightController.getExport();
     this.galleryData.surrounds = this.surroundings.getExport();
+
     return this.galleryData;
     this.makeGalleryDbSave();
   };
@@ -522,12 +523,7 @@ class Builder extends Component {
   transformMouseUpHandler(event) {
     console.log("transformMouseUpHandler", event.mode)
     const intersect = this.checkForIntersecting();
-    // debugger;
 
-    // if (!intersect) {
-    //   this.unhoverArtMesh();
-    //   this.removeDraggedArt();
-    // }
     if (event.mode === "translate" && this.objectChanged) {
       this.resetTranslatedArt();
     }
@@ -1162,7 +1158,9 @@ class Builder extends Component {
         refPath: "users/" + this.props.firebase.currentUID + "/floor",
         level: 2,
         tileCallback: this.floorTileCallback.bind(this),
-        addMaster: true
+        addMaster: true,
+        selectable: true,
+
 
       },
       3: {

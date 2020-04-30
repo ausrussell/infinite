@@ -1,141 +1,139 @@
-import React, { Component, PureComponent } from "react";
+import React, { createRef, useState, useRef } from "react";
 import "../../css/elevator.css";
-import { Spring, animated, config } from "react-spring/renderprops"; //Transition,
+// import { Spring, config } from "react-spring/renderprops"; //Transition,
+import { useSpring, animated } from 'react-spring'
+import {List} from 'antd'
+import { LeftCircleOutlined, DownCircleOutlined } from '@ant-design/icons';
 
-const FloorWrapper  = React.forwardRef((props, ref) => {
-    const { title, children } = props;
-    return (
-      <div className="floor-container" key="title" ref={ref}>
-        <h4 className="floor-title">{title}</h4>
-        <div className="floor-wrapper">{children}</div>
+
+const FloorWrapper = React.forwardRef((props, ref) => {
+  const { title, children } = props;
+  return (
+    <div className="floor-container" key="title" ref={ref}>
+      <h4 className="floor-title">{title}</h4>
+      <div className="floor-wrapper">{children}</div>
+    </div>
+  );
+})
+// const floorRefs = [];
+
+const Elevator = (props) => {
+  // const springProps = useSpring({ scroll: 0 })
+  const [springProps, setSpringProps, stopSpringProps] = useSpring(() => ({ scroll: 1 }))
+
+
+  // const springProps = useSpring({ scroll: 0 })
+  const [vaultOpen, setVaultOpen] = useState(false);
+  const [draggable, setDraggable] = useState();
+  const [currentFloor, setCurrentFloor] = useState(0);
+  const floorRefs = useRef([])
+  const floorsLength = Object.keys(props.floors).length;
+
+  const animatedDiv = useRef();
+
+  // useEffect(() => {
+  //   // add or remove refs
+  //   setFloorRefs(floorRefs => (
+  //     Array(floorsLength).fill().map((_, i) => floorRefs[i])
+  //   ));
+  // }, [floorsLength]);
+  if (floorRefs.current.length !== floorsLength) {
+    // add or remove refs in initial setup
+    floorRefs.current = Array(floorsLength).fill().map((_, i) => floorRefs.current[i] || createRef())
+  }
+
+  const vaultButtonHandler = () => {
+    setVaultOpen(!vaultOpen)
+  }
+
+  const floorClickHandler = (no) => {
+    console.log("animatedDiv", animatedDiv.current.scrollTop)
+    setSpringProps({ scroll: floorRefs.current[no].current.offsetTop });
+    setCurrentFloor(no);
+
+  }
+  return (
+    <div className={`vault-container ${vaultOpen ? "open" : "closed"}`}>
+      {vaultOpen && (<div draggable="true">{draggable}</div>)}
+      <div className="vault-doors" >
+        {vaultOpen && (
+          <animated.div
+            ref={animatedDiv}
+            className="vault-floors-container"
+            scrollTop={springProps.scroll}
+            onWheel={stopSpringProps}>
+            {Object.values(props.floors).map((floor, i) => {
+              return (
+                <FloorWrapper title={floor.name} key={floor.level} ref={floorRefs.current[i]} >
+                  {floor.floorComponent instanceof Function
+                    ? floor.floorComponent(floor)
+                    : floor.floorComponent}
+                </FloorWrapper>
+              );
+            })}
+
+          </animated.div>
+        )}
+        <ElevatorPanel floors={props.floors} currentFloor={currentFloor} floorClickHandler={floorClickHandler} />
+
       </div>
-    );
-  })
+      <VaultButton vaultButtonHandler={vaultButtonHandler} vaultOpen={vaultOpen} name={props.name} />
+
+    </div>
+  );
+}
+
+const VaultButton = props => {
+  return (
+    <div className="vault-button-panel">
+    <div
+      onClick={props.vaultButtonHandler}
+      className="vault-button"
+    >
+      {props.vaultOpen ? (<div>Close
+      <br />
+      {props.name}
+      <br />
+      <DownCircleOutlined style={{fontSize:26, marginTop:5, marginBottom:5}} /></div>) : (<div>Open<br />
+      {props.name}
+      <br />
+      <LeftCircleOutlined style={{fontSize:26, marginTop:5, marginBottom:5}} /></div>)}
+    </div>
+  </div>
+  )
+}
 
 
-
-class Elevator extends PureComponent {
-  state = {
-    currentFloor: 0,
-    vaultOpen: false,
-    y: 0,
-    draggableElement: null
-  };
-
-  el = React.createRef();
-  spring = React.createRef();
-
-  constructor(props) {
-    super(props);
-    this.floors = props.floors;
-    this.floorCalledCallback = props.floorCalledCallback;
+const ElevatorPanel = (props) => {
+  const floorClickHandler = (no) => {
+    console.log("ElevatorPanel", no);
+    props.floorClickHandler(no)
   }
+  return (<div className="elevator-panel">
+    <div className="elevator header">
+      <div className="elevator-current-floor">
+        {props.currentFloor +
+          " " +
+          props.floors[props.currentFloor].name}
+      </div>
+    </div>
+    <div className="elevator-floors-list">
+      <List>
+        {Object.values(props.floors).map(floor => {
+          return (
+            <List.Item
+              key={floor.level}
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.floorCalled && (nextProps.floorCalled !== this.state.currentFloor)) {
-      this.handleFloorClick(nextProps.floorCalled);
-    }
-  }
-
-  vaultButtonHandler() {
-    console.log("vaultButtonHandler")
-    this.setState({ vaultOpen: !this.state.vaultOpen });
-  }
-  setDraggable(element) {
-    console.log("setDraggable")
-
-    this.setState({ draggableElement: element });
-  }
-  handleFloorClick = floorNo => {
-    if (this.floorRefs.length) this.setState({ y: this.floorRefs[floorNo].offsetTop});//don't scroll if floors not mounted
-    this.setState({currentFloor: floorNo });
-    this.floorCalledCallback && this.floorCalledCallback(this.floors[floorNo]);
-  };
-
-  // User interaction should stop animation in order to prevent scroll-hijacking
-  // Doing this on onWheel isn't enough, but just to illustrate ...
-  stop = () => this.spring.current.stop();
-  
-  floorRefs = []
-  setFloorRef = (ref) => {
-    this.floorRefs.push(ref)
-  }
-
-  render() {
-    const vaultOpen = this.state.vaultOpen;
-    const y = this.el.current ? this.el.current.scrollTop : 0;
-
-    return (
-      <div className={`vault-container ${vaultOpen ? "open" : "closed"}`}>
-        {vaultOpen && (<div draggable="true">{this.state.draggable}</div>)}
-        <div className="vault-doors">
-          {vaultOpen && (<div className="vault-floors-container">
-            <Spring
-              native
-              reset
-              from={{ y }}
-              to={{ y: this.state.y }}
-              ref={this.spring}
-              config={config.slow}
+              className="elevator-floors-list-item"
+              onClick={() => floorClickHandler(floor.level)}
             >
-              {props => (
-                <animated.div
-                  className="scrolltop-c"
-                  ref={this.el}
-                  onWheel={this.stop}
-                  scrollTop={props.y}
-                >
-                  {Object.values(this.props.floors).map(floor => {
-                    return (
-                      <FloorWrapper title={floor.name} key={floor.level} ref={this.setFloorRef}>
-                        {floor.floorComponent instanceof Function
-                          ? floor.floorComponent(floor)
-                          : floor.floorComponent}
-                      </FloorWrapper>
-                    );
-                  })}
-                </animated.div>
-              )}
-            </Spring>
-          </div>)}
-          <div className="elevator-panel">
-            <div className="elevator header">
-              <div className="elevator-current-floor">
-                {this.state.currentFloor +
-                  " " +
-                  this.floors[this.state.currentFloor].name}
-              </div>
-            </div>
-            <div className="elevator-floors-list">
-              <ul>
-                {Object.values(this.props.floors).map(floor => {
-                  return (
-                    <li
-                      key={floor.level}
-                      onClick={() => this.handleFloorClick(floor.level)}
-                    >
-                      {floor.name}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div className="vault-button-panel">
-          <div
-            onClick={() => this.vaultButtonHandler()}
-            className="vault-button"
-          >
-            {vaultOpen ? "Close" : "Open"}
-            <br />
-            {this.props.name}
-          </div>
-        </div>
-      </div>
-    );
-  }
+             {floor.level}. {floor.name}
+            </List.Item>
+          );
+        })}
+      </List>
+    </div>
+  </div>)
 }
 
 export default Elevator;

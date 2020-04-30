@@ -57,13 +57,12 @@ class Gallery extends Component {
   componentWillUnmount() {
     console.log("unmount");
     window.removeEventListener("resize", this.onWindowResize);
-    this.flaneurControls.dispose();
+    this.flaneurControls && this.flaneurControls.dispose();
     // this.galleryRef && this.props.firebase.detachRefListener(this.galleryRef);
   }
 
   setupListeners() {
     this.focusGallery()
-
     this.setupFlaneurControls();
     window.addEventListener("resize", this.onWindowResize, false);
 
@@ -140,7 +139,6 @@ class Gallery extends Component {
 
   };
   emptyScene() {
-    debugger;
     while (this.scene.children.length > 0) {
       this.scene.remove(this.scene.children[0]);
     }

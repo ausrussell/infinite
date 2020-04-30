@@ -1,6 +1,6 @@
 import React from "react";
 
-import { PasswordForgetForm } from "../PasswordForget";
+// import { PasswordForgetForm } from "../PasswordForget";
 import PasswordChangeForm from "../PasswordChange";
 import { withAuthorization } from "../Session";
 import { Row, Col, Card } from "antd";

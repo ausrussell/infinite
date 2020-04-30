@@ -50,10 +50,9 @@ class GalleryEditDropdown extends Component {
       callback: this.returnData,
       once: true 
     }
-
     this.assetCall = this.props.firebase.getAsset(options)
-
   };
+
   returnData = (snapshot) => {
     console.log("returnData snapshot ",snapshot)
     const dataToReturn = {
@@ -63,12 +62,10 @@ class GalleryEditDropdown extends Component {
     }
     console.log("dataToReturn",dataToReturn);
     this.callback(dataToReturn)
-
   }
 
   listItem(data) {
     const { Option } = Select;
-
     const galleryData = data.val();
     const { key } = data;
     const { title } = galleryData;
@@ -78,9 +75,8 @@ class GalleryEditDropdown extends Component {
       </Option>
     );
   }
-  render() {
-    const { Option } = Select;
 
+  render() {
     return (
       <Select
         style={{ width: 250 }}

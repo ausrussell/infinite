@@ -11,7 +11,7 @@ const layout = {
   };
   const FloorplanHeader = (props) => {
     const [form] = Form.useForm();
-    const [title, setTitle] = useState(props.title || "");
+    const title = props.title || "";
     const [id, setId] = useState(props.id || "");
   
   

@@ -2,10 +2,7 @@ import React, { Component } from "react";
 import { Link } from "react-router-dom";
 import SignOutButton from "../SignOut";
 import * as ROUTES from "../../constants/routes";
-import { withFirebase } from "../Firebase";
-
 import { AuthUserContext, withAuthentication } from "../Session";
-import { Transition, Spring, animated, config } from "react-spring/renderprops";
 import { Menu } from 'antd';
 
 class Navigation extends Component {
@@ -54,10 +51,6 @@ class Navigation extends Component {
     );
   }
 }
-
-{/* <Menu.Item key="admin">
-<Link to={ROUTES.ADMIN}>Admin</Link>
-</Menu.Item> */}
 
 const NavigationAuth = (props) => {
   const { selectedKeys } = props;

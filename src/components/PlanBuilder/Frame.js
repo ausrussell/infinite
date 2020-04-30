@@ -263,13 +263,13 @@ class Frame {
   }
   addArt(options) {
     const { file, uploadTask, holder, draggableImageRef } = options;
-    if (!holder) holder = this;
+    const addingHolder = holder || this;
     console.log("addART", file);
     if (file.url) {
       const options = {
         file: file.url,
         image: draggableImageRef.current,
-        holder: holder
+        holder: addingHolder
       };
       this.imageLoadedHandler(options);
       this.show(1);
@@ -279,7 +279,7 @@ class Frame {
       const options = {
         file: file,
         image: image,
-        holder: holder
+        holder: addingHolder
       };
       const next = snapshot => {
         // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
