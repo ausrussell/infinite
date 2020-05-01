@@ -10,7 +10,9 @@ const config = {
   databaseURL: process.env.REACT_APP_DATABASE_URL,
   projectId: process.env.REACT_APP_PROJECT_ID,
   storageBucket: process.env.REACT_APP_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID
+  messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_ID,
+  measurementId: process.env.REACT_APP_MEASUREMENT_ID
 };
 
 class Firebase {
@@ -73,7 +75,7 @@ class Firebase {
     newPostRef.set({
       data: data,
       title: title,
-      timestamp:timestamp
+      timestamp: timestamp
     });
     return newPostRef;
   };
@@ -159,7 +161,7 @@ class Firebase {
   }
 
   removeRef = (path) => {
-    console.log("removeRef",path)
+    console.log("removeRef", path)
     let ref = this.database.ref(path);
     ref.remove()
   }
@@ -189,7 +191,7 @@ class Firebase {
     selected.on("child_added", snapshot => {
       console.log("getGalleryByName then ", snapshot.val())
       const returnedValues = snapshot.val();
-      console.log("getGalleryByName returnedValues",returnedValues)
+      console.log("getGalleryByName returnedValues", returnedValues)
       const ref = app.database().ref(returnedValues.dataPath);
       ref.on("value", (snapshot) => {
         console.log("getGalleryByName snapshot data", snapshot.val());
@@ -201,124 +203,124 @@ class Firebase {
     })
   }
 
-detachRefListener(ref) {
-  ref.off();
-}
-
-getGalleryById = id => {
-  console.log("getGalleryById", id);
-  const galleryRef = this.database.ref("galleries/" + id);
-  return galleryRef;
-};
-
-getGalleryList = callback => {
-  const galleryRef = app.database.ref("publicGalleries");
-  galleryRef.orderByChild("name").on("value", callback);
-  return galleryRef;
-};
-
-getGalleryEditList = callback => {
-  const galleryRef = this.database.ref("galleries");
-  galleryRef.orderByChild("name").on("value", callback); //need to add query by user
-  console.log("getGalleryEditList");
-  const galleryDescs = this.database.ref(
-    "users/" + this.currentUID + "galleryDescs"
-  );
-  return galleryDescs
-};
-
-getList = ({ refPath, callback, orderField }) => {
-  // const ref = this.database.ref(refPath);
-  const ref = app.database().ref(refPath);
-  ref.orderByChild(orderField).on("value", callback);
-  return ref;
-}
-
-getAsset = ({ refPath, callback, once }) => {
-  const ref = app.database().ref(refPath);
-  if (once) {
-    ref.once("value", callback);
-  } else {
-    ref.on("value", callback);
+  detachRefListener(ref) {
+    ref.off();
   }
-  return ref;
-}
 
-removePlan = key => {
-  this.database
-    .ref("users/" + this.currentUID + "/floorplans")
-    .child(key)
-    .remove();
-};
-
-getUsersFloorplans = callback => {
-  console.log(
-    "getUsersFloorplans",
-    "users/" + this.currentUID + "/floorplans"
-  );
-  this.userFloorplansRef = this.database.ref(
-    "users/" + this.currentUID + "/floorplans"
-  );
-  return this.userFloorplansRef.on("value", callback);
-};
-detachGetUsersFloorplans() {
-  this.userFloorplansRef.off();
-}
-getTiles = (refPath, callback) => {
-  console.log("getTiles", refPath);
-  this.tilesRef = refPath;
-  this.newArtRef = app.database().ref(refPath);
-  this.newArtRef.on("value", callback);
-  console.log("this.newArtRef", this.newArtRef)
-  return this.newArtRef;
-};
-
-addFloorTile(tile) {
-  const floortilesRef = this.database.ref("master/floortiles").push();
-  floortilesRef.set(tile);
-}
-
-addFrameTile(tile) {
-  const floortilesRef = this.database.ref("master/frametiles").push();
-  floortilesRef.set(tile);
-}
-
-getPlanByKey = (key, callback) => {
-  console.log(
-    "getPlanByKey",
-    key,
-    "users/" + this.currentUID + "floorplans/" + key
-  );
-  return this.database
-    .ref("users/" + this.currentUID + "/floorplans/" + key)
-    .on("value", callback);
-};
-
-storeArt = file => {
-  const storageRef = this.storage.ref();
-  const path = file.assetType;
-  const imageRef = storageRef.child(
-    "users/" + this.currentUID + "/" + path + "/" + file.name
-  );
-  file.uid = this.currentUID;
-  return imageRef.put(file);
-};
-
-storeArtRef = (url, ref) => {
-  const artData = {
-    url: url
+  getGalleryById = id => {
+    console.log("getGalleryById", id);
+    const galleryRef = this.database.ref("galleries/" + id);
+    return galleryRef;
   };
-  console.log(
-    "storeArtRef",
-    ref,
-    "users/" + this.currentUID + "/art",
-    artData
-  );
-  const newArtRef = this.database
-    .ref("users/" + this.currentUID + "/art")
-    .push();
-  return newArtRef.set(artData);
-};
+
+  getGalleryList = callback => {
+    const galleryRef = app.database.ref("publicGalleries");
+    galleryRef.orderByChild("name").on("value", callback);
+    return galleryRef;
+  };
+
+  getGalleryEditList = callback => {
+    const galleryRef = this.database.ref("galleries");
+    galleryRef.orderByChild("name").on("value", callback); //need to add query by user
+    console.log("getGalleryEditList");
+    const galleryDescs = this.database.ref(
+      "users/" + this.currentUID + "galleryDescs"
+    );
+    return galleryDescs
+  };
+
+  getList = ({ refPath, callback, orderField }) => {
+    // const ref = this.database.ref(refPath);
+    const ref = app.database().ref(refPath);
+    ref.orderByChild(orderField).on("value", callback);
+    return ref;
+  }
+
+  getAsset = ({ refPath, callback, once }) => {
+    const ref = app.database().ref(refPath);
+    if (once) {
+      ref.once("value", callback);
+    } else {
+      ref.on("value", callback);
+    }
+    return ref;
+  }
+
+  removePlan = key => {
+    this.database
+      .ref("users/" + this.currentUID + "/floorplans")
+      .child(key)
+      .remove();
+  };
+
+  getUsersFloorplans = callback => {
+    console.log(
+      "getUsersFloorplans",
+      "users/" + this.currentUID + "/floorplans"
+    );
+    this.userFloorplansRef = this.database.ref(
+      "users/" + this.currentUID + "/floorplans"
+    );
+    return this.userFloorplansRef.on("value", callback);
+  };
+  detachGetUsersFloorplans() {
+    this.userFloorplansRef.off();
+  }
+  getTiles = (refPath, callback) => {
+    console.log("getTiles", refPath);
+    this.tilesRef = refPath;
+    this.newArtRef = app.database().ref(refPath);
+    this.newArtRef.on("value", callback);
+    console.log("this.newArtRef", this.newArtRef)
+    return this.newArtRef;
+  };
+
+  addFloorTile(tile) {
+    const floortilesRef = this.database.ref("master/floortiles").push();
+    floortilesRef.set(tile);
+  }
+
+  addFrameTile(tile) {
+    const floortilesRef = this.database.ref("master/frametiles").push();
+    floortilesRef.set(tile);
+  }
+
+  getPlanByKey = (key, callback) => {
+    console.log(
+      "getPlanByKey",
+      key,
+      "users/" + this.currentUID + "floorplans/" + key
+    );
+    return this.database
+      .ref("users/" + this.currentUID + "/floorplans/" + key)
+      .on("value", callback);
+  };
+
+  storeArt = file => {
+    const storageRef = this.storage.ref();
+    const path = file.assetType;
+    const imageRef = storageRef.child(
+      "users/" + this.currentUID + "/" + path + "/" + file.name
+    );
+    file.uid = this.currentUID;
+    return imageRef.put(file);
+  };
+
+  storeArtRef = (url, ref) => {
+    const artData = {
+      url: url
+    };
+    console.log(
+      "storeArtRef",
+      ref,
+      "users/" + this.currentUID + "/art",
+      artData
+    );
+    const newArtRef = this.database
+      .ref("users/" + this.currentUID + "/art")
+      .push();
+    return newArtRef.set(artData);
+  };
 
 
 }
