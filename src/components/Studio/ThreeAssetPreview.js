@@ -190,15 +190,6 @@ class ThreeAssetPreview extends Component {
 
     render() {
         const { assetRef, selectedItem } = this.state;
-        // <FrameControls
-        //             frameObject={this.frameObject} finishedCallback={this.finishedCallback}
-        //             assetRef={assetRef} selectedItem={selectedItem} firebase={this.props.firebase} />
-        // const controlsOptions = {
-        //     frameObject: this.frameObject,
-        //     finishedCallback: this.finishedCallback,
-        //     assetRef: assetRef,
-        //     selectedItem: selectedItem
-        // }
         return (<div>
             <div style={{ height: 400, marginBottom: 16 }} ref={ref => (this.el = ref)} />
             {(this.frameObject && (selectedItem || assetRef)) ?

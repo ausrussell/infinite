@@ -317,20 +317,12 @@ class Builder extends Component {
     // console.log("hoverArtMesh", artMesh, this.dragging);
     if (!this.dragging) {
       console.log("show z", artMesh.parent.wallPos === 0)
-      // this.transformControls.setSpace("local");
       this.transformControls.showZ = artMesh.parent.wallPos === 0;
       this.transformControls.showX = artMesh.parent.wallPos === 1;
       this.transformControls.attach(artMesh);
-      // this.transformControls.setSpace("world");
-
       this.activeArtMesh = artMesh;
-
-      // this.transformControls2.setSpace("world");
-
       this.transformControls2.showZ = artMesh.parent.wallPos === 0;
       this.transformControls2.showX = artMesh.parent.wallPos === 1;
-      // this.transformControls2.showY = true;
-
       this.transformControls2.attach(artMesh);
     }
   }
@@ -437,7 +429,7 @@ class Builder extends Component {
     if (meshName === "LightConeHelper") {
       this.transformControls.showZ = true;
       this.transformControls.showX = true;
-      this.transformControls.showX = true;
+      this.transformControls.showY = true;
     }
     return this.transformControls;
   };
@@ -1178,7 +1170,7 @@ class Builder extends Component {
         floorComponent: this.lightFloor,
         builder: this,
         level: 4,
-        floorCalledCallback: this.lightFloorCalledCallback.bind(this)
+        // floorCalledCallback: this.lightFloorCalledCallback.bind(this)
       },
       5: {
         name: "Surrounds",
@@ -1194,13 +1186,14 @@ class Builder extends Component {
   }
 
   floorCalledCallback = floor => {
-    console.log("planner floorCalledCallback")
+    console.log("builder floorCalledCallback")
     if (this.currentFloor === "Lights") {
       this.removeLightsHelpers();
     }
     this.currentFloor = floor.name;
     console.log("floorCalledCallback", floor);
     console.log("this.lights", this.lights);
+    // debugger;
     if (this.currentFloor === "Lights") {
       this.addLightHelpers();
     }
@@ -1212,6 +1205,7 @@ class Builder extends Component {
     });
   }
   removeLightsHelpers() {
+    console.log("removeLightsHelpers")
     this.detachTransformControls();
 
     this.setState({ selectedSpotlight: null }, () => {

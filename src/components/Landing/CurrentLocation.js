@@ -101,7 +101,7 @@ export class CurrentLocation extends React.Component {
 
     const google = this.props.google;
     const maps = google.maps;
-    // console.log("recenterMap center", this.state, this.state.currentLocation)
+    console.log("recenterMap center", this.state, this.state.currentLocation)
     if (map) {
       let center = new maps.LatLng(current.lat, current.lng);
       map.panTo(center);

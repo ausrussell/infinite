@@ -3,15 +3,11 @@ import React, { Component } from "react";
 // import { FirebaseContext } from "../Firebase";
 import { withFirebase } from "../Firebase";
 import { Row, Col, Card, Tabs } from "antd";
-import Uploader from "../Uploader";
-
 import Elevator from "../Elevator";
 import VaultFloor from "../Elevator/VaultFloor";
 import AssetEditor from "./AssetEditor";
-
 import ThreeAssetPreview from './ThreeAssetPreview';
 import PageTitle from '../Navigation/PageTitle';
-
 import {SurroundsHelp} from './SurroundsHelp'
 
 
@@ -136,9 +132,8 @@ class StudioPage extends Component {
   }
 
   renderTab = (item) => {
-
     return (<TabPane tab={item.name} key={item.level}>
-      {(this.state.floorCalled === item.level) && item.editorComponent}
+      {(this.state.floorCalled === item.level.toString()) && item.editorComponent}
     </TabPane>)
   }
 

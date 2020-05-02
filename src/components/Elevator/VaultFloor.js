@@ -16,14 +16,14 @@ class VaultFloor extends Component {
 
   }
   componentDidMount() {
-    this.list = []
     if (this.props.addMaster) {
-      this.tilesCall = this.props.firebase.getTiles(this.refPath, this.getMasterTilesCallback);
+      this.needToAddMaster = true;
+      // this.tilesCall = this.props.firebase.getTiles(this.refPath, this.getMasterTilesCallback);
     }
-    else {
-      // debugger;
+    // else {
+    //   // debugger;
       this.tilesCall = this.props.firebase.getTiles(this.refPath, this.getTilesCallback);
-    }
+    // }
   }
 
   componentWillUnmount() {
@@ -41,7 +41,7 @@ class VaultFloor extends Component {
   }
 
   getTilesCallback = data => {
-    // const list = [];
+    if (this.needToAddMaster !== "adding") this.list = [];
     const listObj = {};
     let selectedTilePresent = false;
     if (data) {
@@ -53,11 +53,11 @@ class VaultFloor extends Component {
     }
 
     if (this.state.selectedTile && !selectedTilePresent) {
-      // console.log("", this.state.selectedTile, selectedTilePresent)
       this.clearSelected()
     }
     this.setState({ tilesData: this.list });
-    console.log("getTilesCallback list", this.list);
+    if (this.needToAddMaster === "adding") {this.needToAddMaster=false}
+    if (this.needToAddMaster === true) {this.needToAddMaster="adding"}
   };
 
   clearSelected = () => {

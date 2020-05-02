@@ -2,7 +2,7 @@ import React, { Component, useState } from "react";
 // import { Form } from '@ant-design/compatible';
 // import '@ant-design/compatible/assets/index.css';
 // import { Upload, message, Button, Input, Select } from 'antd';
-import { UploadOutlined, InboxOutlined } from '@ant-design/icons';
+import { InboxOutlined } from '@ant-design/icons';
 
 // import FileUploader from "react-firebase-file-uploader";
 // import firebase from "./Firebase";
@@ -13,23 +13,7 @@ import { withFirebase } from "./Firebase";
 
 
 
-import { Form, Upload, Input, Button, Select } from 'antd';
-
-const { Option } = Select;
-const layout = {
-  labelCol: {
-    span: 8,
-  },
-  wrapperCol: {
-    span: 16,
-  },
-};
-const tailLayout = {
-  wrapperCol: {
-    offset: 8,
-    span: 16,
-  },
-};
+import { Form, Upload, Select } from 'antd';
 
 const UploadButton = (props) => {
   const [uploadTitle, setUploadTitle] = useState("");
@@ -61,10 +45,6 @@ const UploadButton = (props) => {
     });
   };
 
-  const onTitleChangeHandler = ({ target }) => {
-    setUploadTitle(target.value);
-  };
-
   const layout = {
     labelCol: { span: 8 },
     wrapperCol: { span: 16 },
@@ -78,15 +58,15 @@ const UploadButton = (props) => {
     return e && e.fileList;
   };
 
-  const onFinish = ()=> {
-    console.log("onFinish",uploadTitle);
-    const dbSave = props.firebase.updateTitle("cubebox/" + uploadFileName.replace('.', '_'),uploadTitle);//obeying rules for path in cloud functions
-    dbSave.then(()=> {
+  const onFinish = () => {
+    console.log("onFinish", uploadTitle);
+    const dbSave = props.firebase.updateTitle("cubebox/" + uploadFileName.replace('.', '_'), uploadTitle);//obeying rules for path in cloud functions
+    dbSave.then(() => {
       console.log("saved")
     })
   }
   //disabled={!uploadFileName}
-  
+
   return (
     <Form
       {...layout}
@@ -181,35 +161,20 @@ class Uploader extends Component {
     return uploadTask;
   }
 
-  uploadCubeBox(file) {
-    console.log("uploadCubeBox file", file);
-    const uploadTask = this.props.firebase.storeArt(file);
-  }
-
-  fileLoadedHandler(e, file) {
+  fileLoadedHandler = async (e, file) => {
     //uncomment these to save image
-    // debugger;
-    console.log("fileLoadedHandler type", this.props.type)
-    const uploadTask = this.props.firebase.storeArt(file);
-
-    console.log("uploader fileLoadedHandler uploadTask", uploadTask);
+    const assetRef = await this.props.firebase.getNewAssetRef("art");
+    const path = "art/" + assetRef.key;
+    console.log("path to save", path)
+    const uploadTask = this.props.firebase.storeAsset(path, file)
     this.props.fileDrop(e.target.result, uploadTask);
     uploadTask.then(snapshot => {
       console.log("uploaded file", snapshot);
       uploadTask.snapshot.ref.getDownloadURL().then(downloadURL => {
-        console.log("File available at", downloadURL);
-        this.props.firebase
-          .storeArtRef(downloadURL, uploadTask.snapshot.ref)
-          .then(snapshot => {
-            console.log("done pushing art", snapshot);
-          });
-      });
-    });
-    // const storageRef = this.props.firebase.storage().ref();
-    // const imageRef = storageRef.child("art2/" + file.name);
-    // imageRef.put(file).then(function(snapshot) {
-    //   console.log("Uploaded a blob or file!");
-    // });
+        const object = { url: downloadURL }
+        this.props.firebase.updateAsset("users/" + this.props.firebase.currentUID + "/" + path, object)
+      })
+    })
   }
 
   handleUploadStart = () => {
@@ -229,18 +194,18 @@ class Uploader extends Component {
     this.fileUpload(info.fileList[0]);
   }
 
-  
+
 
   render() {
     console.log(this.state);
 
     const { button } = this.props;
-    console.log("uploader button",button)
+    console.log("uploader button", button)
     return (<div>
       {button && (
-        <UploadButton changeHandler={this.fileUpload} firebase={this.props.firebase}/>)
+        <UploadButton changeHandler={this.fileUpload} firebase={this.props.firebase} />)
       }
-      </div>
+    </div>
     );
   }
 }

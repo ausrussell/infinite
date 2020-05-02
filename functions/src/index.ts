@@ -9,39 +9,8 @@ const UUID = require("uuid-v4");
 // const { Storage } = require('@google-cloud/storage');
 // const gcs = require('@google-cloud/storage')();
 
+import * as unzipper from 'unzipper';
 
-
-
-exports.deleteBucket = functions.https.onCall((data: any) => {
-  // const { path } = data;
-  console.log("path", data.path)
-  // const bucket = admin.storage().bucket(data.path);
-  // return bucket.delete();
-
-  // // Creates a client
-  // const storage = new Storage();
-  // const bucketName = data.path;
-  // async function deleteBucket() {
-  //   // Deletes the bucket
-  //   await storage.bucket(bucketName).delete();
-  //   console.log(`Bucket ${bucketName} deleted.`);
-  // }
-
-  // deleteBucket().catch(console.error);
-  // const gcs = new Storage();
-
-  // const bucket = gcs.bucket(functions.config().firebase.storageBucket);
-  // return bucket.deleteFiles({
-  //   prefix: data.path
-  // }, function (err: any) {
-  //   if (err) {
-  //     console.log(err);
-  //   } else {
-  //     console.log(`All the Firebase Storage files in users/${data.path}/ have been deleted`);
-  //   }
-  // });
-  return null;
-});
 
 exports.generateThumbnail = functions.storage.object().onFinalize(async (object: any) => {
 
@@ -70,8 +39,10 @@ exports.generateThumbnail = functions.storage.object().onFinalize(async (object:
   }
   const bucket = admin.storage().bucket(fileBucket);
   const tempFilePath = path.join(os.tmpdir(), fileName);
+  const uuid = UUID();
   const metadata = {
     contentType: contentType,
+    metadata:{firebaseStorageDownloadTokens: uuid}
   };
   await bucket.file(filePath).download({ destination: tempFilePath });
   console.log('Image downloaded locally to', tempFilePath);
@@ -82,15 +53,37 @@ exports.generateThumbnail = functions.storage.object().onFinalize(async (object:
   const thumbFileName = `thumb_${fileName}`;
   const thumbFilePath = path.join(path.dirname(filePath), thumbFileName);
   // Uploading the thumbnail.
-  await bucket.upload(tempFilePath, {
+  const uploadresult = await bucket.upload(tempFilePath, {
     destination: thumbFilePath,
+    uploadType: "media",
     metadata: metadata,
   });
+
+  console.log("uploadresult",uploadresult)
+  const file = uploadresult[0]
+  console.log("file.name",file.name)
+  const img_url = 'https://firebasestorage.googleapis.com/v0/b/' + fileBucket + '/o/'
+  + encodeURIComponent(file.name)
+  + '?alt=media&token='
+  + metadata.metadata.firebaseStorageDownloadTokens;
+  console.log("img_url",img_url)
+  const nameAr = file.name.split('/');
+  const usersIndex = nameAr.indexOf('users');
+  const assetId = nameAr[usersIndex + 3]
+  console.log("nameAr", nameAr);
+  const userId = nameAr[usersIndex + 1];
+  const data = {
+    thumb: img_url,
+  };
+  const refPath = "users/" + userId + '/art/' + assetId;
+  const db = admin.database();
+  const artRef = db.ref(refPath);
+  console.log("saving data to db refPath, data,img_url", refPath, data, img_url);
+  artRef.update(data);
+  // "https://firebasestorage.googleapis.com/v0/b/" + bucket.name + "/o/" + encodeURIComponent(file.name) + "?alt=media&token=" + uuid
   // Once the thumbnail has been uploaded delete the local file to free up disk space.
   return fs.unlinkSync(tempFilePath);
 });
-
-import * as unzipper from 'unzipper';
 
 export const manageZipArchives = functions
   .runWith({ timeoutSeconds: 300 })
@@ -133,7 +126,6 @@ export const manageZipArchives = functions
         const titleFromZipName = nameAr[usersIndex + 4].replace('_zip', '')
         const acceptableKeys = ["nx", "ny", "nz", "px", "py", "pz"];
         const assetId = nameAr[usersIndex + 3];
-
         acceptableKeys.forEach(key => {
           if (fileName.indexOf(key) >= 0 ) {
             const data = {
@@ -147,8 +139,6 @@ export const manageZipArchives = functions
             cubeBoxRef.update(data);
           }
         })
-
-
       })
     }
 

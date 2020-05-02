@@ -2,7 +2,7 @@ import React, { createRef, useState, useRef } from "react";
 import "../../css/elevator.css";
 // import { Spring, config } from "react-spring/renderprops"; //Transition,
 import { useSpring, animated } from 'react-spring'
-import {List} from 'antd'
+import { List } from 'antd'
 import { LeftCircleOutlined, DownCircleOutlined } from '@ant-design/icons';
 
 
@@ -21,7 +21,7 @@ const Elevator = (props) => {
   // const springProps = useSpring({ scroll: 0 })
   const [springProps, setSpringProps, stopSpringProps] = useSpring(() => ({ scroll: 1 }))
 
-
+console.log("Elevator props",props)
   // const springProps = useSpring({ scroll: 0 })
   const [vaultOpen, setVaultOpen] = useState(false);
   const [draggable, setDraggable] = useState();
@@ -31,12 +31,6 @@ const Elevator = (props) => {
 
   const animatedDiv = useRef();
 
-  // useEffect(() => {
-  //   // add or remove refs
-  //   setFloorRefs(floorRefs => (
-  //     Array(floorsLength).fill().map((_, i) => floorRefs[i])
-  //   ));
-  // }, [floorsLength]);
   if (floorRefs.current.length !== floorsLength) {
     // add or remove refs in initial setup
     floorRefs.current = Array(floorsLength).fill().map((_, i) => floorRefs.current[i] || createRef())
@@ -50,7 +44,7 @@ const Elevator = (props) => {
     console.log("animatedDiv", animatedDiv.current.scrollTop)
     setSpringProps({ scroll: floorRefs.current[no].current.offsetTop });
     setCurrentFloor(no);
-
+    props.floorCalledCallback(props.floors[no])
   }
   return (
     <div className={`vault-container ${vaultOpen ? "open" : "closed"}`}>
@@ -86,20 +80,20 @@ const Elevator = (props) => {
 const VaultButton = props => {
   return (
     <div className="vault-button-panel">
-    <div
-      onClick={props.vaultButtonHandler}
-      className="vault-button"
-    >
-      {props.vaultOpen ? (<div>Close
-      <br />
-      {props.name}
-      <br />
-      <DownCircleOutlined style={{fontSize:26, marginTop:5, marginBottom:5}} /></div>) : (<div>Open<br />
-      {props.name}
-      <br />
-      <LeftCircleOutlined style={{fontSize:26, marginTop:5, marginBottom:5}} /></div>)}
+      <div
+        onClick={props.vaultButtonHandler}
+        className="vault-button"
+      >
+        {props.vaultOpen ? (<div>Close
+          <br />
+          {props.name}
+          <br />
+          <DownCircleOutlined style={{ fontSize: 26, marginTop: 5, marginBottom: 5 }} /></div>) : (<div>Open<br />
+            {props.name}
+            <br />
+            <LeftCircleOutlined style={{ fontSize: 26, marginTop: 5, marginBottom: 5 }} /></div>)}
+      </div>
     </div>
-  </div>
   )
 }
 
@@ -127,7 +121,7 @@ const ElevatorPanel = (props) => {
               className="elevator-floors-list-item"
               onClick={() => floorClickHandler(floor.level)}
             >
-             {floor.level}. {floor.name}
+              {floor.level}. {floor.name}
             </List.Item>
           );
         })}

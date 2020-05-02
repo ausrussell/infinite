@@ -144,12 +144,6 @@ class Firebase {
 
   deleteAsset = (path, item) => {
     console.log("deleteAsset", path, item);
-    // const deleteBucket = this.functions.httpsCallable('deleteBucket');
-    // deleteBucket({ path: path }).then(function (result) {
-    //   // Read result of the Cloud Function.
-    //   console.log("deleteAsset result from Cloud Function", result)
-    //   // ...
-    // });
     return this.deleteFolderContents(path)
       .then(() => {
         const dbRef = this.database
@@ -298,11 +292,12 @@ class Firebase {
 
   storeArt = file => {
     const storageRef = this.storage.ref();
-    const path = file.assetType;
+    const path = file.assetType || "art";
     const imageRef = storageRef.child(
       "users/" + this.currentUID + "/" + path + "/" + file.name
     );
     file.uid = this.currentUID;
+
     return imageRef.put(file);
   };
 

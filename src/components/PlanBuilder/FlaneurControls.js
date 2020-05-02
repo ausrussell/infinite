@@ -169,7 +169,6 @@ class FlaneurControls {
   };
 
   onKeyDown = event => {
-    console.log("document.activeElement",document.activeElement)
     switch (event.keyCode) {
       case 38: /*up*/
       case 87:

@@ -199,14 +199,14 @@ const BuilderHeader = props => {
                             </Col>
                             <Col span={8}>
                                 {imgUrl && (<Card style={{ margin: 'auto', marginBottom: 16, width: 200 }}
-                                    title="Gallery image"
+                                    title="Gallery featured image"
                                     cover={<img alt="featured" src={imgUrl} />}
                                 >
                                     <Meta description={imgTitle} />
                                 </Card>)}
 
                                 <Button style={{ margin: 'auto' }} onClick={selectArt} loading={props.selectingArt} >{props.selectingArt ? "Cancel" : "Select Image"}</Button>
-                                <div>by clicking art in vault</div>
+                                <div>Click button then click art in vault</div>
                             </Col>
                         </Row>
                     </Panel>
