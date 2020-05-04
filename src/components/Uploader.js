@@ -3,17 +3,50 @@ import React, { Component, useState } from "react";
 // import '@ant-design/compatible/assets/index.css';
 // import { Upload, message, Button, Input, Select } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
-
-// import FileUploader from "react-firebase-file-uploader";
-// import firebase from "./Firebase";
-// import config from "../api/firebase-config";
-// firebase.initializeApp(config);
 import { withFirebase } from "./Firebase";
+import { Form, Upload } from 'antd';
 
+const UploaderTileBase = (props) => {
 
-
-
-import { Form, Upload, Select } from 'antd';
+  const customRequest = async ({ file, onProgress, onSuccess }) => {
+    file.assetName = file.name;
+    const assetRef = await props.firebase.getNewAssetRef("art");
+    const path = "art/" + assetRef.key;
+    const uploadTask = props.firebase.storeAsset(path, file)
+    console.log("customRequest uploadTask", uploadTask)
+    const next = snapshot => {
+      const progress = snapshot.bytesTransferred / snapshot.totalBytes;
+      onProgress({ percent: progress * 100 });
+    };
+    const complete = () => {
+      uploadTask.then((snapshot) => {
+        snapshot.ref.getDownloadURL().then(url => {
+          const pathAr = snapshot.ref.location.path.split("/");
+          pathAr.pop();
+          const dbPath = pathAr.join("/");
+          const title = file.name.split(".");
+          title.pop()
+          title.join("");
+          const options = { url: url,
+          title: title };
+          props.firebase.updateAsset(dbPath, options)
+            .then(() => {
+              console.log("db saved uploaded", dbPath, options);
+              onSuccess("Ok");
+            })
+        })
+      })
+    }
+    uploadTask.on("state_changed", {
+      next: next,
+      complete: complete
+    });
+  };
+  return (<Upload.Dragger multiple name="files" customRequest={customRequest} >
+      <InboxOutlined style={{fontSize: 26}} />
+    <p className="ant-upload-text">Upload art</p>
+  </Upload.Dragger>)
+}
 
 const UploadButton = (props) => {
   const [uploadTitle, setUploadTitle] = useState("");
@@ -96,8 +129,7 @@ class Uploader extends Component {
   state = {
     image: "",
     imageURL: "",
-    progress: 0,
-    wallDroppedOn: {}
+    progress: 0
   };
   constructor(props) {
     super(props);
@@ -209,5 +241,5 @@ class Uploader extends Component {
     );
   }
 }
-
 export default withFirebase(Uploader);
+export const UploaderTile = withFirebase(UploaderTileBase)

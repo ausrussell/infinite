@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import { withFirebase } from "../Firebase";
 import { Card, Row, Col, Button } from "antd";
 
+import { UploaderTile } from "../Uploader"
+
 const masterRefPath = 'users/0XHMilIweAghhLcophtPU4Ekv7D3'
 class VaultFloor extends Component {
   state = {
@@ -12,36 +14,40 @@ class VaultFloor extends Component {
     console.log("VaultFloor props", props);
     super(props);
     this.tileCallback = props.tileCallback;
-    this.refPath= props.refPath;
+    this.refPath = props.refPath;
 
   }
   componentDidMount() {
     if (this.props.addMaster) {
       this.needToAddMaster = true;
-      // this.tilesCall = this.props.firebase.getTiles(this.refPath, this.getMasterTilesCallback);
     }
-    // else {
-    //   // debugger;
-      this.tilesCall = this.props.firebase.getTiles(this.refPath, this.getTilesCallback);
-    // }
+    this.tilesCall = this.props.firebase.getTiles(this.refPath, this.getTilesCallback);
   }
 
   componentWillUnmount() {
     this.props.firebase.detachRefListener(this.tilesCall);
     this.masterTilesCall && this.props.firebase.detachRefListener(this.masterTilesCall);
-     
+
   }
 
   getMasterTilesCallback = data => {
-    console.log("getMasterTilesCallback",data)
+    console.log("getMasterTilesCallback", data)
     this.getTilesCallback(data);
     const pathParts = this.refPath.split('/');
     const masterKey = masterRefPath.split('/').pop();
     if (masterKey !== pathParts[1]) this.masterTilesCall = this.props.firebase.getTiles(masterRefPath + '/' + pathParts[2], this.getTilesCallback);
   }
 
+  setInitialList() {
+    this.list = [];
+    if (this.props.addUploader) {
+      this.list.push(<UploaderTile />)
+    }
+  }
+
   getTilesCallback = data => {
-    if (this.needToAddMaster !== "adding") this.list = [];
+    // if (this.needToAddMaster !== "adding") this.list = [];
+    this.setInitialList();
     const listObj = {};
     let selectedTilePresent = false;
     if (data) {
@@ -56,8 +62,8 @@ class VaultFloor extends Component {
       this.clearSelected()
     }
     this.setState({ tilesData: this.list });
-    if (this.needToAddMaster === "adding") {this.needToAddMaster=false}
-    if (this.needToAddMaster === true) {this.needToAddMaster="adding"}
+    if (this.needToAddMaster === "adding") { this.needToAddMaster = false }
+    if (this.needToAddMaster === true) { this.needToAddMaster = "adding" }
   };
 
   clearSelected = () => {
@@ -83,34 +89,64 @@ class VaultFloor extends Component {
     width: "100%"
   };
 
-  renderTile(snapshot) {
-    // console.log("renderTile(snapshot)", snapshot);
+  fullCoverStyle = {
+    height: "100%",
+    width: "100%"
+  };
+
+  getReactTile(element) {
+    const tileInfo = {};
+    tileInfo.cover = (<div style={this.fullCoverStyle} >
+      {element}
+    </div>);
+    tileInfo.key = "uploader";
+    tileInfo.tileClicker = null;
+    tileInfo.reactElement = true;
+    tileInfo.headStyle = { display: "none" }
+    return tileInfo
+
+  }
+  getDataTile(snapshot) {
     const tileData = snapshot.val();
-    const { url, color, px, map, normalMap, bumpMap, title } = tileData;//ny for cubeboxes
+    const tileInfo = {};
+    tileInfo.tileData = tileData;
+    const { thumb, url, color, px, map, normalMap, bumpMap, title } = tileData;//ny for cubeboxes
+    tileInfo.title = title
     // console.log("renderTile, url, color, ny", url, color, ny, map);
-    const tileUrl = url || px || map || normalMap || bumpMap;
+    tileInfo.tileUrl = thumb || url || px || map || normalMap || bumpMap;
     const { key, ref } = snapshot;
-    tileData.key = key;
-    tileData.ref = ref;
-    const { draggable, selectable } = this.props;
+    tileInfo.key = tileInfo.tileData.key = key;
+    tileInfo.ref = ref;
     const specificTileStyle = {
-      backgroundImage: "url(" + tileUrl + ")",
+      backgroundImage: "url(" + tileInfo.tileUrl + ")",
       backgroundColor: color || "#FFFFFF"
     }
     Object.assign(specificTileStyle, this.coverStyle)
-    const isSelected = (tileData.key === this.state.selectedTile)
-    const headStyle = (title) ? null : {
+    const { selectable } = this.props;
+    const isSelected = (tileInfo.key === this.state.selectedTile);
+    if (isSelected) console.log("isSelected", tileInfo.key, this.state.selectedTile);
+    tileInfo.tileClicker = isSelected ? () => this.unsetSelected() : () => this.tileClickHandler(tileData, "not draggable");
+
+    tileInfo.cover = (<div style={specificTileStyle} >
+      {selectable && isSelected && (<div className="tile-selected-cancel"><div>Selected: Click above to apply</div><Button loading>Cancel</Button></div>)}
+    </div>);
+    tileInfo.isSelected = (tileData.key === this.state.selectedTile)
+    tileInfo.headStyle = (title) ? null : {
       color: 666,
       fontStyle: "italic"
     }
+    return tileInfo
+  }
 
-    const cover = (<div style={specificTileStyle} >
-      {selectable && isSelected && (<div className="tile-selected-cancel"><div>Selected: Click above to apply</div><Button loading>Cancel</Button></div>)}
-    </div>);
+  renderTile(snapshot) {
+    // console.log("renderTile(snapshot)", snapshot);
+    // if (!snapshot.val) debugger;
+    const tileInfo = (React.isValidElement(snapshot)) ? this.getReactTile(snapshot) : this.getDataTile(snapshot);
 
-    const tileClicker = isSelected ? () => this.unsetSelected() : () => this.tileClickHandler(tileData, "not draggable");
+    const { draggable } = this.props;
 
-    return draggable ? (
+    const { key, tileData, title, tileUrl, cover, headStyle, tileClicker, isSelected, reactElement } = tileInfo;
+    return (draggable && !reactElement) ? (
       <Tile
         key={key}
         onMouseDown={() => this.tileClickHandler(tileData)}
@@ -124,7 +160,7 @@ class VaultFloor extends Component {
           onClick={tileClicker}
           key={key}
           title={title || "Untitled"}
-          tileUrl={tileUrl}
+          tileUrl={tileUrl || null}
           cover={cover}
           headStyle={headStyle}
           hoverable={true}
@@ -167,9 +203,9 @@ const Tile = props => {
         hoverable={hoverable}
         onClick={onClick}
         onMouseDown={onMouseDown}
+        bodyStyle={{display:"none"}}
 
-      >
-      </Card>
+      />
     </Col>
   );
 };

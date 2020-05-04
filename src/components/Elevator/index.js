@@ -18,13 +18,9 @@ const FloorWrapper = React.forwardRef((props, ref) => {
 // const floorRefs = [];
 
 const Elevator = (props) => {
-  // const springProps = useSpring({ scroll: 0 })
   const [springProps, setSpringProps, stopSpringProps] = useSpring(() => ({ scroll: 1 }))
-
-console.log("Elevator props",props)
-  // const springProps = useSpring({ scroll: 0 })
+  // console.log("Elevator props",props)
   const [vaultOpen, setVaultOpen] = useState(false);
-  const [draggable, setDraggable] = useState();
   const [currentFloor, setCurrentFloor] = useState(0);
   const floorRefs = useRef([])
   const floorsLength = Object.keys(props.floors).length;
@@ -48,7 +44,7 @@ console.log("Elevator props",props)
   }
   return (
     <div className={`vault-container ${vaultOpen ? "open" : "closed"}`}>
-      {vaultOpen && (<div draggable="true">{draggable}</div>)}
+      {vaultOpen && (<div draggable="true" />)}
       <div className="vault-doors" >
         {vaultOpen && (
           <animated.div

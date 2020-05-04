@@ -31,9 +31,6 @@ import Draggable from "./Draggable";
 
 import BuilderHeader from "./BuilderHeader"
 
-import GalleryTitle from "./GalleryTitle";
-
-
 const wallWidth = 20;
 
 const degreesToRadians = degrees => {
@@ -468,7 +465,7 @@ class Builder extends Component {
     this.galleryData.surrounds = this.surroundings.getExport();
 
     return this.galleryData;
-    this.makeGalleryDbSave();
+    // this.makeGalleryDbSave();
   };
 
   makeGalleryDbSave() {
@@ -514,8 +511,6 @@ class Builder extends Component {
 
   transformMouseUpHandler(event) {
     console.log("transformMouseUpHandler", event.mode)
-    const intersect = this.checkForIntersecting();
-
     if (event.mode === "translate" && this.objectChanged) {
       this.resetTranslatedArt();
     }
@@ -1133,7 +1128,8 @@ class Builder extends Component {
         refPath: "users/" + this.props.firebase.currentUID + "/art",
         level: 0,
         tileCallback: this.artClickHandler.bind(this),
-        draggable: true
+        draggable: true,
+        addUploader: true
       },
       1: {
         name: "Frames",
