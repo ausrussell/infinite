@@ -68,7 +68,7 @@ const SignUpFormBase = (props) => {
 
           rules={[{ required: true, message: 'Please enter a password' }]}
 >
-        <Input placeholder="Password" />
+        <Input.Password placeholder="Password" />
         </Form.Item>
         <Form.Item name="passwordTwo"
           label="Confirm Password"
@@ -90,7 +90,7 @@ const SignUpFormBase = (props) => {
           ]}
 >
 
-        <Input />
+        <Input.Password />
         </Form.Item>
         <Form.Item>
 

@@ -217,7 +217,7 @@ const ThreeAssetPreviewControls = props => {
         console.log("values", values);
         delete values["dragger-texture"];
         if (props.meshRatio) {
-            values.density = [values.density, values.density * props.meshRatio]
+            values.density = values.density ? [values.density, values.density * props.meshRatio] : null;
         }
         Object.keys(values).forEach(key => { values[key] = values[key] || null });
         values.updateTime = new Date();
@@ -253,7 +253,7 @@ const ThreeAssetPreviewControls = props => {
                             <Checkbox>Allow others to borrow this</Checkbox>
                         </Form.Item>
                     </Col>
-                    <Col span={3}>333
+                    <Col span={3}>
                     {props.help && <HelpModal content={props.help}/>}
                     </Col>
             </Row>
@@ -300,7 +300,7 @@ const ThreeAssetPreviewControls = props => {
                             <Checkbox>Allow others to borrow this</Checkbox>
                         </Form.Item>
                     </Col>
-                    <Col span={3}>333
+                    <Col span={3}>
                     {props.help && <HelpModal content={props.help}/>}
                     </Col>
                 </Row>

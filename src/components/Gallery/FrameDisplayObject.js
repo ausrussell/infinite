@@ -93,7 +93,7 @@ class Frame {
 
   setDefaultFrameMaterial() {
     // const texture1 = this.loader.load("../textures/wood/wood3.png");
-    this.fmaterial = new THREE.MeshLambertMaterial({
+    this.fmaterial = new THREE.MeshStandardMaterial({
       color: 0x666666,
       side: THREE.DoubleSide
       // transparent: true,
