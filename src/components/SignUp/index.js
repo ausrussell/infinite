@@ -24,6 +24,7 @@ const SignUpFormBase = (props) => {
       .doCreateUserWithEmailAndPassword(values) //email, passwordOne,
       .then(authUser => props.firebase.setupNewUser(authUser, values))
       .then(() => {
+        debugger;
         props.history.push(ROUTES.LANDING);
       })
   };

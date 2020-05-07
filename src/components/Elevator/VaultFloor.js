@@ -18,9 +18,10 @@ class VaultFloor extends Component {
 
   }
   componentDidMount() {
-    if (this.props.addMaster) {
-      this.needToAddMaster = true;
-    }
+    // console.log("this.needToAddMaster",this.needToAddMaster)
+    // if (this.props.addMaster) {
+    //   this.needToAddMaster = true;
+    // }
     this.tilesCall = this.props.firebase.getTiles(this.refPath, this.getTilesCallback);
   }
 
@@ -30,12 +31,19 @@ class VaultFloor extends Component {
 
   }
 
-  getMasterTilesCallback = data => {
-    console.log("getMasterTilesCallback", data)
-    this.getTilesCallback(data);
+  addMasterTiles() {
     const pathParts = this.refPath.split('/');
-    const masterKey = masterRefPath.split('/').pop();
-    if (masterKey !== pathParts[1]) this.masterTilesCall = this.props.firebase.getTiles(masterRefPath + '/' + pathParts[2], this.getTilesCallback);
+    this.tilesCall = this.props.firebase.getTiles(masterRefPath + '/' + pathParts[2], this.addMasterTilesCallback);
+
+  }
+  addMasterTilesCallback = (data) => {
+    const masterTiles =this.state.tilesData;
+    if (data) {
+      data.forEach((childSnapshot) => {
+        masterTiles.push(childSnapshot);
+      });
+    }
+    this.setState({tilesData:masterTiles})
   }
 
   setInitialList() {
@@ -45,8 +53,9 @@ class VaultFloor extends Component {
     }
   }
 
-  getTilesCallback = data => {
-    // if (this.needToAddMaster !== "adding") this.list = [];
+  getTilesCallback = (data) => {
+    console.log("getTilesCallback this.needToAddMaster",this.needToAddMaster)
+      this.list = [];
     this.setInitialList();
     const listObj = {};
     let selectedTilePresent = false;
@@ -61,9 +70,7 @@ class VaultFloor extends Component {
     if (this.state.selectedTile && !selectedTilePresent) {
       this.clearSelected()
     }
-    this.setState({ tilesData: this.list });
-    if (this.needToAddMaster === "adding") { this.needToAddMaster = false }
-    if (this.needToAddMaster === true) { this.needToAddMaster = "adding" }
+    this.setState({ tilesData: this.list }, this.props.addMaster && this.addMasterTiles);
   };
 
   clearSelected = () => {

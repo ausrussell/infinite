@@ -15,6 +15,7 @@ import {SurroundsHelp} from './SurroundsHelp'
 const { TabPane } = Tabs;
 
 const ArtEditor = (props) => {
+  console.log("render ArtEditor")
   return (<div>
     {props.item ? (<AssetEditor item={props.item} />) : (<div>Select an item from the vault below to edit or delete</div>)}
   </div>
@@ -82,9 +83,6 @@ class StudioPage extends Component {
         level: 0,
         tileCallback: this.artClickHandler.bind(this),
         editorComponent: this.artEditor
-
-        // editorComponent: cubeMapeditor()
-
       },
       1: {
         name: "Frames",
@@ -132,8 +130,9 @@ class StudioPage extends Component {
   }
 
   renderTab = (item) => {
+    console.log("renderTab",item, this.state.floorCalled, item.level)
     return (<TabPane tab={item.name} key={item.level}>
-      {(this.state.floorCalled === item.level.toString()) && item.editorComponent}
+      {(parseInt(this.state.floorCalled) === parseInt(item.level)) && item.editorComponent}
     </TabPane>)
   }
 

@@ -67,7 +67,7 @@ const UserList = ({ users }) => (
   </ul>
 );
 
-const condition = true;
+// const condition = true;
 // authUser =>
 //   authUser && !!authUser.roles[ROLES.ADMIN];
 

@@ -1,15 +1,10 @@
 import React, { Component } from "react";
 import { withFirebase } from "../Firebase";
 import * as BUTTONS from "./buttons";
-import { Card, Row, Col, Button } from "antd";
+import { Card, Row, Col } from "antd";
 // import Icon from "@ant-design/icons"
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 
-const coverStyle = {
-  backgroundSize: "cover",
-  height: 100,
-  width: "100%"
-};
 class PreFab extends Component {
   state = {
     userFloorplans: []
@@ -87,19 +82,7 @@ class PreFab extends Component {
     const { title, data } = planData;
     const { key } = snapshot;
     planData.key = key;
-    //   <div key={key} className="tile tile-center-content">
-    //   <button
-    //     onClick={() => this.removePlan(key)}
-    //     className="remove-plan-button"
-    //   >
-    //     x
-    //   </button>
-    //   <BUTTONS.PlannerButtonRoute plan={key} title={title} />
-    //   <div className="tile-title">{title}</div>
-    //   <div onClick={() => this.props.tileCallback(planData)}>
-    //     <CanvasTile plan={data} />
-    //   </div>
-    // </div>
+
     console.log("key", key, data)
     return (
       <Col key={key}>
@@ -118,9 +101,7 @@ class PreFab extends Component {
       </Col>
     );
   }
-  // <div className="tile">
-  //         </div>
-  // <button onClick={this.useLocalStorage}>Last session</button>
+
 
 
   render() {
