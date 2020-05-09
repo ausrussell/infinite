@@ -8,9 +8,52 @@ const fs = require('fs');
 const UUID = require("uuid-v4");
 // const { Storage } = require('@google-cloud/storage');
 // const gcs = require('@google-cloud/storage')();
+const nodemailer = require('nodemailer');
+// const cors = require('cors')({origin: true});
 
 import * as unzipper from 'unzipper';
 
+const gmailEmail = "curator@hangar.social";
+const gmailPassword = "man2godC!";
+const mailTransport = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: gmailEmail,
+    pass: gmailPassword,
+  },
+});
+exports.sendWelcomeEmail = functions.auth.user().onCreate((user: any) => {
+  const recipent_email = user.email;
+console.log("sending welcome to ",user.displayName, user)
+  const mailOptions = {
+    from: '"Curator" <curator@hangar.social>',
+    to: recipent_email,
+    subject: 'Welcome to HANGAR',
+    html: `<p style="font-size: 16px;">Thank you for joining <a href="https://hangar.social">Hangar</a>!</p>
+       <p>In these early days I really appreciate you taking a moment to look at some galleries and make your own. All your feedback is very welcome!</p>
+       <p>You can check out this short demo video to see how quick and easy it can be to make an impressive gallery online:<br />
+       <a href="https://youtu.be/QvyW_znUuo8">Hangar demo</a>
+       <p>You can also get info by clicking the ? at the top of most pages.</p>
+       <p>Happy Hanging!</p>
+       <p>Kind regards,</p>
+<p>Russell</p>
+<p></p>
+<p><a href="https://hangar.social">Hangar</a></p>
+<p></p>
+
+<p>p.s. Please reply to this email if you find any bugs or have any ideas for making Hangar better!<p>
+       <br />`
+  };
+
+  try {
+    mailTransport.sendMail(mailOptions);
+    console.log('mail send');
+
+  } catch (error) {
+    console.error('There was an error while sending the email:', error);
+  }
+  return null;
+});
 
 exports.generateThumbnail = functions.storage.object().onFinalize(async (object: any) => {
 
@@ -42,7 +85,7 @@ exports.generateThumbnail = functions.storage.object().onFinalize(async (object:
   const uuid = UUID();
   const metadata = {
     contentType: contentType,
-    metadata:{firebaseStorageDownloadTokens: uuid}
+    metadata: { firebaseStorageDownloadTokens: uuid }
   };
   await bucket.file(filePath).download({ destination: tempFilePath });
   console.log('Image downloaded locally to', tempFilePath);
@@ -59,14 +102,14 @@ exports.generateThumbnail = functions.storage.object().onFinalize(async (object:
     metadata: metadata,
   });
 
-  console.log("uploadresult",uploadresult)
+  console.log("uploadresult", uploadresult)
   const file = uploadresult[0]
-  console.log("file.name",file.name)
+  console.log("file.name", file.name)
   const img_url = 'https://firebasestorage.googleapis.com/v0/b/' + fileBucket + '/o/'
-  + encodeURIComponent(file.name)
-  + '?alt=media&token='
-  + metadata.metadata.firebaseStorageDownloadTokens;
-  console.log("img_url",img_url)
+    + encodeURIComponent(file.name)
+    + '?alt=media&token='
+    + metadata.metadata.firebaseStorageDownloadTokens;
+  console.log("img_url", img_url)
   const nameAr = file.name.split('/');
   const usersIndex = nameAr.indexOf('users');
   const assetId = nameAr[usersIndex + 3]
@@ -127,7 +170,7 @@ export const manageZipArchives = functions
         const acceptableKeys = ["nx", "ny", "nz", "px", "py", "pz"];
         const assetId = nameAr[usersIndex + 3];
         acceptableKeys.forEach(key => {
-          if (fileName.indexOf(key) >= 0 ) {
+          if (fileName.indexOf(key) >= 0) {
             const data = {
               [key]: img_url,
               title: titleFromZipName

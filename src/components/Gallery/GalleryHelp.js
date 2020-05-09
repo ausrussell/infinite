@@ -7,8 +7,10 @@ const colStyle= { textAlign: 'center' }
 
 export const GalleryHelp = (props) => {return {
     title: 'Moving round the gallery',
+    id:"galleryHelp",
     width:"60vw",
     callback:props.callback,
+    showOnce: true,
     content:
         (<Row>
             <Col span={18}>

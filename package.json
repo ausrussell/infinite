@@ -17,6 +17,7 @@
     "fs-extra": "^9.0.0",
     "google-maps-react": "^2.0.2",
     "orbit-controls-es6": "^2.0.1",
+    "rc-tween-one": "^2.6.8",
     "react": "^16.13.1",
     "react-color": "^2.18.0",
     "react-dom": "^16.13.1",
