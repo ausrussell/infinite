@@ -54,7 +54,6 @@ export class MapContainer extends Component {
     >
       {this.props.modal ? (<Marker position={this.props.setCenter} onClick={this.onMarkerClick} name={'Your Gallery\'s location'} draggable={true} onDragend={this.onMarkerDragEnd} />) :
         this.props.list.map((item, index) => {
-          console.log("marker item", item)
           return (
             <Marker
               position={item.location}

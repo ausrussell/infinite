@@ -555,7 +555,7 @@ class FlaneurControls {
     this.builder.scene.remove(this.footstepsHoverMesh);
     const intersect = this.checkForIntersecting();
     //console.log("checkForFloorHover intersect", intersect);
-    if (intersect.clickFloorPlane) {
+    if (this.footstepsHoverMesh && intersect.clickFloorPlane) {
       if (!this.builder.scene.getObjectByName("footHover")) {
         this.builder.scene.add(this.footstepsHoverMesh);
       }
@@ -575,7 +575,7 @@ class FlaneurControls {
     // this.footstepsHoverMesh.translateY(0.2);
     this.footstepsHoverMesh.position.set(
       this.footstepsHoverMesh.position.x,
-      0.2,
+      .1,
       this.footstepsHoverMesh.position.z
     );
     this.getFootAngle(this.footstepsHoverMesh.position);

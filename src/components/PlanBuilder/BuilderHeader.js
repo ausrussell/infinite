@@ -89,11 +89,11 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
                 form.setFieldsValue(
                     galleryDesc
                     , [galleryDesc]);
-            // }
-        }
+            }
+        // }
 
         updateFields()
-    }, [plannerGallery, galleryDesc, galleryId, id, form, firebase, galleryDesc.galleryImg]);
+    }, [ galleryDesc, galleryId, id, form, firebase, galleryDesc.galleryImg]);
 
     // const onEditDropdownChangeHandler = (returnData) => {
     //     console.log("BuilderHeader onEditDropdownChangeHandler", returnData)//galleryDesc, galleryData, id
@@ -160,7 +160,7 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
                 form={form}
                 onFinish={onFinish}
             >
-                {(title || plannerGallery) && (<Collapse defaultActiveKey={['1']} style={{ marginBottom: 16 }}>
+                {(true || title || plannerGallery) && (<Collapse defaultActiveKey={['1']} style={{ marginBottom: 16 }}>
                     <Panel header="Add/Edit Gallery details" key="1">
                         <Row gutter={8}>
                             <Col span={8}>
@@ -189,7 +189,7 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
                                 >
                                     <TextArea rows={4} />
                                 </Form.Item>
-                                <p>Building on floorplan: <span style={{ color: "#333" }}>{floorplan.title}</span></p>
+                                <p>Building on floorplan: <span style={{ color: "#333" }}>{(floorplan) && floorplan.title}</span></p>
                             </Col>
                             <Col span={8}>
                                 {imgUrl && (<Card style={{ margin: 'auto', marginBottom: 16, width: 200 }}

@@ -915,16 +915,19 @@ class Builder extends Component {
     this.setupListeners();
     this.initialCameraAnimation();
     this.setSceneMeshes();
-    // let returnVal = props.firebase.pushAsset("users/" + props.firebase.currentUID + "/galleryDesc/")
-    //             returnVal.then(snapshot => {
+     let returnVal = this.props.firebase.pushAsset("users/" + this.props.firebase.currentUID + "/galleryDesc/")
+                returnVal.then(snapshot => {
+      this.setState({ galleryId: snapshot.key });
+                })
     //             console.log("snapshot key", snapshot.key, id)
     //             console.log("returnVal.key", returnVal.key)
     //             setId("hey")
     //             console.log("id",id)
     //             processValuesAndSave(values);
+            // this.setState({ galleryId: snapshot.key });
 
     //         })
-    this.setState({ plannerGallery: true })
+    // this.setState({ plannerGallery: true })
     // this.addTransformControls();
   };
 
@@ -1231,7 +1234,7 @@ class Builder extends Component {
     const { plannerGallery, galleryId, floorplan } = this.state;
     return (
       <ErrorBoundary>
-        {(this.props.firebase.currentUID || plannerGallery) &&
+        {(this.props.firebase.currentUID ) &&
           (<BuilderHeader
             onEditDropdownChangeHandler={this.onEditDropdownChangeHandler}
             saveGallery={this.saveGallery}
@@ -1272,6 +1275,7 @@ class Builder extends Component {
           }
           wallOver={this.state.wallOver}
           type="art"
+          validation="image"
         />
       </ErrorBoundary>
     );

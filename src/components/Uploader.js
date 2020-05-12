@@ -4,7 +4,7 @@ import React, { Component, useState } from "react";
 // import { Upload, message, Button, Input, Select } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import { withFirebase } from "./Firebase";
-import { Form, Upload } from 'antd';
+import { Form, Upload, message } from 'antd';
 
 const UploaderTileBase = (props) => {
 
@@ -27,8 +27,10 @@ const UploaderTileBase = (props) => {
           const title = file.name.split(".");
           title.pop()
           title.join("");
-          const options = { url: url,
-          title: title };
+          const options = {
+            url: url,
+            title: title
+          };
           props.firebase.updateAsset(dbPath, options)
             .then(() => {
               console.log("db saved uploaded", dbPath, options);
@@ -43,7 +45,7 @@ const UploaderTileBase = (props) => {
     });
   };
   return (<Upload.Dragger multiple name="files" customRequest={customRequest} >
-      <InboxOutlined style={{fontSize: 26}} />
+    <InboxOutlined style={{ fontSize: 26 }} />
     <p className="ant-upload-text">Upload art</p>
   </Upload.Dragger>)
 }
@@ -169,19 +171,35 @@ class Uploader extends Component {
   dragendHandler = e => {
     e.preventDefault();
   };
+
+  validateFile(file) {
+    debugger;
+    if (!this.props.validation) return true;
+    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+    if (!isJpgOrPng) {
+      this.props.fileDragLeaveHandler();
+      message.error('You can only upload JPG or PNG files!');
+      return false
+    } else {
+      return true;
+    }
+  }
+
   dropHandler = e => {
     e.preventDefault();
     //TO DO: check for multiple uploads
-    const file = e.dataTransfer.files[0],
-      reader = new FileReader();
-    // file.assetType = this.props.type;
+    const file = e.dataTransfer.files[0];
+    if (this.validateFile(file)) {
+      const reader = new FileReader();
+      // file.assetType = this.props.type;
 
-    if (this.props.type === "cubebox") {
-      this.fileUpload(file);
-    }
-    else {
-      reader.onload = e => this.fileLoadedHandler(e, file);
-      reader.readAsDataURL(file);
+      if (this.props.type === "cubebox") {
+        this.fileUpload(file);
+      }
+      else {
+        reader.onload = e => this.fileLoadedHandler(e, file);
+        reader.readAsDataURL(file);
+      }
     }
 
     return false;
