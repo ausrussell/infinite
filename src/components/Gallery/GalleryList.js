@@ -4,7 +4,8 @@ import { withFirebase } from "../Firebase";
 import { List } from 'antd';
 import { EnvironmentOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import { Route } from "react-router-dom";
-
+import { Typography } from 'antd';
+const { Paragraph } = Typography;
 
 const galleryPlaceholder = 'https://firebasestorage.googleapis.com/v0/b/infinite-a474a.appspot.com/o/images%2Fhanger_placeholder.png?alt=media&token=4f847f15-48d6-43d9-92df-80eea32394f5';
 
@@ -73,7 +74,7 @@ const GalleryListItem = ({item, onClickHandler}) => {
     <img
       width={172}
       alt={`${item.title} Gallery`}
-      src={item.galleryImg ? `${item.galleryImg.url}` : galleryPlaceholder}
+      src={item.galleryImg ? `${item.galleryImg.thumb || item.galleryImg.url}` : galleryPlaceholder}
     />
   }
   actions={[
@@ -91,8 +92,7 @@ const GalleryListItem = ({item, onClickHandler}) => {
   ]}>
     <List.Item.Meta
       title={item.title}
-      description={item.description}
-
+      description={<Paragraph ellipsis={{ rows: 5, expandable: true }}>{item.description}</Paragraph>}
     />
   </List.Item>
 )}

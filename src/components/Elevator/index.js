@@ -40,7 +40,7 @@ const Elevator = (props) => {
     console.log("animatedDiv", animatedDiv.current.scrollTop)
     setSpringProps({ scroll: floorRefs.current[no].current.offsetTop });
     setCurrentFloor(no);
-    props.floorCalledCallback(props.floors[no])
+    props.floorCalledCallback && props.floorCalledCallback(props.floors[no])
   }
   return (
     <div className={`vault-container ${vaultOpen ? "open" : "closed"}`}>

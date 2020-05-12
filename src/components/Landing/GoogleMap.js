@@ -43,7 +43,7 @@ export class MapContainer extends Component {
 
   render() {
     const centerSet = (this.props.setCenter && this.props.setCenter.lat);
-    console.log("this.props.setCenter ={!centerSet}", this.props.setCenter)
+    // console.log("this.props.setCenter ={!centerSet}", this.props.setCenter)
 
     return (<CurrentLocation
       centerAroundCurrentLocation={!centerSet}
@@ -52,7 +52,7 @@ export class MapContainer extends Component {
       selected={this.props.setCenter || this.props.selected}
       modal={this.props.modal}
     >
-      {this.props.modal ? (<Marker position={this.props.setCenter} onClick={this.onMarkerClick} name={'current location'} draggable={true} onDragend={this.onMarkerDragEnd} />) :
+      {this.props.modal ? (<Marker position={this.props.setCenter} onClick={this.onMarkerClick} name={'Your Gallery\'s location'} draggable={true} onDragend={this.onMarkerDragEnd} />) :
         this.props.list.map((item, index) => {
           console.log("marker item", item)
           return (
@@ -84,9 +84,6 @@ export class MapContainer extends Component {
 
 }
 
-
 export default GoogleApiWrapper({
-  apiKey: 'AIzaSyAZ8009CBQp6KKDtOjk5svYXe76q2ehG7w',
-
-
+  apiKey: process.env.REACT_APP_GOOGLE_MAP_API_KEY
 })(MapContainer);

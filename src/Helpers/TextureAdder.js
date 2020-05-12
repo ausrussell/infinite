@@ -5,7 +5,7 @@ export default class TextureAdder {
         this.material = props.material;
         this.textures = {};
         this.textureLoader = new THREE.TextureLoader();
-        console.log("TextureAdder constructor", this.material)
+        // console.log("TextureAdder constructor", this.material)
     }
 
     loadHandler(textureType, texture) {
@@ -14,7 +14,7 @@ export default class TextureAdder {
         this.material.needsUpdate = true;
     };
     setDataToMaterial(data) {
-        console.log("setMaterial method", this.material,data)
+        // console.log("setMaterial method", this.material,data)
         // frameData = frame;
 
         Object.entries(data).forEach(item => {

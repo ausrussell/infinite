@@ -1,80 +1,84 @@
 import React, { useState, useEffect } from "react";
-import { Input, Button, Form, Row, Col, Checkbox, Card, Collapse, Modal } from "antd";
+import { Input, Button, Form, Row, Col, Checkbox, Card, Collapse, Modal, message } from "antd";
 import GalleryEditDropdown from "../Gallery/GalleryEditDropdown";
 import { withFirebase } from "../Firebase";
 import GoogleApiWrapper from "../Landing/GoogleMap";
 import PageTitle from '../Navigation/PageTitle';
 import { Route } from "react-router-dom";
 import { ArrowRightOutlined } from '@ant-design/icons';
-import {BuilderHelp} from './BuilderHelp'
-
-
-
+import { BuilderHelp } from './BuilderHelp'
 
 const { TextArea } = Input;
 const { Meta } = Card;
 const { Panel } = Collapse;
 
-const MapModal = (props) => {
-    const [center, setCenter] = useState({ location: props.setCenter });
-    useEffect(() => {
-        const updateFields = () => {
-            setCenter(props.setCenter)
-        }
-        updateFields(props)
-    }, [props]);
-    const latLngCallBack = (latLng) => {
-        console.log("latLngCallBack", latLng);
-        props.locationSet(latLng)
+const MapModal = ({ setCenter, locationSet }) => {
+    // const [center, setCenter] = useState({ location: props.setCenter });
+    const [visible, setVisible] = useState();
+    const [latLng, setLatLng] = useState()
+
+    const hideModal = () => {
+        setVisible(false)
     }
-    const handleOk = props.closeModal;
-    return (<Modal
-        title="Title"
-        visible={props.mapVisible}
-        width={"75vw"}
-        bodyStyle={{ height: 500 }}
-        onOk={handleOk}
-    >
-        <GoogleApiWrapper modal={true} latLngCallBack={latLngCallBack} setCenter={center} />
-    </Modal>)
+
+    const showMapModal = () => {
+        setVisible(true)
+    }
+
+    const draggedCallback = (draggedLatLng) => {
+        setLatLng(draggedLatLng);
+    }
+
+    const handleOk = () => {
+        locationSet(latLng)
+        hideModal()
+    };
+
+    return (<div><Button type="primary" onClick={showMapModal}>
+        Position on Map
+        </Button><Modal
+            title="Position your gallery"
+            visible={visible}
+            width={"75vw"}
+            bodyStyle={{ height: 530 }}
+            onOk={handleOk}
+            onCancel={hideModal}
+        >
+            <GoogleApiWrapper modal={true} latLngCallBack={draggedCallback} setCenter={setCenter} />
+        </Modal>
+    </div>)
 }
 
-const BuilderHeader = props => {
-    console.log("BuilderHeader props", props)
-    const [title, setTitle] = useState(props.title || "");
+const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeHandler, plannerGallery, saveGallery, selectingArt, setSelectingArt, floorplan }) => {
+    // console.log("BuilderHeader props", props)
+    const [title, setTitle] = useState(galleryDesc.title || "");
     const [id, setId] = useState("");
     const [visitable, setVisitable] = useState(false);
     const [imgUrl, setImgUrl] = useState("");
     const [imgTitle, setImgTitle] = useState("");
     const [galleryImg, setGalleryImg] = useState({});
-    const [mapVisible, setMapVisible] = useState(null)
     const [location, setLocation] = useState(null)
     const [nameEncoded, setNameEncoded] = useState(null);
     const [form] = Form.useForm();
 
 
     useEffect(() => {
-        console.log("useEffect", props)
+        console.log("BuilderHeader useEffect")
         const updateFields = () => {
-            if (props.plannerGallery && id !== "") {
-                let returnVal = props.firebase.pushAsset("users/" + props.firebase.currentUID + "/galleryDesc/")
-                returnVal.then(snapshot => {
-                    console.log("snapshot key", snapshot.key, id)
-                    console.log("returnVal.key", returnVal.key);
-                    setId(returnVal.key)
-                })
-            } else {
+            // if (plannerGallery && id !== "") {
+            //     let returnVal = firebase.pushAsset("users/" + firebase.currentUID + "/galleryDesc/")
+            //     returnVal.then(() => {
+            //         setId(returnVal.key)
+            //     })
+            // } else {
                 form.resetFields();
-                const { galleryDesc } = props;
                 setTitle(galleryDesc.title);
-                console.log("rops.galleryId", props.galleryId)
-                setId(props.galleryId);
+                setId(galleryId);
                 setLocation(galleryDesc.location);
                 setNameEncoded(galleryDesc.nameEncoded)
                 setVisitable(galleryDesc.public);
-                console.log("reset location to ", galleryDesc.location)
                 if (galleryDesc.galleryImg) {
-                    setImgUrl(galleryDesc.galleryImg.url);
+                    setImgUrl(galleryDesc.galleryImg.thumb || galleryDesc.galleryImg.url);
                     setImgTitle(galleryDesc.galleryImg.title);
                     setGalleryImg(galleryDesc.galleryImg)
                 } else {
@@ -85,19 +89,18 @@ const BuilderHeader = props => {
                 form.setFieldsValue(
                     galleryDesc
                     , [galleryDesc]);
-            }
+            // }
         }
 
-        updateFields(props)
-    }, [props]);
+        updateFields()
+    }, [plannerGallery, galleryDesc, galleryId, id, form, firebase, galleryDesc.galleryImg]);
 
-    const onEditDropdownChangeHandler = (returnData) => {
-        console.log("BuilderHeader onEditDropdownChangeHandler", returnData)//galleryDesc, galleryData, id
-
-        props.onEditDropdownChangeHandler(returnData);
-    }
+    // const onEditDropdownChangeHandler = (returnData) => {
+    //     console.log("BuilderHeader onEditDropdownChangeHandler", returnData)//galleryDesc, galleryData, id
+    //     props.onEditDropdownChangeHandler(returnData);
+    // }
     const selectArt = () => {
-        props.setSelectingArt()
+        setSelectingArt()
     }
     const processValuesAndSave = async (values) => {
         setGalleryImg.updateTime = new Date();
@@ -106,7 +109,7 @@ const BuilderHeader = props => {
         values.location = location || { lat: 36.80885384408701 + Math.random() * 2, lng: -123.27939428681641 + Math.random() * 2 };
         Object.keys(values).forEach(key => { values[key] = values[key] || null });
 
-        const galleryData = props.saveGallery();
+        const galleryData = saveGallery();
         console.log("processValuesAndSave galleryData", galleryData);
         const nameEncode = encodeURIComponent(
             values.title.replace(" ", "_")
@@ -114,12 +117,12 @@ const BuilderHeader = props => {
         values.nameEncoded = nameEncode;
         setNameEncoded(nameEncode);
         setVisitable(form.getFieldValue("public"));
-        
-        const dataPath = "users/" + props.firebase.currentUID + "/galleryData/" + id;
-        const dataSave = props.firebase.updateAsset(dataPath, galleryData);
+
+        const dataPath = "users/" + firebase.currentUID + "/galleryData/" + id;
+        const dataSave = firebase.updateAsset(dataPath, galleryData);
         await dataSave;
-        const descPath = "users/" + props.firebase.currentUID + "/galleryDesc/" + id;
-        const dbSave = props.firebase.updateAsset(descPath, values);
+        const descPath = "users/" + firebase.currentUID + "/galleryDesc/" + id;
+        const dbSave = firebase.updateAsset(descPath, values);
         await dbSave;
 
 
@@ -129,41 +132,35 @@ const BuilderHeader = props => {
             dataPath: dataPath
         }
         Object.assign(publicGalleryData, values);
-        if (form.getFieldValue("public")){
-            props.firebase.updateAsset(galleriesPath, publicGalleryData)   
+        if (form.getFieldValue("public")) {
+            firebase.updateAsset(galleriesPath, publicGalleryData)
         } else {
-            props.firebase.removeRef(galleriesPath)
+            firebase.removeRef(galleriesPath)
         }
 
         setTitle(values.title);
+        message.success("Successfully saved Gallery: " + values.title)
     }
     const onFinish = async (values) => {
         processValuesAndSave(values)
     }
 
-    const showMapModal = () => {
-        setMapVisible(true)
-    }
-
-    const closeModal = () => {
-        setMapVisible(null)
-    }
-
     const onVisitHandler = (routeProps) => {
         const { history } = routeProps;
-        history.push({ pathname: "/Gallery/" + nameEncoded || props.galleryDesc.nameEncoded })
+        history.push({ pathname: "/Gallery/" + nameEncoded || galleryDesc.nameEncoded })
     }
 
     return (
         <div className="page-header-area">
-            <PageTitle title={title ? 'Building gallery: ' + title : "Builder"}  help={BuilderHelp} />
+            <PageTitle title={title ? 'Building gallery: ' + title : "Builder"} help={BuilderHelp} />
+            <div>id : {id}</div>
             <Form
                 layout="vertical"
                 name="gallery-editor"
                 form={form}
                 onFinish={onFinish}
             >
-                {(title || props.plannerGallery) && (<Collapse defaultActiveKey={['1']} style={{ marginBottom: 16 }}>
+                {(title || plannerGallery) && (<Collapse defaultActiveKey={['1']} style={{ marginBottom: 16 }}>
                     <Panel header="Add/Edit Gallery details" key="1">
                         <Row gutter={8}>
                             <Col span={8}>
@@ -182,10 +179,7 @@ const BuilderHeader = props => {
                                     <Checkbox checked={true}>Public</Checkbox>
                                 </Form.Item>
                                 <Form.Item>
-                                    <Button type="primary" onClick={showMapModal}>
-                                        Position on Map
-                                    </Button>
-                                    <MapModal mapVisible={mapVisible} locationSet={setLocation} closeModal={closeModal} setCenter={location} />
+                                    <MapModal locationSet={setLocation} setCenter={location} />
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
@@ -195,7 +189,7 @@ const BuilderHeader = props => {
                                 >
                                     <TextArea rows={4} />
                                 </Form.Item>
-
+                                <p>Building on floorplan: <span style={{ color: "#333" }}>{floorplan.title}</span></p>
                             </Col>
                             <Col span={8}>
                                 {imgUrl && (<Card style={{ margin: 'auto', marginBottom: 16, width: 200 }}
@@ -205,8 +199,8 @@ const BuilderHeader = props => {
                                     <Meta description={imgTitle} />
                                 </Card>)}
 
-                                <Button style={{ margin: 'auto' }} onClick={selectArt} loading={props.selectingArt} >{props.selectingArt ? "Cancel" : "Select Image"}</Button>
-                                <div>Click button then click art in vault</div>
+                                <Button style={{ margin: 'auto' }} onClick={selectArt} loading={selectingArt} >{selectingArt ? "Cancel" : "Select Image"}</Button>
+                                {selectingArt ? <div>Select a work from Vault</div>:<div>Click button then click art in vault</div>}
                             </Col>
                         </Row>
                     </Panel>

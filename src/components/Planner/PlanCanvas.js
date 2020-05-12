@@ -94,6 +94,8 @@ class PlanCanvas extends Component {
     let newAr;
     const walls = this.getWallsFromPos(x, y);
     let pos = null;
+
+    
     if ((x - 5) % voxelSizePlus < paddedWall) {
       //get wall over or empty
       pos = 0;
@@ -104,6 +106,7 @@ class PlanCanvas extends Component {
     } else {
       newAr = [];
     }
+
     const sameWall = this.compare(this.state.mouseoverWall, newAr);
     if (!sameWall && this.state.mousedown) {
       //only for extended building
@@ -123,6 +126,8 @@ class PlanCanvas extends Component {
 
   onMouseDown = e => {
     this.setState({ mousedown: true });
+
+
     if (this.state.mouseoverWall.length > 0) {
       const buildingWall = this.getWallFromArray(
         this.state.mouseoverWall
@@ -131,6 +136,7 @@ class PlanCanvas extends Component {
       this.setState({ buildingWallAr: buildingWallAr });
     }
   };
+
   onMouseUp = e => {
     this.setState({ mousedown: false, buildingWallAr: null, buildTo: null });
   };
@@ -194,6 +200,7 @@ class PlanCanvas extends Component {
     // this.props.stats.update();
   }
   userEvents = () => {
+    console.log("userEvents")
     this.doAnyHover();
     if (this.state.mousedown && this.state.buildingWallAr)
       this.doAnyExtendedBuilding();
@@ -204,6 +211,7 @@ class PlanCanvas extends Component {
     if (!buildTo) return;
 
     const buildDirection = this.state.buildingWallAr[2];
+    console.log("doAnyExtendedBuilding buildDirection",buildDirection)
     let makeChange = false;
     let newBuildingWallAr;
     if (buildDirection === 1 && buildTo[0] !== this.state.buildingWallAr[0]) {
@@ -306,16 +314,12 @@ class PlanCanvas extends Component {
 
   render() {
     const { width, height } = this.props;
-    const { x, y, counter } = this.state;
-    //   var divStyle = {
-    // color: 'white'}
+    // <div>
+    // <div style={{ color: "#f81" }}>
+    //   mouse: {x},{y} - counter {counter}
+    // </div>
     return (
-      <div>
-        <div style={{ color: "#f81" }}>
-          mouse: {x},{y} - counter {counter}
-        </div>
         <canvas ref="canvas" width={width} height={height} />
-      </div>
     );
   }
 }

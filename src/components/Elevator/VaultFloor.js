@@ -126,7 +126,8 @@ class VaultFloor extends Component {
     tileInfo.ref = ref;
     const specificTileStyle = {
       backgroundImage: "url(" + tileInfo.tileUrl + ")",
-      backgroundColor: color || "#FFFFFF"
+      backgroundColor: color || "#FFFFFF",
+      cursor: this.props.draggable ? "grab": "pointer"
     }
     Object.assign(specificTileStyle, this.coverStyle)
     const { selectable } = this.props;

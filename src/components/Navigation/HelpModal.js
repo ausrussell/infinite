@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from 'antd';
 import { QuestionOutlined } from '@ant-design/icons';
 
@@ -12,10 +12,8 @@ const rotateYAnimation = {
 
 const HelpModal = (props) => {
     const idFromTitle = () => encodeURIComponent(props.content.title)
-
     const [visible, setVisible] = useState(props.content.showOnce && !localStorage.getItem(idFromTitle() + 'alreadySeen'))
     const [animation, setAnimation] = useState()
-
     const size = (props.content.size === "full") ? { height: "75vh", overflow: "auto" } : {};
     const onOk = () => {
         document.activeElement.blur();

@@ -7,25 +7,11 @@ import Elevator from "../Elevator";
 import PlanCanvas from "./PlanCanvas";
 import FloorplanHeader from './FloorplanHeader';
 
-import * as Stats from "stats-js";
-
 const paddedWall = 15;
 const voxelSizePlus = 30 + paddedWall;
 
 /// data an array of arrays: row, col, pos
 // [[x,y,0 or 1],...] for each wall
-
-const Instructions = () => {
-  return (
-    <div className="instructions-holder">
-      <ul>
-        <li>click to add a wall</li>
-        <li>drag mouse to extend wall</li>
-        <li>shift + click to remove wall</li>
-      </ul>
-    </div>
-  );
-};
 
 class Planner extends Component {
   state = {
@@ -42,25 +28,10 @@ class Planner extends Component {
     console.log("Planner props", props);
     this.voxelsX = 700 / voxelSizePlus;
     this.voxelsY = 500 / voxelSizePlus;
-
-    // this.stats = new Stats();
   }
 
   componentDidMount() {
-    this.setState({ walls: this.setWalls() }); //, this.renderCanvas
-    // this.setupStats();
-    // this.stats = new Stats();
-    // this.stats.showPanel(1); // 0: fps, 1: ms, 2: mb, 3+: custom
-    // document.body.appendChild(this.stats.dom);
-  }
-
-  setupStats() {
-    console.log("Planner setupStats");
-    if (!this.stats) {
-      this.stats = new Stats();
-      this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-      document.body.appendChild(this.stats.dom);
-    }
+    this.setState({ walls: this.setWalls() });
   }
 
   componentWillUnmount() { }
@@ -203,11 +174,6 @@ class Planner extends Component {
   floors = {
     0: {
       level: 0,
-      name: "Help",
-      floorComponent: Instructions
-    },
-    1: {
-      level: 1,
       name: "Floorplans",
       floorComponent: PreFab,
       tileCallback: this.tileClickHandler

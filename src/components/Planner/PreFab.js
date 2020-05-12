@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { withFirebase } from "../Firebase";
 import * as BUTTONS from "./buttons";
-import { Card, Row, Col } from "antd";
+import { Card, Row, Col, Tooltip } from "antd";
 // import Icon from "@ant-design/icons"
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 
@@ -91,9 +91,9 @@ class PreFab extends Component {
           cover={<CanvasTile plan={data} />}
           bodyStyle={{ padding: 0 }}
           actions={[
-            <EditOutlined key="edit" onClick={() => this.props.tileCallback(planData)} />,
-            <DeleteOutlined key="delete" onClick={() => this.removePlan(key)} />,
-            <BUTTONS.PlannerButtonRoute key="build" plan={key} title={title} />
+            <Tooltip title="Edit"><EditOutlined key="edit" onClick={() => this.props.tileCallback(planData)} /></Tooltip>,
+            <Tooltip title="Delete"><DeleteOutlined key="delete" onClick={() => this.removePlan(key)} /></Tooltip>,
+            <Tooltip title="Build"><span><BUTTONS.PlannerButtonRoute key="build" plan={key} title={title} /></span></Tooltip>
 
           ]}>
 

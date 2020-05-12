@@ -6,7 +6,7 @@ export class CurrentLocation extends React.Component {
   constructor(props) {
     super(props);
     console.log("CurrentLocation props", this.props)
-    const { lat, lng } = this.props.initialCenter;
+    const { lat, lng } = (this.props.selected && this.props.selected.lat)? this.props.selected : this.props.initialCenter;
     this.state = {
       currentLocation: {
         lat: lat,
@@ -25,7 +25,6 @@ export class CurrentLocation extends React.Component {
       if (navigator && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
           const coords = pos.coords;
-          // console.log("coords", coords)
           this.setState({
             currentLocation: {
               lat: coords.latitude,
@@ -43,10 +42,8 @@ export class CurrentLocation extends React.Component {
   }
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.google !== this.props.google) {
-
       this.loadMap();
     }
-
     if (this.props.selected && (prevProps.selected !== this.props.selected)) {
       this.panTo()
     }
@@ -101,19 +98,15 @@ export class CurrentLocation extends React.Component {
 
     const google = this.props.google;
     const maps = google.maps;
-    console.log("recenterMap center", this.state, this.state.currentLocation)
     if (map) {
       let center = new maps.LatLng(current.lat, current.lng);
       map.panTo(center);
     }
   }
 
-  onChildMouseDown = (hoverKey, childProps, mouse) => {
-  }
 
   renderChildren() {
     const { children } = this.props;
-    console.log("renderChildren this.state.currentLocation", this.state.currentLocation)
     if (!children) return;
     return React.Children.map(children, c => {
       if (!c) return;

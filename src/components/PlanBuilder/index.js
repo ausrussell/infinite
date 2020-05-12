@@ -52,6 +52,7 @@ class Builder extends Component {
     generalLight: null,
     plannerGallery: false,
     galleryId: null,
+    floorplan:null
   };
   constructor(props) {
     super(props);
@@ -131,7 +132,6 @@ class Builder extends Component {
     this.mount.removeEventListener("mousemove", this.onMouseMove);
     this.mount.removeEventListener("mousedown", this.onMouseDown);
     window.removeEventListener("resize", this.onWindowResize);
-
   }
 
   onWindowResize = () => {
@@ -143,8 +143,6 @@ class Builder extends Component {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
   }
-
-
 
   onMouseMove(e) {
     this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -384,7 +382,7 @@ class Builder extends Component {
     this.setupListeners();
     this.initialCameraAnimation();
     this.setSceneMeshes();
-    // this.setState({plannerGallery: false})
+    this.setState({plannerGallery: false})
   };
 
   setEditGeneralLight(generalLight) {
@@ -1230,7 +1228,7 @@ class Builder extends Component {
     // this.stats && this.stats.update();
   }
   render() {
-    const { plannerGallery, galleryId } = this.state;
+    const { plannerGallery, galleryId, floorplan } = this.state;
     return (
       <ErrorBoundary>
         {(this.props.firebase.currentUID || plannerGallery) &&
@@ -1241,7 +1239,8 @@ class Builder extends Component {
             setSelectingArt={this.selectingArtHandler}
             selectingArt={this.state.selectingArt}
             plannerGallery={this.state.plannerGallery}
-            galleryId={galleryId} />)}
+            galleryId={galleryId} 
+            floorplan={floorplan} />)}
         <MainCanvas refer={mount => (this.mount = mount)} />
         {this.state.draggableVaultElementActive && (
           <Draggable
