@@ -137,7 +137,6 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
         } else {
             firebase.removeRef(galleriesPath)
         }
-
         setTitle(values.title);
         message.success("Successfully saved Gallery: " + values.title)
     }
@@ -153,7 +152,6 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
     return (
         <div className="page-header-area">
             <PageTitle title={title ? 'Building gallery: ' + title : "Builder"} help={BuilderHelp} />
-            <div>id : {id}</div>
             <Form
                 layout="vertical"
                 name="gallery-editor"

@@ -94,6 +94,8 @@ class Firebase {
     return ref.update(object)
   }
 
+  assetPath = (type) => "users/" + this.currentUID + "/" + type + "/";
+
   deleteFolderContents(path) {
     const ref = this.storage.ref(path);
     return ref.listAll()

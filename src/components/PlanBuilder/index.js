@@ -1130,7 +1130,8 @@ class Builder extends Component {
         level: 0,
         tileCallback: this.artClickHandler.bind(this),
         draggable: true,
-        addUploader: true
+        addUploader: true,
+        actions: ["delete","edit"]
       },
       1: {
         name: "Frames",
@@ -1231,7 +1232,7 @@ class Builder extends Component {
     // this.stats && this.stats.update();
   }
   render() {
-    const { plannerGallery, galleryId, floorplan } = this.state;
+    const { galleryId, floorplan } = this.state;
     return (
       <ErrorBoundary>
         {(this.props.firebase.currentUID ) &&
@@ -1255,7 +1256,7 @@ class Builder extends Component {
           >
             <DraggableVaultElement
               ref={this.draggableImageRef}
-              imgSrc={this.state.draggableVaultItem.url}
+              imgSrc={this.state.draggableVaultItem.thumb || this.state.draggableVaultItem.url}
             />
           </Draggable>
         )}

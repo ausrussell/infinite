@@ -7,6 +7,16 @@ import { withFirebase } from "./Firebase";
 import { Form, Upload, message } from 'antd';
 
 const UploaderTileBase = (props) => {
+  const validateFile = (file) => {
+    if (!props.validation) return true;
+    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+    if (!isJpgOrPng) {
+      message.error('You can only upload JPG or PNG files!');
+      return false
+    } else {
+      return true;
+    }
+  }
 
   const customRequest = async ({ file, onProgress, onSuccess }) => {
     file.assetName = file.name;
@@ -44,7 +54,7 @@ const UploaderTileBase = (props) => {
       complete: complete
     });
   };
-  return (<Upload.Dragger multiple name="files" customRequest={customRequest} >
+  return (<Upload.Dragger multiple name="files" customRequest={customRequest} beforeUpload={validateFile}>
     <InboxOutlined style={{ fontSize: 26 }} />
     <p className="ant-upload-text">Upload art</p>
   </Upload.Dragger>)
@@ -173,7 +183,6 @@ class Uploader extends Component {
   };
 
   validateFile(file) {
-    debugger;
     if (!this.props.validation) return true;
     const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
     if (!isJpgOrPng) {
@@ -201,7 +210,6 @@ class Uploader extends Component {
         reader.readAsDataURL(file);
       }
     }
-
     return false;
   };
 
@@ -221,7 +229,13 @@ class Uploader extends Component {
     uploadTask.then(snapshot => {
       console.log("uploaded file", snapshot);
       uploadTask.snapshot.ref.getDownloadURL().then(downloadURL => {
-        const object = { url: downloadURL }
+        const title = file.name.split(".");
+        title.pop()
+        title.join("");
+        const object = {
+          url: downloadURL,
+          title: title
+        }
         this.props.firebase.updateAsset("users/" + this.props.firebase.currentUID + "/" + path, object)
       })
     })

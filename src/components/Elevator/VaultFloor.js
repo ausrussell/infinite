@@ -1,8 +1,11 @@
 import React, { Component } from "react";
 import { withFirebase } from "../Firebase";
-import { Card, Row, Col, Button } from "antd";
+import { Card, Row, Col, Button, Tooltip, Modal, message } from "antd";
+import { DeleteOutlined, EditOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 
 import { UploaderTile } from "../Uploader"
+import AssetEditor from "../Studio/AssetEditor";
+const { confirm } = Modal;
 
 const masterRefPath = 'users/0XHMilIweAghhLcophtPU4Ekv7D3'
 class VaultFloor extends Component {
@@ -18,10 +21,6 @@ class VaultFloor extends Component {
 
   }
   componentDidMount() {
-    // console.log("this.needToAddMaster",this.needToAddMaster)
-    // if (this.props.addMaster) {
-    //   this.needToAddMaster = true;
-    // }
     this.tilesCall = this.props.firebase.getTiles(this.refPath, this.getTilesCallback);
   }
 
@@ -37,25 +36,25 @@ class VaultFloor extends Component {
 
   }
   addMasterTilesCallback = (data) => {
-    const masterTiles =this.state.tilesData;
+    const masterTiles = this.state.tilesData;
     if (data) {
       data.forEach((childSnapshot) => {
         masterTiles.push(childSnapshot);
       });
     }
-    this.setState({tilesData:masterTiles})
+    this.setState({ tilesData: masterTiles })
   }
 
   setInitialList() {
     this.list = [];
     if (this.props.addUploader) {
-      this.list.push(<UploaderTile />)
+      this.list.push(<UploaderTile validation="image" />)
     }
   }
 
   getTilesCallback = (data) => {
-    console.log("getTilesCallback this.needToAddMaster",this.needToAddMaster)
-      this.list = [];
+    console.log("getTilesCallback this.needToAddMaster", this.needToAddMaster)
+    this.list = [];
     this.setInitialList();
     const listObj = {};
     let selectedTilePresent = false;
@@ -127,15 +126,15 @@ class VaultFloor extends Component {
     const specificTileStyle = {
       backgroundImage: "url(" + tileInfo.tileUrl + ")",
       backgroundColor: color || "#FFFFFF",
-      cursor: this.props.draggable ? "grab": "pointer"
+      cursor: this.props.draggable ? "grab" : "pointer"
     }
     Object.assign(specificTileStyle, this.coverStyle)
     const { selectable } = this.props;
     const isSelected = (tileInfo.key === this.state.selectedTile);
     if (isSelected) console.log("isSelected", tileInfo.key, this.state.selectedTile);
     tileInfo.tileClicker = isSelected ? () => this.unsetSelected() : () => this.tileClickHandler(tileData, "not draggable");
-
-    tileInfo.cover = (<div style={specificTileStyle} >
+    const coverListener = (this.props.draggable) ? () => this.tileClickHandler(tileData) : null;
+    tileInfo.cover = (<div style={specificTileStyle} onMouseDown={coverListener}>
       {selectable && isSelected && (<div className="tile-selected-cancel"><div>Selected: Click above to apply</div><Button loading>Cancel</Button></div>)}
     </div>);
     tileInfo.isSelected = (tileData.key === this.state.selectedTile)
@@ -146,6 +145,34 @@ class VaultFloor extends Component {
     return tileInfo
   }
 
+  editTile = (tileData) => {
+    console.log("edit tile", tileData);
+    tileData.type = "art";//needs updating if other types
+    Modal.info({
+      content: <AssetEditor item={tileData} firebaseModal={this.props.firebase} />,
+      width: "75vw"
+    })
+  }
+
+  path = (tileData) => this.props.firebase.assetPath("art") + tileData.key; //might change type here
+  doDelete = (tileData) => {
+    const dbDelete = this.props.firebase.deleteAsset(this.path(tileData), tileData);//obeying rules for path in cloud functions
+    dbDelete.then(() => message.success((<><span style={{ color: "#000" }}>{tileData.title}</span>  succesfully deleted!</>)))
+    return dbDelete;
+  }
+  deleteTile = (tileData) => {
+    console.log("deleteTile", tileData)
+    const config = {
+      title: 'Do you want to delete ' + tileData.title + '!',
+      icon: <ExclamationCircleOutlined />,
+      onOk: () => this.doDelete(tileData),
+      onCancel() {
+        console.log('Cancel delete');
+      }
+    }
+    confirm(config);
+  }
+
   renderTile(snapshot) {
     // console.log("renderTile(snapshot)", snapshot);
     // if (!snapshot.val) debugger;
@@ -154,14 +181,20 @@ class VaultFloor extends Component {
     const { draggable } = this.props;
 
     const { key, tileData, title, tileUrl, cover, headStyle, tileClicker, isSelected, reactElement } = tileInfo;
+    const actions = (this.props.actions && !reactElement) ? [
+      <Tooltip title="Edit"><EditOutlined key="edit" onClick={() => this.editTile(tileData)} /></Tooltip>,
+      <Tooltip title="Delete"><DeleteOutlined key="delete" onClick={() => this.deleteTile(tileData)} /></Tooltip>,
+
+    ] : null;
     return (draggable && !reactElement) ? (
       <Tile
         key={key}
-        onMouseDown={() => this.tileClickHandler(tileData)}
+        // onMouseDown={() => this.tileClickHandler(tileData)}
         title={title || "Untitled"}
         tileUrl={tileUrl}
         cover={cover}
         headStyle={headStyle}
+        actions={actions}
       />
     ) : (
         <Tile
@@ -173,6 +206,8 @@ class VaultFloor extends Component {
           headStyle={headStyle}
           hoverable={true}
           isSelected={isSelected}
+          actions={actions}
+
         />
       );
   }
@@ -200,7 +235,7 @@ const cardStyle = {
 }
 
 const Tile = props => {
-  const { onClick, onMouseDown, title, hoverable, cover, headStyle } = props;
+  const { onClick, onMouseDown, title, hoverable, cover, headStyle, actions } = props;
 
   return (
     <Col>
@@ -211,8 +246,8 @@ const Tile = props => {
         hoverable={hoverable}
         onClick={onClick}
         onMouseDown={onMouseDown}
-        bodyStyle={{display:"none"}}
-
+        bodyStyle={{ display: "none" }}
+        actions={actions}
       />
     </Col>
   );
