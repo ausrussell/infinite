@@ -5,6 +5,13 @@ import React, { Component, useState } from "react";
 import { InboxOutlined } from '@ant-design/icons';
 import { withFirebase } from "./Firebase";
 import { Form, Upload, message } from 'antd';
+import moment from 'moment';
+
+const defaultArtValues = {
+  uploadedTime: moment().format('MMMM Do YYYY, h:mm:ss a'),
+  license: 3,
+  shareable: true
+}
 
 const UploaderTileBase = (props) => {
   const validateFile = (file) => {
@@ -39,8 +46,9 @@ const UploaderTileBase = (props) => {
           title.join("");
           const options = {
             url: url,
-            title: title
+            title: title,
           };
+          Object.assign(options, defaultArtValues)
           props.firebase.updateAsset(dbPath, options)
             .then(() => {
               console.log("db saved uploaded", dbPath, options);
@@ -146,24 +154,27 @@ class Uploader extends Component {
   constructor(props) {
     super(props);
     console.log("uploader props", props);
+
   }
 
   componentDidMount() {
+    this.domElement = this.props.domElement || window;
+
     this.initListeners();
   }
   componentWillUnmount() {
-    window.removeEventListener("dragenter", this.dragEnterHandler);
-    document.body.removeEventListener("dragleave", this.dragLeaveHandler);
-    document.body.removeEventListener("dragover", this.dragOverHandler);
-    window.removeEventListener("dragend", this.dragendHandler);
-    window.removeEventListener("drop", this.dropHandler);
+    this.domElement.removeEventListener("dragenter", this.dragEnterHandler);
+    this.domElement.removeEventListener("dragleave", this.dragLeaveHandler);
+    this.domElement.removeEventListener("dragover", this.dragOverHandler);
+    this.domElement.removeEventListener("dragend", this.dragendHandler);
+    this.domElement.removeEventListener("drop", this.dropHandler);
   }
   initListeners() {
-    window.addEventListener("dragenter", this.dragEnterHandler);
-    document.body.addEventListener("dragleave", this.dragLeaveHandler);
-    document.body.addEventListener("dragover", this.dragOverHandler);
-    window.addEventListener("dragend", this.dragendHandler);
-    window.addEventListener("drop", this.dropHandler);
+    this.domElement.addEventListener("dragenter", this.dragEnterHandler);
+    this.domElement.addEventListener("dragleave", this.dragLeaveHandler);
+    this.domElement.addEventListener("dragover", this.dragOverHandler);
+    this.domElement.addEventListener("dragend", this.dragendHandler);
+    this.domElement.addEventListener("drop", this.dropHandler);
   }
 
   dragEnterHandler() {
@@ -231,12 +242,14 @@ class Uploader extends Component {
       uploadTask.snapshot.ref.getDownloadURL().then(downloadURL => {
         const title = file.name.split(".");
         title.pop()
-        title.join("");
-        const object = {
+        const newTitle = title.join("");
+        const options = {
           url: downloadURL,
-          title: title
+          title: newTitle
         }
-        this.props.firebase.updateAsset("users/" + this.props.firebase.currentUID + "/" + path, object)
+        Object.assign(options, defaultArtValues);
+        console.log("fileLoadedHandler", options)
+        this.props.firebase.updateAsset("users/" + this.props.firebase.currentUID + "/" + path, options)
       })
     })
   }

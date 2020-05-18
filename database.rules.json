@@ -1,6 +1,15 @@
 {
   "rules": {
     ".read": true,
-    ".write": true
+    "users": {
+      "$uid": {
+        ".write": "$uid === auth.uid"
+      }
+    },
+    "publicGalleries": {
+      "$uid": {
+        ".write": "auth !== null"
+      }
+    }
   }
 }

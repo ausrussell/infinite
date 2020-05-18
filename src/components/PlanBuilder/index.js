@@ -114,6 +114,7 @@ class Builder extends Component {
   }
   //listeners
   setupListeners() {
+    console.log("setupListeners")
     this.mount.addEventListener(
       "mousemove",
       this.onMouseMove.bind(this),
@@ -1268,7 +1269,7 @@ class Builder extends Component {
             floorCalledCallback={this.floorCalledCallback}
           />
         )}
-        <Uploader
+{this.mount && <Uploader
           fileDragover={this.dragOverHandler}
           fileDragLeaveHandler={this.fileDragLeaveHandler}
           fileDrop={(item, uploadTask) =>
@@ -1277,7 +1278,8 @@ class Builder extends Component {
           wallOver={this.state.wallOver}
           type="art"
           validation="image"
-        />
+          domElement={this.mount}
+        />}
       </ErrorBoundary>
     );
   }

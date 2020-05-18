@@ -125,8 +125,6 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
         const dbSave = firebase.updateAsset(descPath, values);
         await dbSave;
 
-
-
         const galleriesPath = "publicGalleries/" + id;
         const publicGalleryData = {
             dataPath: dataPath
