@@ -82,7 +82,7 @@ class WallObject {
 
   initialAnimateBuild(index, done) {
     const animationStartDelay =
-      this.builder.initialAnimationTime / this.builder.wallEntities.length;
+      this.builder.initialAnimationTime / this.builder.state.wallEntities.length;
     setTimeout(() => {
       this.animateWallBuild(() => done && done(index));
     }, index * animationStartDelay);
@@ -140,6 +140,7 @@ class WallObject {
 
     wallAni.animate(performance.now());
     this.opacity = (this.texture && this.texture.opacity) ? this.texture.opacity : 1;
+    console.log("animateWallBuild",this.wallMesh,this.texture)
     this.wallMaterial.opacity = this.opacity;
   }
   drawing = progress => {

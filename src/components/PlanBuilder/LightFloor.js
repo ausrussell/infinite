@@ -7,8 +7,6 @@ import { PlusOutlined } from "@ant-design/icons";
 const GeneralLightControls = props => {
   const generalLight = props.generalLight;
   console.log("generalLight", generalLight);
-  // if (!generalLight) return null; //should get changed when working out general Lights
-
   const [intensity, setIntensity] = useState(generalLight.intensity * 100);
   const [color, setColor] = useState();
   generalLight.intensity = intensity / 100;
@@ -19,17 +17,17 @@ const GeneralLightControls = props => {
     setColor(color.hex);
   };
   return (
-<div>
-        <div className="control-item">
-          <div className="control-slider">
-            <div className="control-item-name">Intensity</div>
-            <div className="control-slider-control">
-              <Slider {...props} onChange={setIntensity} value={intensity} />
-            </div>
+    <div>
+      <div className="control-item">
+        <div className="control-slider">
+          <div className="control-item-name">Intensity</div>
+          <div className="control-slider-control">
+            <Slider {...props} onChange={setIntensity} value={intensity} />
           </div>
         </div>
-        <CompactPicker color={color} onChangeComplete={handleChangeComplete} />
-        </div>
+      </div>
+      <CompactPicker color={color} onChangeComplete={handleChangeComplete} />
+    </div>
 
 
   );
@@ -110,7 +108,6 @@ class LightFloor extends Component {
   constructor(props) {
     console.log("LightFloor props", props);
     super(props);
-    // this.generalLight = props.generalLight;
     this.addSpotlLightCallback = props.addSpotlightHandler;
   }
   componentDidMount() {
@@ -122,9 +119,12 @@ class LightFloor extends Component {
     if (props.selectedSpotlight !== this.props.selectedSpotlight) {
       this.setState({ selectedSpotlight: this.props.selectedSpotlight });
     }
+    if (this.props.generalLight && props.generalLight !== this.props.generalLight) {
+      this.setState({ generalLight: this.props.generalLight.getLight() })
+    }
   }
 
-  componentWillUnmount() {}
+  componentWillUnmount() { }
 
   addSpotlightHandler = () => {
     this.addSpotlLightCallback();
@@ -136,47 +136,39 @@ class LightFloor extends Component {
   }
 
   render() {
-    //console.log("tilesData", tilesData, tilesData.length);
     const { selectedSpotlight } = this.state;
-    const {generalLight} = this.props;
-
-    console.log("selectedSpotlight", selectedSpotlight);
     return (
       <Row>
-
-{     generalLight && (<Row gutter={[16,16]}>
-        <Col className="gutter-row"  flex="auto">
-        <div className="gutter-box">
-            <h3>Spotlights</h3>
-            <Tooltip title="Add a spotlight">
-              <Button
-                type="primary"
-                shape="round"
-                onClick={() => this.addSpotlightHandler()}
-              >
-                <PlusOutlined />
+        <Row gutter={[16, 16]}>
+          <Col className="gutter-row" flex="auto">
+            <div className="gutter-box">
+              <h3>Spotlights</h3>
+              <Tooltip title="Add a spotlight">
+                <Button
+                  type="primary"
+                  shape="round"
+                  onClick={() => this.addSpotlightHandler()}
+                >
+                  <PlusOutlined />
                 Add Spotlight
               </Button>
-            </Tooltip>
-            {selectedSpotlight ? (
-              <SpotlightControls selectedSpotlight={selectedSpotlight} deletedSpotlightCallback={this.deletedSpotlightCallback}/>
-            ) : (
-              <h2> Click a cone to alter a spotLight</h2>
-            )}
-          </div>
-        </Col>
-        <Col className="gutter-row"  flex="270px">
-          <div className="gutter-box">
-            <h3>General Lighting</h3>
-            <GeneralLightControls generalLight={generalLight} />
-          </div>
-        </Col>
-      </Row>)}
-
-
+              </Tooltip>
+              {selectedSpotlight ? (
+                <SpotlightControls selectedSpotlight={selectedSpotlight} deletedSpotlightCallback={this.deletedSpotlightCallback} />
+              ) : (
+                  <h2> Click a cone to alter a spotLight</h2>
+                )}
+            </div>
+          </Col>
+          <Col className="gutter-row" flex="270px">
+            <div className="gutter-box">
+              <h3>General Lighting</h3>
+             {this.state.generalLight && <GeneralLightControls generalLight={this.state.generalLight} /> }
+            </div>
+          </Col>
+        </Row>
       </Row>
     )
-  
   }
 }
 

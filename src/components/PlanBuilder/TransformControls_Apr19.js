@@ -28,7 +28,7 @@ import {
 
 var TransformControls = function (camera, domElement) {
 	Object3D.call(this);
-
+this.name = "TransformControls"
 	domElement = (domElement !== undefined) ? domElement : document;
 
 	this.visible = false;

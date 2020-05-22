@@ -259,6 +259,18 @@ class Firebase {
     );
     return this.userFloorplansRef.on("value", callback);
   };
+
+
+
+  getUsersFloorplans = async (callback) => {
+
+    this.userFloorplansRef = this.database.ref(
+      "users/" + this.currentUID + "/floorplans"
+    );
+    return this.userFloorplansRef.on("value", callback);
+  };
+
+
   detachGetUsersFloorplans() {
     this.userFloorplansRef.off();
   }

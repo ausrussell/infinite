@@ -520,14 +520,14 @@ class FlaneurControls {
     this.object.updateMatrixWorld();
     this.raycaster.setFromCamera(this.mouse, this.object);
     const intersect = {};
-    let collidableObjects = [];
-    if (this.mode === "Gallery") {
-      collidableObjects = this.builder.scene.children;
-    } else {
-      collidableObjects = this.builder.wallEntities.map(item => item.getMesh());
-    }
-    let all = collidableObjects.concat(this.builder.scene.children);
-    // let all = collidableObjects;
+    // let collidableObjects = [];
+    // if (this.mode === "Gallery") {
+    //   collidableObjects = this.builder.scene.children;
+    // } else {
+    //   collidableObjects = this.builder.state.wallMeshes;
+    // }
+    // let all = collidableObjects.concat(this.builder.scene.children);
+    let all = this.builder.scene.children;
     const intersectedAll = this.raycaster.intersectObjects(all); //collidableObjects
     const intersected0 = intersectedAll[0];
 

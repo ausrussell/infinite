@@ -7,6 +7,7 @@ import PageTitle from '../Navigation/PageTitle';
 import { Route } from "react-router-dom";
 import { ArrowRightOutlined } from '@ant-design/icons';
 import { BuilderHelp } from './BuilderHelp'
+import FloorplanDropdown from '../Planner/FloorplanDropdown';
 
 const { TextArea } = Input;
 const { Meta } = Card;
@@ -49,7 +50,7 @@ const MapModal = ({ setCenter, locationSet }) => {
     </div>)
 }
 
-const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeHandler, plannerGallery, saveGallery, selectingArt, setSelectingArt, floorplan }) => {
+const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeHandler, plannerGallery, saveGallery, selectingArt, setSelectingArt, floorplan, floorplanSelectedHandler }) => {
     // console.log("BuilderHeader props", props)
     const [title, setTitle] = useState(galleryDesc.title || "");
     const [id, setId] = useState("");
@@ -71,29 +72,29 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
             //         setId(returnVal.key)
             //     })
             // } else {
-                form.resetFields();
-                setTitle(galleryDesc.title);
-                setId(galleryId);
-                setLocation(galleryDesc.location);
-                setNameEncoded(galleryDesc.nameEncoded)
-                setVisitable(galleryDesc.public);
-                if (galleryDesc.galleryImg) {
-                    setImgUrl(galleryDesc.galleryImg.thumb || galleryDesc.galleryImg.url);
-                    setImgTitle(galleryDesc.galleryImg.title);
-                    setGalleryImg(galleryDesc.galleryImg)
-                } else {
-                    setImgUrl("");
-                    setImgTitle("");
-                    setGalleryImg({})
-                }
-                form.setFieldsValue(
-                    galleryDesc
-                    , [galleryDesc]);
+            form.resetFields();
+            setTitle(galleryDesc.title);
+            setId(galleryId);
+            setLocation(galleryDesc.location);
+            setNameEncoded(galleryDesc.nameEncoded)
+            setVisitable(galleryDesc.public);
+            if (galleryDesc.galleryImg) {
+                setImgUrl(galleryDesc.galleryImg.thumb || galleryDesc.galleryImg.url);
+                setImgTitle(galleryDesc.galleryImg.title);
+                setGalleryImg(galleryDesc.galleryImg)
+            } else {
+                setImgUrl("");
+                setImgTitle("");
+                setGalleryImg({})
             }
+            form.setFieldsValue(
+                galleryDesc
+                , [galleryDesc]);
+        }
         // }
 
         updateFields()
-    }, [ galleryDesc, galleryId, id, form, firebase, galleryDesc.galleryImg]);
+    }, [galleryDesc, galleryId, id, form, firebase, galleryDesc.galleryImg]);
 
     // const onEditDropdownChangeHandler = (returnData) => {
     //     console.log("BuilderHeader onEditDropdownChangeHandler", returnData)//galleryDesc, galleryData, id
@@ -142,10 +143,12 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
         processValuesAndSave(values)
     }
 
-    const onVisitHandler = (routeProps) => {
-        const { history } = routeProps;
-        history.push({ pathname: "/Gallery/" + nameEncoded || galleryDesc.nameEncoded })
+    const floorplanCallback = data => {
+        console.log("floorplanDropdownChangeHandler", data)
+        floorplanSelectedHandler(data)
     }
+
+
 
     return (
         <div className="page-header-area">
@@ -169,7 +172,6 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
                                 </Form.Item>
                                 <Form.Item
                                     name="public"
-
                                     valuePropName="checked"
                                 >
                                     <Checkbox checked={true}>Public</Checkbox>
@@ -196,12 +198,27 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
                                 </Card>)}
 
                                 <Button style={{ margin: 'auto' }} onClick={selectArt} loading={selectingArt} >{selectingArt ? "Cancel" : "Select Image"}</Button>
-                                {selectingArt ? <div>Select a work from Vault</div>:<div>Click button then click art in vault</div>}
+                                {selectingArt ? <div>Select a work from Vault</div> : <div>Click button then click art in vault</div>}
                             </Col>
                         </Row>
                     </Panel>
                 </Collapse>)}
                 <Row>
+
+                <Col span={8}>
+                        <FloorplanDropdown
+                            floorplanCallback={floorplanCallback}
+                        />
+                    </Col>
+                    <Col span={5}>
+                        <VisitButton disabled={!(id && visitable)} pathname={"/Gallery/" + nameEncoded || galleryDesc.nameEncoded} />
+                    </Col>
+
+                    <Col span={8}>
+                        <GalleryEditDropdown
+                            callback={onEditDropdownChangeHandler}
+                        />
+                    </Col>
                     <Col span={3}>
                         <Form.Item>
                             <Button type="primary" htmlType="submit" disabled={!id}>
@@ -209,27 +226,27 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
                             </Button>
                         </Form.Item>
                     </Col>
-                    <Col span={5}>
-                        <Route
-                            path="/"
-                            render={routeProps => {
-                                // Object.assign(routeProps, item);
-                                return <Button disabled={!(id && visitable)} onClick={() => onVisitHandler(routeProps)}  >Visit<ArrowRightOutlined key="list-vertical-star-o" style={{}} /></Button>;
-                            }}
-                        />
-                    </Col>
-
-                    <Col span={8}>
-                        <GalleryEditDropdown
-                            callback={onEditDropdownChangeHandler}
-                        />
-
-                    </Col>
                 </Row>
 
             </Form>
         </div>
 
+    )
+}
+
+const VisitButton = ({ disabled, pathname }) => {
+    const onVisitHandler = (routeProps) => {
+        const { history } = routeProps;
+        history.push({ pathname: pathname })
+    }
+    return (
+        <Route
+            path="/"
+            render={routeProps => {
+                // Object.assign(routeProps, item);
+                return <Button disabled={disabled} onClick={() => onVisitHandler(routeProps)}  >Visit<ArrowRightOutlined key="list-vertical-star-o" style={{}} /></Button>;
+            }}
+        />
     )
 }
 

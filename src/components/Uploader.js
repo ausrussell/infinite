@@ -267,17 +267,13 @@ class Uploader extends Component {
 
   uploadChangeHandler = (info) => {
     console.log("uploadClickHandler", info);
-    // const file = e.target.files[0];
     this.fileUpload(info.fileList[0]);
   }
 
 
 
   render() {
-    console.log(this.state);
-
     const { button } = this.props;
-    console.log("uploader button", button)
     return (<div>
       {button && (
         <UploadButton changeHandler={this.fileUpload} firebase={this.props.firebase} />)

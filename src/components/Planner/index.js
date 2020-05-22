@@ -195,7 +195,6 @@ class Planner extends Component {
         <FloorplanHeader title={this.state.title} id={this.state.id} reset={this.reset} onSaveClickWallData={this.onSaveClickWallData} />
         <div className="content-column-holder">
           <div className="content-column">
-
             <div className="canvas-holder">
               <PlanCanvas
                 statsCallback={() => this.statsCallback()}

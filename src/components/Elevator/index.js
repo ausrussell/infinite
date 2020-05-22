@@ -1,4 +1,4 @@
-import React, { createRef, useState, useRef } from "react";
+import React, { Component, createRef, useState, useRef } from "react";
 import "../../css/elevator.css";
 // import { Spring, config } from "react-spring/renderprops"; //Transition,
 import { useSpring, animated } from 'react-spring'
@@ -24,7 +24,6 @@ const Elevator = (props) => {
   const [currentFloor, setCurrentFloor] = useState(0);
   const floorRefs = useRef([])
   const floorsLength = Object.keys(props.floors).length;
-
   const animatedDiv = useRef();
 
   if (floorRefs.current.length !== floorsLength) {
@@ -43,9 +42,9 @@ const Elevator = (props) => {
     props.floorCalledCallback && props.floorCalledCallback(props.floors[no])
   }
   return (
-    <div className={`vault-container ${vaultOpen ? "open" : "closed"}`}>
+    <div className={`vault-container ${vaultOpen ? "open" : "closed"}`}  onClick={props.elevatorInnerClickHandler}>
       {vaultOpen && (<div draggable="true" />)}
-      <div className="vault-doors" >
+      <div className="vault-doors">
         {vaultOpen && (
           <animated.div
             ref={animatedDiv}
@@ -113,7 +112,6 @@ const ElevatorPanel = (props) => {
           return (
             <List.Item
               key={floor.level}
-
               className="elevator-floors-list-item"
               onClick={() => floorClickHandler(floor.level)}
             >

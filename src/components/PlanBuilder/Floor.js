@@ -9,16 +9,15 @@ export default class Floor {
     this.builder = props.builder;
     this.addFloorMesh();
     this.textureAdder = new TextureAdder({material: this.floorMaterial});
-
     this.export = { color: "#f8f1f0" };
-
-
   }
+
   renderFloor() {
     console.log("renderFloor", this.scene, this.floorItem);
     this.addFloorMesh();
     this.setDataToMaterial(this.data);
   }
+
   getFloorMesh() {
     return this.floorMesh;
   }
@@ -66,6 +65,7 @@ export default class Floor {
     this.setFloorMaterial();
     this.floorMesh.material = this.floorMaterial;
     this.textureAdder = new TextureAdder({material: this.floorMaterial});
+    this.export = { color: "#f8f1f0" };
 
   }
 

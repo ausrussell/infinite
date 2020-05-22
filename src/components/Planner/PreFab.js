@@ -110,7 +110,6 @@ class PreFab extends Component {
       <div>
         <div className="tile-holder">
           <Row gutter={[16, 16]}>
-
             {userFloorplans.map(data => this.renderFloorplanTile(data))}
           </Row>
         </div>
@@ -173,4 +172,6 @@ class CanvasTile extends Component {
   }
 }
 
+
+export {CanvasTile};
 export default withFirebase(PreFab);

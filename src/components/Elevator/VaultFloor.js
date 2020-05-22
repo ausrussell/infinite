@@ -8,31 +8,45 @@ import AssetEditor from "../Studio/AssetEditor";
 const { confirm } = Modal;
 
 const masterRefPath = 'users/0XHMilIweAghhLcophtPU4Ekv7D3'
+
+
+const RestoreDefaultTile = (props) => {
+  return (
+    <div style={{textAlign:"center",marginTop:5}}><Button onClick={()=>props.onClick()}>Clear</Button></div>
+  )
+}
+
 class VaultFloor extends Component {
   state = {
     tilesData: [],
-    selectedTile: null
+    // selectedTile: null
   };
   constructor(props) {
     console.log("VaultFloor props", props);
     super(props);
     this.tileCallback = props.tileCallback;
     this.refPath = props.refPath;
+    if (!this.refPath) debugger;
+    const pathParts = this.refPath.split('/');
+    this.type = pathParts[2];
+
 
   }
   componentDidMount() {
     this.tilesCall = this.props.firebase.getTiles(this.refPath, this.getTilesCallback);
   }
 
+componentDidUpdate(oldProps){
+  console.log("old and new", oldProps, this.props,)
+}
+
   componentWillUnmount() {
     this.props.firebase.detachRefListener(this.tilesCall);
     this.masterTilesCall && this.props.firebase.detachRefListener(this.masterTilesCall);
-
   }
 
   addMasterTiles() {
-    const pathParts = this.refPath.split('/');
-    this.tilesCall = this.props.firebase.getTiles(masterRefPath + '/' + pathParts[2], this.addMasterTilesCallback);
+    this.tilesCall = this.props.firebase.getTiles(masterRefPath + '/' + this.type, this.addMasterTilesCallback);
 
   }
   addMasterTilesCallback = (data) => {
@@ -50,6 +64,14 @@ class VaultFloor extends Component {
     if (this.props.addUploader) {
       this.list.push(<UploaderTile validation="image" />)
     }
+    if (this.props.restoreDefault) {
+      this.list.push(<RestoreDefaultTile onClick={() => this.props.restoreDefault()}/>)
+    }
+    if (this.props.selectableRestoreDefault) {
+      const restoreOptions = {title:"Clear", key:"clear"}
+      Object.assign(restoreOptions, this.props.selectableRestoreDefault);
+      this.list.push(restoreOptions);
+    }
   }
 
   getTilesCallback = (data) => {
@@ -62,11 +84,11 @@ class VaultFloor extends Component {
       data.forEach((childSnapshot) => {
         this.list.push(childSnapshot);
         listObj[childSnapshot.key] = childSnapshot;
-        if (this.state.selectedTile === childSnapshot.key && !selectedTilePresent) selectedTilePresent = true
+        if (this.props.selectedTile && this.props.selectedTile.key === childSnapshot.key && !selectedTilePresent) selectedTilePresent = true
       });
     }
 
-    if (this.state.selectedTile && !selectedTilePresent) {
+    if (this.props.selectedTile && !selectedTilePresent) {
       this.clearSelected()
     }
     this.setState({ tilesData: this.list }, this.props.addMaster && this.addMasterTiles);
@@ -74,19 +96,13 @@ class VaultFloor extends Component {
 
   clearSelected = () => {
     console.log("clearSelected");
-    this.setState({ selectedTile: null });
     this.tileCallback(null);
-
-  }
-  unsetSelected = () => {
-    this.setState({ selectedTile: null });
-
   }
 
-  tileClickHandler = (item, tile) => {
-    this.tileCallback(item, tile);
-
-    this.setState({ selectedTile: item.key });
+  tileClickHandler = (item, e) => {
+    e && e.stopPropagation();
+    console.log("tileClickHandler")
+    this.tileCallback(item);
   };
 
   coverStyle = {
@@ -102,6 +118,7 @@ class VaultFloor extends Component {
 
   getReactTile(element) {
     const tileInfo = {};
+    tileInfo.type = this.type;
     tileInfo.cover = (<div style={this.fullCoverStyle} >
       {element}
     </div>);
@@ -113,9 +130,11 @@ class VaultFloor extends Component {
 
   }
   getDataTile(snapshot) {
-    const tileData = snapshot.val();
+    const tileData = (snapshot.val) ? snapshot.val() : snapshot;
     const tileInfo = {};
     tileInfo.tileData = tileData;
+    tileData.type = this.type;
+
     const { thumb, url, color, px, map, normalMap, bumpMap, title } = tileData;//ny for cubeboxes
     tileInfo.title = title
     // console.log("renderTile, url, color, ny", url, color, ny, map);
@@ -130,14 +149,15 @@ class VaultFloor extends Component {
     }
     Object.assign(specificTileStyle, this.coverStyle)
     const { selectable } = this.props;
-    const isSelected = (tileInfo.key === this.state.selectedTile);
-    if (isSelected) console.log("isSelected", tileInfo.key, this.state.selectedTile);
-    tileInfo.tileClicker = isSelected ? () => this.unsetSelected() : () => this.tileClickHandler(tileData, "not draggable");
+    const isSelected = this.props.selectedTile && tileInfo.key === this.props.selectedTile.key;
+    console.log("check if selected ", tileInfo.key, this.props.selectedTile)
+    if (isSelected) console.log("isSelected", tileInfo.key, this.props.selectedTile);
+    tileInfo.tileClicker = isSelected ? () => this.clearSelected() : (e) => this.tileClickHandler(tileData, e);
     const coverListener = (this.props.draggable) ? () => this.tileClickHandler(tileData) : null;
     tileInfo.cover = (<div style={specificTileStyle} onMouseDown={coverListener}>
       {selectable && isSelected && (<div className="tile-selected-cancel"><div>Selected: Click above to apply</div><Button loading>Cancel</Button></div>)}
     </div>);
-    tileInfo.isSelected = (tileData.key === this.state.selectedTile)
+    tileInfo.isSelected = isSelected;
     tileInfo.headStyle = (title) ? null : {
       color: 666,
       fontStyle: "italic"
@@ -163,7 +183,7 @@ class VaultFloor extends Component {
   deleteTile = (tileData) => {
     console.log("deleteTile", tileData)
     const config = {
-      title: 'Do you want to delete ' + tileData.title + '!',
+      title: 'Do you want to delete ' + tileData.title + '?',
       icon: <ExclamationCircleOutlined />,
       onOk: () => this.doDelete(tileData),
       onCancel() {
@@ -174,12 +194,8 @@ class VaultFloor extends Component {
   }
 
   renderTile(snapshot) {
-    // console.log("renderTile(snapshot)", snapshot);
-    // if (!snapshot.val) debugger;
     const tileInfo = (React.isValidElement(snapshot)) ? this.getReactTile(snapshot) : this.getDataTile(snapshot);
-
     const { draggable } = this.props;
-
     const { key, tileData, title, tileUrl, cover, headStyle, tileClicker, isSelected, reactElement } = tileInfo;
     const actions = (this.props.actions && !reactElement) ? [
       <Tooltip title="Edit"><EditOutlined key="edit" onClick={() => this.editTile(tileData)} /></Tooltip>,
