@@ -14,8 +14,8 @@ class WallObject {
     this.row = y;
     this.pos = pos;
     this.builder = builder;
-    this.midpointX = this.builder.voxelsX / 2;
-    this.midpointY = this.builder.voxelsY / 2;
+    this.midpointX = this.builder.state.voxelsX / 2;
+    this.midpointY = this.builder.state.voxelsY / 2;
     this.height = 60; //1;
     this.wallGroup = new THREE.Group();
     this.wallGroup.setTexture = (data) => this.setDataToMaterial(data);

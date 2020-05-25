@@ -5,26 +5,25 @@ import TextureAdder from "../../Helpers/TextureAdder"
 
 export default class Floor {
   constructor(props) {
-    console.log("just floor",props)
+    console.log("just floor", props)
     this.builder = props.builder;
-    this.addFloorMesh();
-    this.textureAdder = new TextureAdder({material: this.floorMaterial});
+    // this.addFloorMesh();
     this.export = { color: "#f8f1f0" };
   }
 
   renderFloor() {
     console.log("renderFloor", this.scene, this.floorItem);
     this.addFloorMesh();
-    this.setDataToMaterial(this.data);
+    this.setDataToMaterial();
   }
 
   getFloorMesh() {
     return this.floorMesh;
   }
 
-  setFloorMaterial(){
+  setFloorMaterial() {
     this.floorMaterial = new THREE.MeshStandardMaterial({
-      transparent: true
+      // transparent: true
       // roughness: 0.8,
       // color: 0xffffff,
       // metalness: 0.2,
@@ -32,41 +31,35 @@ export default class Floor {
       // side: THREE.DoubleSide
     });
   }
-  addFloorMesh() {
+  addFloorMesh(item) {
+    // this.builder.gridDepth,
+    // this.builder.gridWidth,
     this.floorPlane = new THREE.PlaneBufferGeometry(
-      this.builder.gridWidth,
-      this.builder.gridDepth
+      this.builder.state.voxelsX * this.builder.state.wallWidth,
+      this.builder.state.voxelsY * this.builder.state.wallWidth
     );
     this.setFloorMaterial();
-
+    this.textureAdder = new TextureAdder({ material: this.floorMaterial });
+    if (item) this.setDataToMaterial(item);
     this.floorMesh = new THREE.Mesh(this.floorPlane, this.floorMaterial);
     this.floorMesh.name = "mainFloor";
     this.floorMesh.receiveShadow = true;
     this.floorMesh.rotateX(-Math.PI / 2);
     console.log("this.floorMesh", this.floorMesh);
     this.builder.scene.add(this.floorMesh);
-
-    // const geometry = new THREE.BoxGeometry(10, 10, 10);//uncomment to show box
-    // const material = new THREE.MeshBasicMaterial({
-    //   color: 0xffffff
-    //   // wireframe: true
-    // });
-    // const mesh = new THREE.Mesh(geometry, material);
-    // // this.builder.scene.add(mesh); 
-
   }
+
   setDataToMaterial(data) {
     this.textureAdder.setDataToMaterial(data);
   }
 
-  resetMaterial(){
+  resetMaterial() {
     this.floorMaterial.dispose();
     this.floorMesh.material = null;
     this.setFloorMaterial();
     this.floorMesh.material = this.floorMaterial;
-    this.textureAdder = new TextureAdder({material: this.floorMaterial});
+    this.textureAdder = new TextureAdder({ material: this.floorMaterial });
     this.export = { color: "#f8f1f0" };
-
   }
 
   floorTileCallback = item => {

@@ -5,17 +5,18 @@ import { GeneralLightDisplay } from "./GeneralLightDisplay";
 import Surroundings from "../PlanBuilder/Surroundings";
 
 
-const wallWidth = 20;
 class SceneLoader {
+  state = {
+    voxelsX: 14,
+    voxelsY: 10,
+    wallWidth: 20
+  };
   constructor(options) {
-    const { scene, sceneData } = options;
+    const { scene, sceneData, builder } = options;
     console.log("SceneLoader:: scene, sceneData", scene, sceneData);
     this.scene = scene;
     this.sceneData = sceneData;
-    this.voxelsX = sceneData.floorplan.data.length;
-    this.voxelsY = sceneData.floorplan.data[0].length;
-    this.gridWidth = this.voxelsX * wallWidth;
-    this.gridDepth = this.voxelsY * wallWidth;
+    this.builder = builder;
   }
   renderData() {
     this.renderFloor();
@@ -29,8 +30,10 @@ class SceneLoader {
       builder: this,
       data: this.sceneData.floor
     }
-    this.floor = new Floor(options);
-    this.floor.setDataToMaterial(this.sceneData.floor);
+    const floor = new Floor(options);
+    floor.addFloorMesh(this.sceneData.floor);
+
+    // this.floor.setDataToMaterial(this.sceneData.floor);
   }
   renderWalls() {
     const { walls } = this.sceneData;
@@ -40,7 +43,13 @@ class SceneLoader {
       options.builder = this;
       this.wallEntities.push(new WallDisplayObject(options));
     });
-    this.wallEntities.forEach(wall => wall.renderWall());
+    const wallMeshes = [];
+    this.wallEntities.forEach(wall => {
+      wall.renderWall();
+      wallMeshes.push(wall.wallMesh)
+    });
+    this.builder.setState({ wallMeshes: wallMeshes })
+
   }
 
   renderGeneralLight() {
@@ -66,7 +75,7 @@ class SceneLoader {
     });
   }
 
-  renderSurrounds(){
+  renderSurrounds() {
     const { surrounds } = this.sceneData;
     this.surrounds = new Surroundings(this);
     surrounds && this.surrounds.setDataToMaterial(surrounds);

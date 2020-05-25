@@ -4,9 +4,9 @@ import * as THREE from "three";
 export default class Surroundings {
   constructor(builder) {
     this.builder = builder;
+    this.scene = this.builder.scene
     this.export = {};
   }
-
 
   surroundingsTileCallback = item => {
     console.log("surroundingsTileCallback item", item);
@@ -24,12 +24,12 @@ export default class Surroundings {
         item.px, item.nx, item.py, item.ny, item.pz, item.nz
       ];
       var reflectionCube = new THREE.CubeTextureLoader().load(urls);
-      this.builder.scene.background = reflectionCube; 
+      this.scene.background = reflectionCube; 
   }
 
   reset(){
     this.export = null;
-    this.builder.scene.background = null;
+    this.scene.background = null;
   }
 
   getExport = () => {

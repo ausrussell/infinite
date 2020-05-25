@@ -1,16 +1,20 @@
-import React, { Component, useState } from "react";
+import React, { Component, useState, useEffect } from "react";
 import { withFirebase } from "../Firebase";
 import { CompactPicker } from "react-color";
 import { Slider, Row, Col, Button, Tooltip } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 
-const GeneralLightControls = props => {
-  const generalLight = props.generalLight;
+const GeneralLightControls = ({generalLight}) => {
   console.log("generalLight", generalLight);
   const [intensity, setIntensity] = useState(generalLight.intensity * 100);
   const [color, setColor] = useState();
-  generalLight.intensity = intensity / 100;
-  generalLight.color.set(color);
+  useEffect(()=>{
+    const update = () => {generalLight.intensity = intensity / 100;
+    generalLight.color.set(color);}
+    update();
+
+  },[generalLight, color, intensity])
+
 
   const handleChangeComplete = color => {
     console.log("color", color);
@@ -22,7 +26,7 @@ const GeneralLightControls = props => {
         <div className="control-slider">
           <div className="control-item-name">Intensity</div>
           <div className="control-slider-control">
-            <Slider {...props} onChange={setIntensity} value={intensity} />
+            <Slider onChange={setIntensity} value={intensity} />
           </div>
         </div>
       </div>
@@ -101,10 +105,10 @@ const SpotlightControls = props => {
 };
 
 class LightFloor extends Component {
-  state = {
-    selectedSpotlight: null,
-    generalLight: null
-  };
+  // state = {
+  //   selectedSpotlight: null,
+  //   generalLight: null
+  // };
   constructor(props) {
     console.log("LightFloor props", props);
     super(props);
@@ -116,12 +120,12 @@ class LightFloor extends Component {
 
   componentDidUpdate(props) {
     console.log("lightfloor componentDidUpdate", props, this.props);
-    if (props.selectedSpotlight !== this.props.selectedSpotlight) {
-      this.setState({ selectedSpotlight: this.props.selectedSpotlight });
-    }
-    if (this.props.generalLight && props.generalLight !== this.props.generalLight) {
-      this.setState({ generalLight: this.props.generalLight.getLight() })
-    }
+    // if (props.selectedSpotlight !== this.props.selectedSpotlight) {
+    //   this.setState({ selectedSpotlight: this.props.selectedSpotlight });
+    // }
+    // if (this.props.generalLight && props.generalLight !== this.props.generalLight) {
+    //   this.setState({ generalLight: this.props.generalLight.getLight() })
+    // }
   }
 
   componentWillUnmount() { }
@@ -131,12 +135,12 @@ class LightFloor extends Component {
   };
 
   deletedSpotlightCallback = () => {
-    console.log("deletedSpotlightCallback", this.state.selectedSpotlight);
-    this.setState({ selectedSpotlight: null });
+    console.log("deletedSpotlightCallback");
+    // this.setState({ selectedSpotlight: null });
   }
 
   render() {
-    const { selectedSpotlight } = this.state;
+    const { selectedSpotlight, generalLight } = this.props;
     return (
       <Row>
         <Row gutter={[16, 16]}>
@@ -163,7 +167,7 @@ class LightFloor extends Component {
           <Col className="gutter-row" flex="270px">
             <div className="gutter-box">
               <h3>General Lighting</h3>
-             {this.state.generalLight && <GeneralLightControls generalLight={this.state.generalLight} /> }
+             {generalLight && <GeneralLightControls generalLight={generalLight.light} /> }
             </div>
           </Col>
         </Row>

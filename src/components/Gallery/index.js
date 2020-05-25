@@ -9,9 +9,6 @@ import FlaneurControls from "../PlanBuilder/FlaneurControls";
 import MainCanvas from "./MainCanvas";
 import ErrorBoundary from "../ErrorBoundary";
 
-import WallDisplayObject from "./WallDisplayObject";
-
-import Floor from "../PlanBuilder/Floor";
 import GeneralLight from "../PlanBuilder/GeneralLight";
 import FrameDisplayObject from "./FrameDisplayObject";
 // import GLTFLoader from "three-gltf-loader";
@@ -19,25 +16,20 @@ import SceneLoader from "./SceneLoader";
 import PageTitle from '../Navigation/PageTitle';
 import {GalleryHelp} from './GalleryHelp'
 
-const wallWidth = 20;
 
 class Gallery extends Component {
   state = {
-    galleryData: {}
+    galleryData: {},
+    voxelsX:14,
+    voxelsY:10,
+    wallWidth: 20,
+    wallMeshes: []
   };
   constructor(props) {
     super(props);
     console.log("Gallery", props.match.params.galleryName);
     this.flaneurMode = "Gallery";
     this.walls = props.walls;
-    this.wallHeight = 60;
-
-    this.voxelsX = 14;
-    this.voxelsY = 10;
-    this.gridWidth = this.voxelsX * wallWidth;
-
-    this.gridDepth = this.voxelsY * wallWidth;
-
     console.log(this.walls, this.voxelsX);
     this.clock = new THREE.Clock();
     this.frameObjects = [];
@@ -154,7 +146,8 @@ class Gallery extends Component {
     // Load a glTF resource
     const options = {
       scene: this.scene,
-      sceneData: this.state.galleryData
+      sceneData: this.state.galleryData,
+      builder: this
     };
     this.sceneLoader = new SceneLoader(options);
     this.sceneLoader.renderData();
@@ -173,22 +166,7 @@ class Gallery extends Component {
     );
     this.scene.add(gridHelper);
   }
-  setWalls() {
-    this.walls = [];
-    this.galleryData.wallData.forEach(wall => {
-      const options = wall;
-      options.builder = this;
-      this.walls.push(new WallDisplayObject(wall));
-    });
-  }
-  renderWalls() {
-    console.log("this.scene", this.scene);
-    console.log("renderWalls", this.walls);
-    this.walls.forEach(wall => {
-      console.log("renderWalls wall", wall);
-      wall.renderWall();
-    });
-  }
+
 
   addBox() {
     var geometry = new THREE.BoxGeometry(1, 1, 1);
@@ -212,12 +190,6 @@ class Gallery extends Component {
 
   helpCallback = () => {
     setTimeout(() => this.flaneurControls.setFocus(), 500);//to overcome ant d difficult refocussing
-  }
-
-  setFloor() {
-    this.gridWidth = this.voxelsX * this.wallWidth;
-    this.gridDepth = this.voxelsY * this.wallWidth;
-    this.floor = new Floor(this);
   }
 
   animate() {

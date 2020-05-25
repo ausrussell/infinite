@@ -31,8 +31,6 @@ import Draggable from "./Draggable";
 
 import BuilderHeader from "./BuilderHeader"
 
-const wallWidth = 20;
-
 const degreesToRadians = degrees => {
   return (degrees * Math.PI) / 180;
 };
@@ -57,7 +55,11 @@ class Builder extends Component {
     plannerGallery: false,
     galleryId: null,
     floorplan: null,
-    selectedTile: null
+    selectedTile: null,
+    surroundings: {},
+    voxelsX:16,
+    voxelsY:12,
+    wallWidth:20
   };
   constructor(props) {
     super(props);
@@ -296,7 +298,7 @@ class Builder extends Component {
   }
 
   surroundingsTileCallback(item) {
-    this.surroundings.surroundingsTileCallback(item);
+    this.state.surroundings.surroundingsTileCallback(item);
   }
 
   selectingArtHandler = () => {
@@ -351,45 +353,26 @@ class Builder extends Component {
     }
   }
 
-  resetBuildingGallery() {
-    this.setState(this.baseState);
-    this.removeLights();
-    this.removeWalls();
+  onEditDropdownChangeHandler = ({ galleryDesc, galleryData, id }) => {
+    this.emptyScene();
+    const { name, floorplan} = galleryData;
 
+    const newState = Object.assign(this.baseState, { galleryTitle: name, floorplan: floorplan, galleryDesc: galleryDesc, galleryId: id })
+    this.setState(newState, () => this.rebuildGallery(galleryData))
   }
 
-
-  onEditDropdownChangeHandler = ({ galleryDesc, galleryData, id }) => {
-    console.log("onEditDropdownChangeHandler", galleryDesc, galleryData, id);
-    this.removeLights();
-    // if (this.editGalleryId === id) return;
-    this.editGalleryId = id;
-
-    console.log("this.editGalleryId", this.editGalleryId);
-
-    const { name, floorplan, walls, floor, lights, generalLight, surrounds } = galleryData;
-    this.setState({ galleryTitle: name, floorplan: floorplan, plannerGallery: false, galleryDesc: galleryDesc, galleryId: id });
-
-    this.floorPlan = floorplan.data;//FIXXXXX to state
-    // disposeHierarchy(this.scene, () => this.loadGalleryToEdit());
-    //need to check if need initial setup
-
-    this.removeWalls();
-
+  rebuildGallery(galleryData)  {
+    const { walls, floor, lights, generalLight, surrounds } = galleryData;
     this.setEditFloor(floor);
     this.setEditWalls(walls);
-    this.surroundings.surroundingsTileCallback(surrounds)
-
+   
+    surrounds && this.state.surroundings.surroundingsTileCallback(surrounds)
     generalLight && this.setEditGeneralLight(generalLight);
     this.setEditWallLights(lights);
-
-    // this.animate();
-    this.initialWallBuild(this.fadeInArt);
-    // this.setupListeners();
+    // this.initialWallBuild(this.fadeInArt));
     this.initialCameraAnimation();
     this.setSceneMeshes();
-    this.setState({ plannerGallery: false })
-  };
+  }
 
   setEditGeneralLight(generalLight) {
     console.log("generalLight", generalLight);
@@ -435,7 +418,7 @@ class Builder extends Component {
     return this.transformControls;
   };
   setEditFloor(item) {
-    this.state.floor.floorTileCallback(item);
+    this.setFloor(item);
   }
 
   fadeInArt = index => {
@@ -468,8 +451,8 @@ class Builder extends Component {
       this.galleryData.lights.push(item.getExport());
     });
 
-    this.galleryData.generalLight = this.state.generalLight.getExport();
-    this.galleryData.surrounds = this.surroundings.getExport();
+    if (this.galleryData.generalLight) this.state.generalLight.getExport();
+    if (this.state.surroundings)  this.galleryData.surrounds = this.state.surroundings.getExport();
 
     return this.galleryData;
     // this.makeGalleryDbSave();
@@ -750,12 +733,12 @@ class Builder extends Component {
     // this.addBox();
     this.renderer.render(this.scene, this.camera);
     // this.camera.position.z = 5;
-    this.setFloor(); //move to didMount... but needs to be after editWalls // remove previous
+    // this.setFloor(); //move to didMount... but needs to be after editWalls // remove previous
     this.setSurroundings();
     this.addTransformControls();
     this.setupFlaneurControls();
     this.animate();
-    this.setupListeners();
+    // this.setupListeners();
 
   }
 
@@ -801,7 +784,7 @@ class Builder extends Component {
 
   addHelperGrid() {
     const gridHelper = new THREE.GridHelper(
-      this.voxelsX * wallWidth,
+      this.voxelsX * this.state.wallWidth,
       this.voxelsX,
       0x0000ff,
       0x808080
@@ -883,18 +866,11 @@ class Builder extends Component {
     this.floorplanSelectedHandler(floorSnapshot)
   };
 
-  rebuild = (data) => {
-    console.log("rebuild", data)
-    // this.floorPlan = data.data;
-    this.setState({ floorplan: data }, this.setWalls);//?
-    // this.setWalls();
+  rebuildFromFloorplan = (data) => {
+    console.log("rebuildFromFloorplan", data);
     this.setFloor();
-    // this.addHelperGrid();
+    this.setWalls();//?
     this.addGeneralLight();
-
-    // this.animate();
-    // this.initialWallBuild();
-    // this.setupListeners();
     this.initialCameraAnimation();
     this.setSceneMeshes();
     let returnVal = this.props.firebase.pushAsset("users/" + this.props.firebase.currentUID + "/galleryDesc/")
@@ -907,7 +883,8 @@ class Builder extends Component {
     // const floorSnapshot = snapshot.val();
     console.log("floorplanSelectedHandler", data)
     this.emptyScene();
-    this.setState(this.baseState, () => this.rebuild(data));
+    const newState = Object.assign(this.baseState, { floorplan: data })
+    this.setState(newState, () => this.rebuildFromFloorplan());
     // debugger;
 
   }
@@ -1026,8 +1003,6 @@ class Builder extends Component {
   }
 
   setEditWalls(walls) {
-    this.voxelsX = this.floorPlan.length;
-    this.voxelsY = this.floorPlan[0].length;
     const wallEntities = [];
     walls.forEach(wall => {
       const { col, row, pos, sides, texture } = wall;
@@ -1037,33 +1012,24 @@ class Builder extends Component {
       if (sides) newWall.addSidesFromData(sides);
       wallEntities.push(newWall);
     });
-    this.setState({ wallEntities: wallEntities });
-    this.setState({ wallEntities: wallEntities, wallMeshes: wallEntities.map(item => item.getMesh()) });
-
+    this.setState({ wallEntities: wallEntities, wallMeshes: wallEntities.map(item => item.getMesh()) }, () => this.initialWallBuild(this.fadeInArt));
     console.log("setEditWalls wallEntities", wallEntities);
   }
 
-  setFloor() {
-    if (!this.voxelsX) {
-      this.voxelsX = 16;
-      this.voxelsY = 12;
-    }
-    this.gridWidth = this.voxelsX * wallWidth;
-    this.gridDepth = this.voxelsY * wallWidth;
+  setFloor(item) {
     const floor = new Floor({ builder: this });
     this.setState({ floor: floor });
+    floor.addFloorMesh(item);
   }
 
   setSurroundings() {
-
-    this.surroundings = new Surroundings(this);
+    this.setState({surroundings: new Surroundings(this)});
   }
 
   initialWallBuild(done) {
     console.log("initialWallBuild this.state.wallEntities", this.state.wallEntities);
-    // this.addSkyDome(); //??
     this.state.wallEntities.forEach((item, index) => {
-      // console.log("initialWallBuild wall", item, done);
+      console.log("initialWallBuild wall", item, done);
       item.initialAnimateBuild(index, done);
     });
   }
@@ -1142,6 +1108,8 @@ class Builder extends Component {
 
     return intersects[0] || null;
   }
+
+
   addSpotlightHandler() {
     let cameraPosition = this.camera.getWorldPosition();
     let cameraDirection = this.camera.getWorldDirection();
@@ -1190,6 +1158,10 @@ class Builder extends Component {
     this.state.floor.resetMaterial();
   }
 
+  restoreDefaultSurrounds = () => {
+    this.state.surroundings.reset();
+  }
+
   getVaultFloorInstance = (props) => {
     console.log("getVaultFloorInstance", props)
     return <VaultFloor {...props}
@@ -1197,19 +1169,19 @@ class Builder extends Component {
     />
   }
 
+  getLightFloorInstance = (props) => {
+    return <LightFloor {...props}
+    lights={this.state.lights}
+    selectedSpotlight={this.state.selectedSpotlight}
+    generalLight={this.state.generalLight}
+    addSpotlightHandler={() => this.addSpotlightHandler()}
+  />
+  }
+
 
 
   getElevatorFloors() {
-    this.lightFloor = (
-      <LightFloor
-        lights={this.state.lights}
-        selectedSpotlight={this.state.selectedSpotlight}
-        generalLight={this.state.generalLight}
-        addSpotlightHandler={() => this.addSpotlightHandler()}
-      // refreshLightFloor={this.state.refreshLightFloor}
-      />
-    );
-    let floors = {
+    const floors = {
       0: {
         name: "Art",
         floorComponent: this.getVaultFloorInstance,
@@ -1252,7 +1224,7 @@ class Builder extends Component {
       },
       4: {
         name: "Lights",
-        floorComponent: this.lightFloor,
+        floorComponent: this.getLightFloorInstance,
         builder: this,
         level: 4,
       },
@@ -1262,7 +1234,8 @@ class Builder extends Component {
         refPath: "users/" + this.props.firebase.currentUID + "/surrounds",
         level: 5,
         tileCallback: this.surroundingsTileCallback.bind(this),
-        addMaster: true
+        addMaster: true,
+        restoreDefault: this.restoreDefaultSurrounds.bind(this)
 
       }
     };
@@ -1288,7 +1261,6 @@ class Builder extends Component {
   removeLightsHelpers() {
     console.log("removeLightsHelpers")
     this.detachTransformControls();
-
     this.setState({ selectedSpotlight: null }, () => {
       this.state.lights.forEach(light => {
         light.undisplayHelper();

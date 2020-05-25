@@ -1,4 +1,4 @@
-import React, { Component, useState, useEffect } from 'react';
+import React, { Component } from 'react';
 import { withFirebase } from "../Firebase";
 import { Select } from 'antd';
 import { CanvasTile } from './PreFab';

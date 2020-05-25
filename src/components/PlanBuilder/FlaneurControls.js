@@ -17,7 +17,7 @@ class FlaneurControls {
 
     this.enabled = true;
 
-    this.movementSpeed = 20;
+    this.movementSpeed = 65;
     this.lookSpeed = 0.04;
 
     this.lookVertical = true;
@@ -57,6 +57,7 @@ class FlaneurControls {
     this.lookDirection = new THREE.Vector3();
     this.spherical = new THREE.Spherical();
     this.target = new THREE.Vector3();
+    this.footstepsAngle = new THREE.Vector3();
 
     if (this.domElement !== document) {
       this.domElement.setAttribute("tabindex", -1);
@@ -65,7 +66,6 @@ class FlaneurControls {
 
     this.mouse = new THREE.Vector2();
     this.raycaster = new THREE.Raycaster();
-    this.bindEvents();
     this.handleResize();
     this.createClickFloor();
     this.loadImagery();
@@ -78,6 +78,7 @@ class FlaneurControls {
       draw: progress => this.moveToDestinationLoop(progress),
       done: this.doneMoveToDestination
     });
+
   }
 
   loadImagery() {
@@ -88,7 +89,6 @@ class FlaneurControls {
   setTarget(vector) {
     this.target.set(...vector);
     this.targetSetExternally = true;
-    // console.log("...vector", ...vector);
   }
   unsetTarget() {
     this.targetSetExternally = false;
@@ -104,16 +104,13 @@ class FlaneurControls {
     }
   }
 
-  setFocus(){
+  setFocus() {
     if (this.domElement !== document) {
-      console.log("flaneur setFocus")
-
       this.domElement.focus();
-    }    
+    }
   }
 
   onMouseDown = event => {
-    console.log("flaneur onMouseDown", document.activeElement)
     if (this.domElement !== document) {
       this.domElement.focus();
     }
@@ -137,6 +134,7 @@ class FlaneurControls {
     this.mouseDragOn = true;
     const hoverIntersect = this.checkForIntersecting();
     if (hoverIntersect.footstepsHover) {
+
       this.moveToDestination();
     }
   };
@@ -161,8 +159,6 @@ class FlaneurControls {
   };
 
   onMouseMove = event => {
-    // this.mouseX = event.pageX - this.domElement.offsetLeft - this.viewHalfX;
-    // this.mouseY = event.pageY - this.domElement.offsetTop - this.viewHalfY;
     this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     this.checkForFloorHover();
@@ -383,7 +379,7 @@ class FlaneurControls {
   }
 
   bind = (scope, fn) => {
-    return function() {
+    return function () {
       fn.apply(scope, arguments);
     };
   };
@@ -441,9 +437,12 @@ class FlaneurControls {
     this.object.position.set(...cameraPosition);
   }
   createClickFloor() {
+
+    // this.builder.gridWidth,
+    // this.builder.gridDepth
     const clickFloorPlaneGeo = new THREE.PlaneBufferGeometry(
-      this.builder.gridWidth,
-      this.builder.gridDepth
+      this.builder.state.voxelsX * this.builder.state.wallWidth,
+      this.builder.state.voxelsY * this.builder.state.wallWidth
     );
     clickFloorPlaneGeo.rotateX(-Math.PI / 2);
     this.clickFloorPlane = new THREE.Mesh(
@@ -456,26 +455,30 @@ class FlaneurControls {
     this.clickFloorPlane.translateY(0.1);
     this.clickFloorPlane.name = "clickFloorPlane";
     this.builder.scene.add(this.clickFloorPlane);
+    // debugger;
     // this.setUpFootsteps();
   }
   setUpFootsteps(imagery) {
-    this.footTexture = imagery;
+    // this.footTexture = imagery;
     const footGeo = new THREE.PlaneBufferGeometry(20, 20);
-    footGeo.rotateX(-Math.PI / 2);
-    const footHoverMaterial = new THREE.MeshBasicMaterial({
-      color: 0xfefaf1,
 
-      opacity: 0.5,
+    footGeo.rotateX(-Math.PI / 2);
+    const footHoverMaterial = new THREE.MeshStandardMaterial({
+      // color: 0xfefaf1,
+      opacity: 0.4,
       transparent: true,
-      repeat: 1
+      map: imagery
+      // repeat: 1
     });
     const footDestinationMaterial = new THREE.MeshBasicMaterial({
-      color: 0xfefaf1,
+      // color: 0xfefaf1,
+      map: imagery,
       opacity: 1,
       transparent: true
     });
 
-    footHoverMaterial.map = footDestinationMaterial.map = this.footTexture;
+    // footHoverMaterial.map = footDestinationMaterial.map = this.footTexture;
+    // footHoverMaterial.alphaMap = imagery; 
     footHoverMaterial.needsUpdate = footDestinationMaterial.needsUpdate = true;
     this.footstepsHoverMesh = new THREE.Mesh(footGeo, footHoverMaterial);
     this.footstepsHoverMesh.name = "footHover";
@@ -484,6 +487,8 @@ class FlaneurControls {
       footDestinationMaterial
     );
     this.footstepsDestinationMesh.name = "footDestination";
+    this.builder.scene.add(this.footstepsHoverMesh);
+    this.footstepHoverOffset = new THREE.Vector3(10, 0.2, 10)
     this.bindEvents();
   }
 
@@ -527,11 +532,18 @@ class FlaneurControls {
     //   collidableObjects = this.builder.state.wallMeshes;
     // }
     // let all = collidableObjects.concat(this.builder.scene.children);
-    let all = this.builder.scene.children;
-    const intersectedAll = this.raycaster.intersectObjects(all); //collidableObjects
+    let collidableObjects = [this.clickFloorPlane, ...this.builder.state.wallMeshes, this.footstepsHoverMesh];
+    const intersectedAll = this.raycaster.intersectObjects(collidableObjects); //collidableObjects
     const intersected0 = intersectedAll[0];
 
     if (!intersected0) return intersect;
+    // console.log("intersected0",intersected0.object.getWorldPosition(), intersected0.point);
+    // var dotGeometry = new THREE.Geometry();
+    // dotGeometry.vertices.push(new THREE.Vector3( 0, 0, 0));
+    // var dotMaterial = new THREE.PointsMaterial( { size: 1, sizeAttenuation: false } );
+    // var dot = new THREE.Points( dotGeometry, dotMaterial );
+    // dot.position.copy(intersected0.point)
+    // this.builder.scene.add( dot );
 
     switch (intersected0.object.name) {
       case "footHover":
@@ -540,9 +552,9 @@ class FlaneurControls {
       case "clickFloorPlane":
         intersect.clickFloorPlane = intersectedAll[0];
         break;
-      case "mainFloor":
-        intersect.clickFloorPlane = intersectedAll[0];
-        break;
+      // case "mainFloor":
+      //   intersect.clickFloorPlane = intersectedAll[0];
+      //   break;
       default:
         // return intersect;
         break;
@@ -551,56 +563,34 @@ class FlaneurControls {
   }
 
   checkForFloorHover() {
-    //console.log("checkForFloorHover");
-    this.builder.scene.remove(this.footstepsHoverMesh);
     const intersect = this.checkForIntersecting();
-    //console.log("checkForFloorHover intersect", intersect);
     if (this.footstepsHoverMesh && intersect.clickFloorPlane) {
-      if (!this.builder.scene.getObjectByName("footHover")) {
-        this.builder.scene.add(this.footstepsHoverMesh);
-      }
-      this.addFootstepsHover(intersect.clickFloorPlane);
+      this.positionFootstepsHover(intersect.clickFloorPlane);
     }
   }
 
-  addFootstepsHover(intersect) {
+  positionFootstepsHover(intersect) {
     this.footstepsHoverMesh.position
       .copy(intersect.point)
-      .add(intersect.face.normal);
-    this.footstepsHoverMesh.position
+      .add(intersect.face.normal)
       .divideScalar(20)
       .floor()
       .multiplyScalar(20)
-      .addScalar(10);
-    // this.footstepsHoverMesh.translateY(0.2);
-    this.footstepsHoverMesh.position.set(
-      this.footstepsHoverMesh.position.x,
-      .1,
-      this.footstepsHoverMesh.position.z
-    );
+      .add(this.footstepHoverOffset);
     this.getFootAngle(this.footstepsHoverMesh.position);
-    return this.footstepsHoverMesh.position;
   }
 
   getFootAngle(destination) {
-    const cameraVector = this.object.position;
-    // var dirToCamera = this.object.position.clone().sub(destination);
-    var dir = new THREE.Vector3(); // create once an reuse it
-
-    dir.subVectors(this.object.position, destination).normalize();
-
+    this.footstepsAngle.subVectors(this.object.position, destination).normalize();
     const texture = this.footstepsHoverMesh.material.map;
-
     var angle = Math.atan2(
-      cameraVector.x - destination.x,
-      cameraVector.z - destination.z
+      this.object.position.x - destination.x,
+      this.object.position.z - destination.z
     );
-    if (texture) {
-      texture.center.set(0.5, 0.5);
-      texture.repeat.set(1.3, 1.3);
-      texture.rotation = angle;
-      texture.matrix.scale(0.5, 0.5);
-    }
+    texture.center.set(0.5, 0.5);
+    texture.repeat.set(1.3, 1.3);
+    texture.rotation = angle;
+    texture.matrix.scale(0.5, 0.5);
   }
 
   getMouse() {

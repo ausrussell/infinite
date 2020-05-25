@@ -18,21 +18,15 @@ class WallDisplayObject {
     console.log("Wall display", col, row, pos, height, sides);
     this.builder = builder;
     this.scene = this.builder.scene;
-    this.midpointX = this.builder.voxelsX / 2;
-    this.midpointY = this.builder.voxelsY / 2;
+    this.midpointX = this.builder.state.voxelsX / 2;
+    this.midpointY = this.builder.state.voxelsY / 2;
 
     this.height = height; //1;
     this.opacity = 1;
-    // this.sides = { front: {}, back: {} };
-    this.wallWidth = 20;
+    this.wallWidth = this.builder.state.wallWidth;
     this.wallHeight = 60;
     this.wallDepth = 5;
-    // this.defaultImageWidth = this.wallWidth * 0.6;
-    // this.defaultImageHeight = 15;
     this.setXZPos();
-    // this.renderWall();
-    // this.addLights();
-    // this.addFrames();
     this.art = [];
   }
   setXZPos() {
