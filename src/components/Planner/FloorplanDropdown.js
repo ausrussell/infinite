@@ -6,7 +6,6 @@ const { Option } = Select;
 
 const List = ({ floorplans, floorplanCallback }) => {
     const getTiles = (data) => {
-        console.log("data", data);
         return (<Option label={data.title} key={data.key} value={data.key}><div>{data.title}</div><CanvasTile plan={data.data} /></Option>);
     }
     return (<Select style={{ width: 220 }} optionLabelProp="label" placeholder="Select a Floorplan" onChange={floorplanCallback}>
@@ -34,7 +33,6 @@ class FloorplanDropdown extends Component {
 
     plansCallback = (data) => {
         //this.props.floorplanCallback(this.dataList.id)
-        console.log("data plans", data)
         const list = [];
         this.dataList = {};
         if (data) {
@@ -44,7 +42,6 @@ class FloorplanDropdown extends Component {
 
             });
         }
-        console.log("list", list)
         this.setState({ floorplans: list });
     }
     render() {

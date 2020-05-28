@@ -9,7 +9,7 @@ class GalleryEditDropdown extends Component {
   constructor(props) {
     super(props);
     console.log("GalleryEditDropdown props", props);
-    this.callback = props.callback;
+    // this.callback = props.callback;
   }
 
   componentDidMount() {
@@ -30,7 +30,6 @@ class GalleryEditDropdown extends Component {
     console.log("Galleries callback", data);
     const list = [];
     this.dataList = {};
-
     if (data) {
       data.forEach( (childSnapshot) => {
         list.push(childSnapshot);
@@ -54,14 +53,13 @@ class GalleryEditDropdown extends Component {
   };
 
   returnData = (snapshot) => {
-    console.log("returnData snapshot ",snapshot)
     const dataToReturn = {
       galleryDesc: this.desc,
       galleryData: snapshot.val(),
       id: this.selectedId
     }
     console.log("dataToReturn",dataToReturn);
-    this.callback(dataToReturn)
+    this.props.callback(dataToReturn)
   }
 
   listItem(data) {
@@ -81,7 +79,7 @@ class GalleryEditDropdown extends Component {
       <Select
         style={{ width: 250 }}
         defaultValue="Select a Gallery to edit"
-        onChange={this.getGalleryData}
+        onChange={(id) => this.getGalleryData(id)}
       >
         {this.state.galleriesList.map(data => this.listItem(data))}
       </Select>

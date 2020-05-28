@@ -34,10 +34,7 @@ class WallObject {
     }
 
     this.renderWall();
-    console.log("constructor this.wallMaterial.opacity",this.wallMaterial.opacity)
-
     this.textureAdder = new TextureAdder({ material: this.wallMaterial });
-    console.log("this wall texture", this.texture, this.wallMaterial, this.wallMaterial.opacity)
     texture && this.textureAdder.setDataToMaterial(this.texture);
 
     if (options.preview) {
@@ -75,7 +72,6 @@ class WallObject {
   }
 
   getExport = () => {
-    console.log("getExport", this.export)
     this.addArtToExport();
     return this.export;
   };
@@ -95,13 +91,11 @@ class WallObject {
   }
 
   setWallMaterial() {
-    console.log("setting material with opacity",this.opacity)
     this.wallMaterial = new THREE.MeshStandardMaterial({
       color: 0xe1f5fe,
       opacity: this.opacity,
       transparent: true
     });
-    console.log("setWallMaterial this.wallMaterial.opacity",this.wallMaterial.opacity)
   }
 
   renderWall() {
@@ -140,7 +134,6 @@ class WallObject {
 
     wallAni.animate(performance.now());
     this.opacity = (this.texture && this.texture.opacity) ? this.texture.opacity : 1;
-    console.log("animateWallBuild",this.wallMesh,this.texture)
     this.wallMaterial.opacity = this.opacity;
   }
   drawing = progress => {
@@ -179,7 +172,6 @@ class WallObject {
     Object.keys(this.sides).forEach(side => this.lightsForSide(side));
   }
   lightsForSide(side) {
-    console.log("this.wallMesh.position", this.wallMesh.position);
     this.sides[side].wallLight = new WallLight(this, side);
     this.sides[side].wallLight.setWallLight();
   }
@@ -215,10 +207,6 @@ class WallObject {
   updateWallLight(side) {
     if (this.sides[side].hasArt) {
       this.wallGroup.add(this.sides[side].wallLight.spotLight);
-      // console.log(
-      //   "this.sides[side].wallLight.spotLight",
-      //   this.sides[side].wallLight.spotLight.getWorldPosition()
-      // );
       this.wallGroup.updateMatrixWorld();
       this.sides[side].wallLight.switchOn();
     } else {
@@ -227,20 +215,8 @@ class WallObject {
   }
 
   removeFrame(frame, side) {
-    console.log("removing frame from ", this.col);
-    console.log("light off ", side, this.sides[side].wallLight.spotLight);
     let index = this.sides[side].frames.indexOf(frame);
-    console.log(
-      "removeFrame",
-      this.col,
-      this.sides[side].frames.indexOf(frame)
-    );
     this.sides[side].frames.splice(index, 1);
-    console.log(
-      "removeFrame after splice",
-      this.sides[side].frames.indexOf(frame)
-    );
-    // this.switchLightOffIfNoArt(side);
   }
   disposeHierarchy(node, callback) {
     for (var i = node.children.length - 1; i >= 0; i--) {
@@ -258,7 +234,6 @@ class WallObject {
         }
 
         if (node.material) {
-          //console.log("node.material", node.material);
           if (
             node.material instanceof THREE.MeshFaceMaterial ||
             node.material instanceof THREE.MultiMaterial
@@ -288,31 +263,23 @@ class WallObject {
     });
   }
   disposeCallback = item => {
-    // console.log("disposeCallback", item);
     item.remove();
   };
   removeGroup() {
-    console.log("removeGroup", this.builder.renderer.info);
     this.removeAllLights()
 
     this.disposeHierarchy(this.wallGroup, this.disposeCallback); //does this dispose save memory??
 
 
     this.builder.scene.remove(this.wallGroup);
-    //console.log("removeGroup after", this.builder.renderer.info);
   }
 
   removeAllLights() {
     ["front", "back"].forEach(side => {
-      console.log("this.sides[side].wallLight", this.sides[side].wallLight, this.sides[side])
       this.sides[side].wallLight.removeSpotlight()
     })
   }
   switchLightOffIfNoArt(side) {
-    console.log(
-      "switchLightOffIfNoArt this.sides[side].frames",
-      this.sides[side].frames
-    );
     if (this.sides[side].frames.length === 0) {
       this.sides[side].hasArt = false;
     }
@@ -356,11 +323,9 @@ class WallObject {
     return;
     // }
 
-    // this.sides[side].wallLight.hoverOff();
   }
 
   fadeInArt() {
-    // console.log("wall fadeInArt");
     Object.entries(this.sides).forEach(sideItem => {
       const side = sideItem[0];
       this.sides[side].frames.forEach(frame => frame.fadeFrameIn());
@@ -368,13 +333,9 @@ class WallObject {
   }
 
   addSidesFromData = sides => {
-    // console.log("addSideFromData", sides, this);
     Object.entries(sides).forEach(sideItem => {
-      console.log("in entries loop addSideFromData", sides, this);
-
       const side = sideItem[0];
       this.sides[side].frames = [];
-
       const newFrame = new Frame(this, side);
       this.sides[side].hasArt = true;
       this.sides[side].frames.push(newFrame);
@@ -389,11 +350,9 @@ class WallObject {
     this.textureAdder = new TextureAdder({ material: this.wallMaterial });
   }
   setDataToMaterial(data) {
-    console.log("wall's setDataToMaterial", this.wallMesh, data);
     this.textureAdder.setDataToMaterial(data);
   }
   wallTileCallback = item => {
-    console.log("floorTileCallback item", item);
     this.export.texture = item;
     delete this.export.texture.ref;
     this.setDataToMaterial(item);

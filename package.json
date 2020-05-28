@@ -16,6 +16,7 @@
     "firebase-admin": "^8.10.0",
     "fs-extra": "^9.0.0",
     "google-maps-react": "^2.0.2",
+    "lodash": "^4.17.15",
     "orbit-controls-es6": "^2.0.1",
     "rc-tween-one": "^2.6.8",
     "react": "^16.13.1",

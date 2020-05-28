@@ -29,7 +29,8 @@ import { TransformControls } from "./TransformControls_Apr19";
 
 import Draggable from "./Draggable";
 
-import BuilderHeader from "./BuilderHeader"
+import BuilderHeader from "./BuilderHeader";
+
 
 const degreesToRadians = degrees => {
   return (degrees * Math.PI) / 180;
@@ -38,46 +39,21 @@ const degreesToRadians = degrees => {
 const sceneHelperObjects = ["footHover", "clickFloorPlane", "TransformControls"]
 
 class Builder extends Component {
-  state = {
-    floorplanTitle: "",
-    wallEntities: [],
-    wallMeshes: [],
-    meshesInScene: [],
-    width: null,
-    height: null,
-    draggableVaultElementActive: null,
-    draggableVaultItem: null,
-    galleryTitle: "",
-    galleryDesc: {},
-    lights: [],
-    selectedSpotlight: null,
-    generalLight: null,
-    plannerGallery: false,
-    galleryId: null,
-    floorplan: null,
-    selectedTile: null,
-    surroundings: {},
-    voxelsX:16,
-    voxelsY:12,
-    wallWidth:20
-  };
+
   constructor(props) {
     super(props);
+    this.state = this.getInitialState();
     this.initialCameraHeight = 245;
     this.cameraZAfterInitialAnimation = 260;
     this.initialAnimationTime = 2000;
     this.mouse = new THREE.Vector2();
     this.raycaster = new THREE.Raycaster();
     this.clock = new THREE.Clock();
-    this.floorMesh = null;
-    // this.setUpGui();
     this.transformOriginVector = new THREE.Vector3();
     this.transformOriginVector_temp = new THREE.Vector3();
     this.transformDirectionVector = new THREE.Vector3();
     this.transformDirectionRay = new THREE.Raycaster();
     this.lights = [];
-    // this.gltfExporter = new GLTFExporter();
-    this.baseState = this.state;
   }
   componentDidMount() {
     // this.setupStats();
@@ -101,6 +77,34 @@ class Builder extends Component {
       this.floorplanProcessed = true;
     }
   }
+
+  getInitialState = () => ({
+    
+      floorplanTitle: "",
+      wallEntities: [],
+      wallMeshes: [],
+      meshesInScene: [],
+      width: null,
+      height: null,
+      draggableVaultElementActive: null,
+      draggableVaultItem: null,
+      galleryTitle: "",
+      galleryDesc: {},
+      lights: [],
+      selectedSpotlight: null,
+      generalLight: null,
+      plannerGallery: false,
+      galleryId: null,
+      floorplan: null,
+      selectedTile: null,
+      surroundings: null,
+      voxelsX: 16,
+      voxelsY: 12,
+      wallWidth: 20,
+      floor: {},
+      exportData: null
+   
+  })
   setupStats() {
     console.log("planbuilder setupStats");
     if (!this.stats) {
@@ -355,24 +359,66 @@ class Builder extends Component {
 
   onEditDropdownChangeHandler = ({ galleryDesc, galleryData, id }) => {
     this.emptyScene();
-    const { name, floorplan} = galleryData;
-
-    const newState = Object.assign(this.baseState, { galleryTitle: name, floorplan: floorplan, galleryDesc: galleryDesc, galleryId: id })
+    const { name, floorplan } = galleryData;
+    const newState = Object.assign(this.getInitialState(), { galleryTitle: name, floorplan: floorplan, galleryDesc: galleryDesc, galleryId: id, floor: new Floor({ builder: this }) })
     this.setState(newState, () => this.rebuildGallery(galleryData))
   }
 
-  rebuildGallery(galleryData)  {
+  rebuildGallery(galleryData) {
     const { walls, floor, lights, generalLight, surrounds } = galleryData;
     this.setEditFloor(floor);
     this.setEditWalls(walls);
-   
     surrounds && this.state.surroundings.surroundingsTileCallback(surrounds)
     generalLight && this.setEditGeneralLight(generalLight);
     this.setEditWallLights(lights);
-    // this.initialWallBuild(this.fadeInArt));
     this.initialCameraAnimation();
     this.setSceneMeshes();
   }
+
+  floorplanSelectedHandler = (data) => {
+    console.log("Builder floorplanSelectedHandler", data)
+    this.emptyScene();
+    const floor = new Floor({ builder: this });
+    console.log("intialState",this.getInitialState())
+    const newState = Object.assign(this.getInitialState(), { floorplan: data, floor: floor })
+    console.log("newState",newState)
+    this.setState(newState, () => this.rebuildFromFloorplan());
+  }
+
+
+  rebuildFromFloorplan = (data) => {
+    console.log("rebuildFromFloorplan", data);
+    this.setFloor();
+    this.setWalls();//?
+    this.addGeneralLight();
+    this.initialCameraAnimation();
+    this.setSceneMeshes();
+    let returnVal = this.props.firebase.pushAsset("users/" + this.props.firebase.currentUID + "/galleryDesc/")
+    returnVal.then(snapshot => {
+      this.setState({ galleryId: snapshot.key });
+    })
+  };
+
+  getExport() {
+    const galleryData = {};
+    galleryData.floorplan = this.state.floorplan;
+    galleryData.floor = this.state.floor.getExport();
+    galleryData.walls = [];
+
+    this.state.wallEntities.forEach(item => {
+      galleryData.walls.push(item.getExport());
+    });
+    galleryData.lights = [];
+    this.state.lights.forEach(item => {
+      galleryData.lights.push(item.getExport());
+    });
+    if (this.state.generalLight) this.state.generalLight.getExport();
+    if (this.state.surroundings) galleryData.surrounds = this.state.surroundings.getExport();
+    console.log("setExport", galleryData)
+    return galleryData;
+  }
+
+
 
   setEditGeneralLight(generalLight) {
     console.log("generalLight", generalLight);
@@ -438,7 +484,7 @@ class Builder extends Component {
   //**** SAVE  */
   saveGallery = () => {
     this.galleryData = {};
-    console.log("saveGallery galleryData", this.galleryData);
+    console.log("saveGallery galleryData", this.state);
     this.galleryData.floorplan = this.state.floorplan;
     this.galleryData.floor = this.state.floor.getExport();
     this.galleryData.walls = [];
@@ -452,7 +498,7 @@ class Builder extends Component {
     });
 
     if (this.galleryData.generalLight) this.state.generalLight.getExport();
-    if (this.state.surroundings)  this.galleryData.surrounds = this.state.surroundings.getExport();
+    if (this.state.surroundings) this.galleryData.surrounds = this.state.surroundings.getExport();
 
     return this.galleryData;
     // this.makeGalleryDbSave();
@@ -866,28 +912,7 @@ class Builder extends Component {
     this.floorplanSelectedHandler(floorSnapshot)
   };
 
-  rebuildFromFloorplan = (data) => {
-    console.log("rebuildFromFloorplan", data);
-    this.setFloor();
-    this.setWalls();//?
-    this.addGeneralLight();
-    this.initialCameraAnimation();
-    this.setSceneMeshes();
-    let returnVal = this.props.firebase.pushAsset("users/" + this.props.firebase.currentUID + "/galleryDesc/")
-    returnVal.then(snapshot => {
-      this.setState({ galleryId: snapshot.key });
-    })
-  };
 
-  floorplanSelectedHandler = (data) => {
-    // const floorSnapshot = snapshot.val();
-    console.log("floorplanSelectedHandler", data)
-    this.emptyScene();
-    const newState = Object.assign(this.baseState, { floorplan: data })
-    this.setState(newState, () => this.rebuildFromFloorplan());
-    // debugger;
-
-  }
 
   disposeHierarchy(node, callback) {
     for (var i = node.children.length - 1; i >= 0; i--) {
@@ -1017,21 +1042,18 @@ class Builder extends Component {
   }
 
   setFloor(item) {
-    const floor = new Floor({ builder: this });
-    this.setState({ floor: floor });
-    floor.addFloorMesh(item);
+    this.state.floor.addFloorMesh(item);
   }
 
   setSurroundings() {
-    this.setState({surroundings: new Surroundings(this)});
+    this.setState({ surroundings: new Surroundings(this) });
   }
 
   initialWallBuild(done) {
-    console.log("initialWallBuild this.state.wallEntities", this.state.wallEntities);
     this.state.wallEntities.forEach((item, index) => {
-      console.log("initialWallBuild wall", item, done);
       item.initialAnimateBuild(index, done);
     });
+    this.setState({ exportData: this.getExport() });
   }
 
   setSceneMeshes() {
@@ -1171,11 +1193,11 @@ class Builder extends Component {
 
   getLightFloorInstance = (props) => {
     return <LightFloor {...props}
-    lights={this.state.lights}
-    selectedSpotlight={this.state.selectedSpotlight}
-    generalLight={this.state.generalLight}
-    addSpotlightHandler={() => this.addSpotlightHandler()}
-  />
+      lights={this.state.lights}
+      selectedSpotlight={this.state.selectedSpotlight}
+      generalLight={this.state.generalLight}
+      addSpotlightHandler={() => this.addSpotlightHandler()}
+    />
   }
 
 
@@ -1219,7 +1241,7 @@ class Builder extends Component {
         tileCallback: this.wallTileCallback.bind(this),
         selectable: true,
         addMaster: true,
-        selectableRestoreDefault: {color: 0xe1f5fe}
+        selectableRestoreDefault: { color: 0xe1f5fe }
 
       },
       4: {
@@ -1281,7 +1303,7 @@ class Builder extends Component {
     // this.stats && this.stats.update();
   }
   render() {
-    const { galleryId, floorplan } = this.state;
+    const { galleryId, floorplan,exportData} = this.state;
     return (
       <ErrorBoundary>
         {(this.props.firebase.currentUID) &&
@@ -1294,7 +1316,8 @@ class Builder extends Component {
             plannerGallery={this.state.plannerGallery}
             galleryId={galleryId}
             floorplan={floorplan}
-            floorplanSelectedHandler={(data) => this.floorplanSelectedHandler(data)} />)}
+            floorplanSelectedHandler={(data) => this.floorplanSelectedHandler(data)} 
+            exportData={exportData} />)}
         <MainCanvas refer={mount => (this.mount = mount)} />
         {this.state.draggableVaultElementActive && (
           <Draggable

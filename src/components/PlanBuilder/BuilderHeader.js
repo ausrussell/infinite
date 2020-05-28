@@ -8,6 +8,8 @@ import { Route } from "react-router-dom";
 import { ArrowRightOutlined } from '@ant-design/icons';
 import { BuilderHelp } from './BuilderHelp'
 import FloorplanDropdown from '../Planner/FloorplanDropdown';
+import {isEqual, omit, omitBy, isNil, isEmpty, mapValues, removeEmptyObjects} from 'lodash';
+import _ from 'lodash';
 
 const { TextArea } = Input;
 const { Meta } = Card;
@@ -50,7 +52,7 @@ const MapModal = ({ setCenter, locationSet }) => {
     </div>)
 }
 
-const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeHandler, plannerGallery, saveGallery, selectingArt, setSelectingArt, floorplan, floorplanSelectedHandler }) => {
+const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeHandler, plannerGallery, saveGallery, selectingArt, setSelectingArt, floorplan, floorplanSelectedHandler, exportData }) => {
     // console.log("BuilderHeader props", props)
     const [title, setTitle] = useState(galleryDesc.title || "");
     const [id, setId] = useState("");
@@ -60,6 +62,10 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
     const [galleryImg, setGalleryImg] = useState({});
     const [location, setLocation] = useState(null)
     const [nameEncoded, setNameEncoded] = useState(null);
+    const [currentGalleryDesc, setCurrentGalleryDesc] = useState(null);
+    const [currentExportData, setCurrentExportData] = useState(null);
+
+
     const [form] = Form.useForm();
 
 
@@ -72,9 +78,15 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
             //         setId(returnVal.key)
             //     })
             // } else {
+            console.log("galleryDesc, exportData",galleryDesc, exportData)
             form.resetFields();
+            setCurrentGalleryDesc(galleryDesc);
+            setCurrentExportData(exportData);
             setTitle(galleryDesc.title);
             setId(galleryId);
+            console.log("updating id to",id)
+            console.log("after galleryDesc, exportData",galleryDesc, exportData)
+
             setLocation(galleryDesc.location);
             setNameEncoded(galleryDesc.nameEncoded)
             setVisitable(galleryDesc.public);
@@ -94,65 +106,117 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
         // }
 
         updateFields()
-    }, [galleryDesc, galleryId, id, form, firebase, galleryDesc.galleryImg]);
+    }, [galleryDesc, galleryId, id, form, galleryDesc.galleryImg, exportData]);
 
-    // const onEditDropdownChangeHandler = (returnData) => {
-    //     console.log("BuilderHeader onEditDropdownChangeHandler", returnData)//galleryDesc, galleryData, id
-    //     props.onEditDropdownChangeHandler(returnData);
-    // }
     const selectArt = () => {
         setSelectingArt()
     }
-    const processValuesAndSave = async (values) => {
+
+    const checkForChanges = (data, callback) => {
+        const values = form.getFieldsValue()
+        const { desc, galleryData } = processValues(values)
+        const dataIsChanged = (currentExportData && JSON.stringify(galleryData) !== JSON.stringify(currentExportData));
+        console.log("dataIsChanged, currentExportData, galleryData", dataIsChanged, currentExportData, galleryData);
+        let desctest = desc;
+        if (!currentGalleryDesc.location) delete desctest.location;
+        desctest = removeEmptyObjects(desctest);//.pickBy(_.isObject).mapValues(removeEmptyObjects).value();
+        const descIsChanged = (desc && !isEqual(currentGalleryDesc, desctest));
+        console.log("descIsChanged, currentGalleryDesc, desc",descIsChanged, currentGalleryDesc, desctest);
+        if (dataIsChanged || descIsChanged) {
+            Modal.confirm({
+                title: 'Do you want to save changes to this gallery?',
+                content: 'Some descriptions',
+                okText: 'Yes',
+                cancelType: 'danger',
+                cancelText: 'Discard changes',
+                onOk() {
+                    console.log('OK');
+                    saveProcessedValues(desc, galleryData);
+                    callback(data)
+                },
+                onCancel() {
+                    callback(data)
+                }
+            })
+        } else {
+            callback(data)
+
+        }
+    }
+
+    const removeEmptyObjects = (obj) => {
+        return _(obj)
+        .pickBy(_.isObject) // pick objects only
+        .mapValues(removeEmptyObjects) // call only for object values
+        .omitBy(_.isEmpty) // remove all empty objects
+        .assign(_.omitBy(obj, _.isObject)) // assign back primitive values
+        .omitBy(isNil)
+        .value();
+    }
+
+    const processValues = (values) => {
         setGalleryImg.updateTime = new Date();
         delete galleryImg.ref;
         values.galleryImg = galleryImg;
         values.location = location || { lat: 36.80885384408701 + Math.random() * 2, lng: -123.27939428681641 + Math.random() * 2 };
         Object.keys(values).forEach(key => { values[key] = values[key] || null });
+        if (values.title) values.nameEncoded = encodeURIComponent(values.title.replace(" ", "_"));
+        const data = {
+            desc: values,
+            galleryData: saveGallery()
+        }
+        return data;
+    }
 
-        const galleryData = saveGallery();
-        console.log("processValuesAndSave galleryData", galleryData);
-        const nameEncode = encodeURIComponent(
-            values.title.replace(" ", "_")
-        );
-        values.nameEncoded = nameEncode;
-        setNameEncoded(nameEncode);
-        setVisitable(form.getFieldValue("public"));
-
+    const saveProcessedValues = async (desc, galleryData) => {
         const dataPath = "users/" + firebase.currentUID + "/galleryData/" + id;
         const dataSave = firebase.updateAsset(dataPath, galleryData);
         await dataSave;
         const descPath = "users/" + firebase.currentUID + "/galleryDesc/" + id;
-        const dbSave = firebase.updateAsset(descPath, values);
+        const dbSave = firebase.updateAsset(descPath, desc);
         await dbSave;
-
         const galleriesPath = "publicGalleries/" + id;
         const publicGalleryData = {
             dataPath: dataPath
         }
-        Object.assign(publicGalleryData, values);
+        Object.assign(publicGalleryData, desc);
         if (form.getFieldValue("public")) {
             firebase.updateAsset(galleriesPath, publicGalleryData)
         } else {
             firebase.removeRef(galleriesPath)
         }
-        setTitle(values.title);
-        message.success("Successfully saved Gallery: " + values.title)
+        message.success("Successfully saved Gallery: " + desc.title)
     }
-    const onFinish = async (values) => {
-        processValuesAndSave(values)
+
+    const onFinish = (values) => {
+        const { desc, galleryData } = processValues(values);
+        saveProcessedValues(desc, galleryData);
+        setNameEncoded(desc.nameEncode);
+        setVisitable(form.getFieldValue("public"));
+        setTitle(desc.title);
+    }
+
+    const editCallback = (data) => {
+        if (galleryId) {
+            checkForChanges(data, () => {onEditDropdownChangeHandler(data)});
+        } else {
+            onEditDropdownChangeHandler(data)
+        }
     }
 
     const floorplanCallback = data => {
-        console.log("floorplanDropdownChangeHandler", data)
-        floorplanSelectedHandler(data)
+        console.log("floorplanCallback", data)
+        if (galleryId) {
+            checkForChanges(data, () => {floorplanSelectedHandler(data)});
+        } else {
+            floorplanSelectedHandler(data)
+        }
     }
-
-
 
     return (
         <div className="page-header-area">
             <PageTitle title={title ? 'Building gallery: ' + title : "Builder"} help={BuilderHelp} />
+            <div>id:{id}</div>
             <Form
                 layout="vertical"
                 name="gallery-editor"
@@ -205,7 +269,7 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
                 </Collapse>)}
                 <Row>
 
-                <Col span={8}>
+                    <Col span={8}>
                         <FloorplanDropdown
                             floorplanCallback={floorplanCallback}
                         />
@@ -216,7 +280,7 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
 
                     <Col span={8}>
                         <GalleryEditDropdown
-                            callback={onEditDropdownChangeHandler}
+                            callback={editCallback}
                         />
                     </Col>
                     <Col span={3}>
