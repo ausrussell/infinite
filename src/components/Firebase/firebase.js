@@ -1,8 +1,6 @@
 import app from "firebase";
 import "firebase/database";
 import "firebase/auth";
-// import * as admin from "firebase-admin";
-// import * as defaultAppConfig from "./infinite-a474a-firebase-adminsdk-q1m69-6756434499.json";
 
 const config = {
   apiKey: process.env.REACT_APP_API_KEY,
@@ -249,20 +247,8 @@ class Firebase {
       .remove();
   };
 
-  getUsersFloorplans = callback => {
-    console.log(
-      "getUsersFloorplans",
-      "users/" + this.currentUID + "/floorplans"
-    );
-    this.userFloorplansRef = this.database.ref(
-      "users/" + this.currentUID + "/floorplans"
-    );
-    return this.userFloorplansRef.on("value", callback);
-  };
 
-
-
-  getUsersFloorplans = async (callback) => {
+  getUsersFloorplans = (callback) => {
 
     this.userFloorplansRef = this.database.ref(
       "users/" + this.currentUID + "/floorplans"

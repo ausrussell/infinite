@@ -137,7 +137,6 @@ componentDidUpdate(oldProps){
 
     const { thumb, url, color, px, map, normalMap, bumpMap, title } = tileData;//ny for cubeboxes
     tileInfo.title = title
-    // console.log("renderTile, url, color, ny", url, color, ny, map);
     tileInfo.tileUrl = thumb || url || px || map || normalMap || bumpMap;
     const { key, ref } = snapshot;
     tileInfo.key = tileInfo.tileData.key = key;

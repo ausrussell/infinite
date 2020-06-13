@@ -103,8 +103,8 @@ class Builder extends Component {
       wallWidth: 20,
       floor: {},
       exportData: null
-   
   })
+
   setupStats() {
     console.log("planbuilder setupStats");
     if (!this.stats) {
@@ -113,6 +113,7 @@ class Builder extends Component {
       document.body.appendChild(this.stats.dom);
     }
   }
+  
   setUpGui() {
     var controls = new function () {
       this.fov = 45;
@@ -159,8 +160,8 @@ class Builder extends Component {
   onMouseMove(e) {
     this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
     this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-
     this.currentHover = this.checkForIntersecting();
+    // console.log("onMouseMove this.currentHover",this.currentHover)
     if (this.currentHover.artMesh && !this.activeArtMesh) {
       this.hoverArtMesh(this.currentHover.artMesh);
     } else if (!this.currentHover.artMesh && this.activeArtMesh) {
@@ -255,7 +256,8 @@ class Builder extends Component {
       if (this.currentWallOver || this.holderOver.defaultArtMesh) {
         this.currentWallOver.addImageFile(addImageData);
       } else {
-        this.holderOver.artMesh.parent.holderClass.addArt(file, uploadTask);
+        debugger;
+        this.holderOver.artMesh.parent.holderClass.addArt(addImageData);//file, uploadTask
       }
     } //else it's straight in vault
     this.setState({
@@ -358,13 +360,21 @@ class Builder extends Component {
   }
 
   onEditDropdownChangeHandler = ({ galleryDesc, galleryData, id }) => {
+    console.log("galleryDesc, galleryData, id ",galleryDesc, galleryData, id )
     this.emptyScene();
+    if (!id){
+      let initState = this.getInitialState();
+      this.setState(initState);
+    } else {
     const { name, floorplan } = galleryData;
     const newState = Object.assign(this.getInitialState(), { galleryTitle: name, floorplan: floorplan, galleryDesc: galleryDesc, galleryId: id, floor: new Floor({ builder: this }) })
-    this.setState(newState, () => this.rebuildGallery(galleryData))
+    this.setState(newState, () => this.rebuildGallery(galleryData))}
   }
 
+  
+
   rebuildGallery(galleryData) {
+    console.log("rebuildGallery galleryData, this.state",galleryData, this.state)
     const { walls, floor, lights, generalLight, surrounds } = galleryData;
     this.setEditFloor(floor);
     this.setEditWalls(walls);
@@ -388,6 +398,7 @@ class Builder extends Component {
 
   rebuildFromFloorplan = (data) => {
     console.log("rebuildFromFloorplan", data);
+// this.checkForChanges();
     this.setFloor();
     this.setWalls();//?
     this.addGeneralLight();
@@ -412,7 +423,7 @@ class Builder extends Component {
     this.state.lights.forEach(item => {
       galleryData.lights.push(item.getExport());
     });
-    if (this.state.generalLight) this.state.generalLight.getExport();
+    if (this.state.generalLight) galleryData.generalLight = this.state.generalLight.getExport();
     if (this.state.surroundings) galleryData.surrounds = this.state.surroundings.getExport();
     console.log("setExport", galleryData)
     return galleryData;
@@ -421,7 +432,7 @@ class Builder extends Component {
 
 
   setEditGeneralLight(generalLight) {
-    console.log("generalLight", generalLight);
+    console.log("setEditGeneralLight generalLight", generalLight);
     if (generalLight) this.addGeneralLight(generalLight);
   }
 
@@ -483,31 +494,25 @@ class Builder extends Component {
   }
   //**** SAVE  */
   saveGallery = () => {
-    this.galleryData = {};
+    const galleryData = {};
     console.log("saveGallery galleryData", this.state);
-    this.galleryData.floorplan = this.state.floorplan;
-    this.galleryData.floor = this.state.floor.getExport();
-    this.galleryData.walls = [];
+    galleryData.floorplan = this.state.floorplan;
+    galleryData.floor = this.state.floor.getExport();
+    galleryData.walls = [];
 
     this.state.wallEntities.forEach(item => {
-      this.galleryData.walls.push(item.getExport());
+      galleryData.walls.push(item.getExport());
     });
-    this.galleryData.lights = [];
+    galleryData.lights = [];
     this.state.lights.forEach(item => {
-      this.galleryData.lights.push(item.getExport());
+      galleryData.lights.push(item.getExport());
     });
 
-    if (this.galleryData.generalLight) this.state.generalLight.getExport();
-    if (this.state.surroundings) this.galleryData.surrounds = this.state.surroundings.getExport();
+    if (this.state.generalLight) galleryData.generalLight = this.state.generalLight.getExport();
+    if (this.state.surroundings) galleryData.surrounds = this.state.surroundings.getExport();
 
-    return this.galleryData;
-    // this.makeGalleryDbSave();
+    return galleryData;
   };
-
-  makeGalleryDbSave() {
-    console.log("makeGalleryDbSave this.framesToSave", this.galleryData);
-    this.props.firebase.storeGallery(this.galleryData, this.editGalleryId);
-  }
 
   resetTranslatedArt() {
     this.transformOriginVector.copy(this.activeArtMesh.getWorldPosition());
@@ -710,7 +715,7 @@ class Builder extends Component {
     this.raycaster = new THREE.Raycaster();
   }
 
-  checkForIntersecting(options) {
+  checkForIntersecting() {
     this.raycaster.setFromCamera(this.mouse, this.camera);
     const intersects = this.rayIntersectObject(this.raycaster, 1000);
     if (!intersects) {
@@ -719,6 +724,7 @@ class Builder extends Component {
     let intersectedData = {};
     let intersect0 = intersects.object;
     if (intersect0.name === "artMesh" || intersect0.name === "defaultArtMesh") {
+      console.log("intersect artMesh || defaultArtMesh")
       this.hoverOverObject = intersect0;
       intersectedData[intersect0.name] = intersect0;
     }
@@ -784,7 +790,7 @@ class Builder extends Component {
     this.addTransformControls();
     this.setupFlaneurControls();
     this.animate();
-    // this.setupListeners();
+    this.setupListeners();
 
   }
 
@@ -1033,7 +1039,7 @@ class Builder extends Component {
       const { col, row, pos, sides, texture } = wall;
       const options = { x: col, y: row, pos: pos, builder: this, texture: texture };
       const newWall = new WallObject(options);
-      console.log("newWall", newWall)
+      // console.log("newWall", newWall)
       if (sides) newWall.addSidesFromData(sides);
       wallEntities.push(newWall);
     });

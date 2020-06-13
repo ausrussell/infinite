@@ -12,6 +12,7 @@ const PageTitle = (props) => {
                 <Title level={2} style={{color:"#ffffff"}}>{props.title}</Title>
             </Col>
             <Col span={6} style={{textAlign:"right"}}>
+            {props.saveButton && props.saveButton}
                 {props.help && <HelpModal content={props.help}/>}
                 </Col>
         </Row>

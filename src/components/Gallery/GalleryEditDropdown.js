@@ -1,15 +1,24 @@
 import React, { Component } from "react";
 import { Select } from "antd";
 import { withFirebase } from "../Firebase";
+import { isEmpty, isNil } from 'lodash';
+
+const { Option } = Select;
+const defaultValue = "Edit Gallery"
 
 class GalleryEditDropdown extends Component {
   state = {
-    galleriesList: []
+    galleriesList: [],
+    dataList: {}
   };
   constructor(props) {
     super(props);
     console.log("GalleryEditDropdown props", props);
-    // this.callback = props.callback;
+  }
+
+  componentDidUpdate(oldProps){
+    // console.log("GalleryEditDropdown oldProps, this.props",oldProps, this.props)
+    // console.log("isEmpty(this.props.galleryDesc)",isEmpty(this.props.galleryDesc))
   }
 
   componentDidMount() {
@@ -29,21 +38,21 @@ class GalleryEditDropdown extends Component {
   fillList = data => {
     console.log("Galleries callback", data);
     const list = [];
-    this.dataList = {};
+    const dataList = {};
     if (data) {
       data.forEach( (childSnapshot) => {
         list.push(childSnapshot);
-        this.dataList[childSnapshot.key] = childSnapshot.val();
+        dataList[childSnapshot.key] = childSnapshot.val();
       });
     }
-    this.setState({ galleriesList: list });
-    console.log("Galleries plansCallback", list);
+    this.setState({ galleriesList: list, dataList: dataList });
   };
 
   getGalleryData =  (id) => {
-    console.log("galleriesList",id,this.dataList[id])
-    this.selectedId = id
-    this.desc = this.dataList[id];
+    this.selectedId = id;
+
+
+    this.desc = this.state.dataList[id];
     const options = {
       refPath: "users/" + this.props.firebase.currentUID + "/galleryData/" + id,
       callback: this.returnData,
@@ -53,9 +62,10 @@ class GalleryEditDropdown extends Component {
   };
 
   returnData = (snapshot) => {
+    const galleryData = snapshot.val()
     const dataToReturn = {
       galleryDesc: this.desc,
-      galleryData: snapshot.val(),
+      galleryData: galleryData,
       id: this.selectedId
     }
     console.log("dataToReturn",dataToReturn);
@@ -63,13 +73,14 @@ class GalleryEditDropdown extends Component {
   }
 
   listItem(data) {
-    const { Option } = Select;
     const galleryData = data.val();
+    console.log("galleryData listItem",galleryData)
+
     const { key } = data;
     const { title } = galleryData;
     return (
-      <Option value={key} key={data.key}>
-        {title}
+      <Option key={key} label={data.title || "Untitled"}>
+        {title || "Untitled"}
       </Option>
     );
   }
@@ -77,9 +88,9 @@ class GalleryEditDropdown extends Component {
   render() {
     return (
       <Select
-        style={{ width: 250 }}
-        defaultValue="Select a Gallery to edit"
+        style={{ width: 180 }}        
         onChange={(id) => this.getGalleryData(id)}
+        value={(isEmpty(this.props.galleryDesc) || isNil(this.props.galleryDesc.title))? defaultValue : this.props.id}
       >
         {this.state.galleriesList.map(data => this.listItem(data))}
       </Select>

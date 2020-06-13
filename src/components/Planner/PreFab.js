@@ -19,7 +19,6 @@ class PreFab extends Component {
   }
 
   plansCallback = data => {
-    console.log("Prefab plansCallback", data);
     const list = [];
     if (data) {
       data.forEach(function (childSnapshot) {
@@ -27,17 +26,14 @@ class PreFab extends Component {
       });
     }
     this.setState({ userFloorplans: list });
-    console.log("Prefab plansCallback", list);
   };
 
   useLocalStorage = () => {
     const localPlan = JSON.parse(localStorage.getItem("planData"));
-    console.log(localPlan);
     this.props.useStoredPlan(localPlan);
   };
 
   useStoredPlan(plan) {
-    console.log("make this plan", plan);
     for (let i in plan) {
       for (let j in plan[i]) {
         const walls = this.getWallsFromState(i, j);
@@ -83,7 +79,6 @@ class PreFab extends Component {
     const { key } = snapshot;
     planData.key = key;
 
-    console.log("key", key, data)
     return (
       <Col key={key}>
         <Card size="small" style={this.cardStyle}
@@ -135,7 +130,7 @@ class CanvasTile extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    console.log("componentDidUpdate CanvasTile",prevProps.plan,this.props.plan)
+    // console.log("componentDidUpdate CanvasTile",prevProps.plan,this.props.plan)
     if (prevProps.plan !== this.props.plan) this.buildCanvas();
   }
 

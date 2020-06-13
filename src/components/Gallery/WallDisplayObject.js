@@ -15,7 +15,7 @@ class WallDisplayObject {
     this.row = row;
     this.pos = pos;
     this.sides = sides || {};
-    console.log("Wall display", col, row, pos, height, sides);
+    // console.log("Wall display", col, row, pos, height, sides);
     this.builder = builder;
     this.scene = this.builder.scene;
     this.midpointX = this.builder.state.voxelsX / 2;
@@ -33,7 +33,6 @@ class WallDisplayObject {
     this.posX =
       (this.col - this.midpointX) * this.wallWidth + this.wallWidth / 2;
     this.posZ = (this.row - this.midpointY) * this.wallWidth;
-    console.log("this.posX, this.posZ", this.posX, this.posZ);
   }
 
   renderWall() {
@@ -62,7 +61,7 @@ class WallDisplayObject {
     this.builder.scene.add(this.wallGroup);
     this.builder.scene.updateMatrixWorld(true);
     this.wallGroup.position.set(this.posX, this.height / 2, this.posZ);
-    console.log("wall pos", this.posX, this.height / 2, this.posZ);
+    // console.log("wall pos", this.posX, this.height / 2, this.posZ);
     this.builder.scene.updateMatrixWorld(true);
     if (this.pos === 0) {
       this.wallGroup.translateX(-(this.wallWidth / 2)); //
@@ -73,16 +72,13 @@ class WallDisplayObject {
   }
 
   renderSides() {
-    console.log("renderSides", this.col, this.row, this.sides);
     Object.keys(this.sides).forEach(side => this.artForSide(side));
   }
 
   artForSide(side) {
-    console.log("side", this.sides[side]);
     this.art[side] = [];
     // console.log("this.sides[side]", this.sides[side]);
     this.sides[side].forEach((item, index) => {
-      console.log("artForSide", item, index);
       const options = {
         scene: this.scene, //??
         wall: this,
@@ -92,17 +88,6 @@ class WallDisplayObject {
       const frameObj = new FrameDisplayObject(options);
       frameObj.renderFrame();
       this.art[side].push(frameObj);
-
-      // const artMesh = item[0];
-      // console.log("artForSide", item);
-      // const options = item;
-      // options.side = side;
-      // options.wall = this;
-
-      // const frameObj = new FrameDisplayObject(options);
-      // this.art[side].push(new FrameDisplayObject(options));
-      // this.art[side][index]
-      // frameObj.renderArt();
     });
   }
 }

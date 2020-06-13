@@ -38,6 +38,8 @@ export class MapContainer extends Component {
   onMarkerDragEnd = (hoverKey, childProps, mouse) => {
     // console.log("onMarkerDragEnd", hoverKey, childProps, mouse)
     const { latLng } = mouse;
+    console.log("onMarkerDragEnd", latLng)
+
     this.props.latLngCallBack({ lat: latLng.lat(), lng: latLng.lng() });
   }
 
@@ -51,9 +53,9 @@ export class MapContainer extends Component {
       props
       selected={this.props.setCenter || this.props.selected}
       modal={this.props.modal}
+      latLngCallBack={this.props.latLngCallBack}
     >
-      {this.props.modal ? (<Marker position={this.props.setCenter} onClick={this.onMarkerClick} name={'Your Gallery\'s location'} draggable={true} onDragend={this.onMarkerDragEnd} />) :
-        this.props.list.map((item, index) => {
+      {!this.props.modal && this.props.list.map((item, index) => {
           return (
             <Marker
               position={item.location}

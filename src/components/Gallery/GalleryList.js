@@ -28,73 +28,75 @@ class GalleryList extends Component {
 
   }
   onClickHandler = (action, item) => {
-    console.log("e",action, item)
-    if (action==="Locate") this.props.selectCallback(item);
+    console.log("e", action, item)
+    if (action === "Locate") this.props.selectCallback(item);
 
-    if (action==="Visit") {
-      const {history,nameEncoded} = item
-      history.push({ pathname: "/Gallery/" + nameEncoded})
+    if (action === "Visit") {
+      const { history, nameEncoded } = item
+      history.push({ pathname: "/Gallery/" + nameEncoded })
     }
 
   }
 
   fillList = data => {
     console.log("Galleries callback", data);
+
     const list = [];
     if (data) {
-      data.forEach(function (childSnapshot) {
-        list.push(childSnapshot.val());
+      data.forEach( (childSnapshot)=> {
+        const snap = childSnapshot.val();
+        console.log("list data", childSnapshot.key, snap)
+        list.push(snap);
       });
     }
     this.setState({ galleriesList: list });
     console.log("Galleries plansCallback", list);
     this.props.listCallback && this.props.listCallback(list)
   };
-  //   <ul>
-  //   {this.state.galleriesList.map(data => (
-  //     <GalleryListItem data={data} key={data.key} />
-  //   ))}
-  // </ul>
+
   render() {
     return (
       <List
         itemLayout="vertical"
         dataSource={this.state.galleriesList}
-        renderItem={item => <GalleryListItem item={item} onClickHandler={this.onClickHandler} /> }
+        renderItem={item => <GalleryListItem item={item} onClickHandler={this.onClickHandler} />}
       />
     );
   }
 }
 
-const GalleryListItem = ({item, onClickHandler}) => {
-  //<ButtonToNavigate {...routeProps} />
-  return(
-  <List.Item style={{backgroundColor: "#F5F5F6", padding: 10}}
-  extra={
-    <img
-      width={172}
-      alt={`${item.title} Gallery`}
-      src={item.galleryImg ? `${item.galleryImg.thumb || item.galleryImg.url}` : galleryPlaceholder}
-    />
-  }
-  actions={[
-    <span onClick={() => onClickHandler("Locate",item)}><EnvironmentOutlined key="list-vertical-star-o" style={ {marginRight: 8 } }/>Locate</span>,
-    <Route
-    path="/"
-    render={routeProps => {
-      Object.assign(routeProps, item);
-      return <span onClick={() => onClickHandler("Visit",routeProps)}  ><ArrowRightOutlined key="list-vertical-star-o" style={ {marginRight: 8 } }/>Visit</span>;
-    }}
-  />
-    
+const GalleryListItem = ({ item, onClickHandler }) => {
+
+  return (
+    <List.Item style={{ backgroundColor: "#F5F5F6", padding: 10 }}
+      extra={
+        <img
+          width={172}
+          alt={`${item.title} Gallery`}
+          src={item.galleryImg ? `${item.galleryImg.thumb || item.galleryImg.url}` : galleryPlaceholder}
+        />
+      }
+      actions={[
+        <span onClick={() => onClickHandler("Locate", item)}><EnvironmentOutlined key="list-vertical-star-o" style={{ marginRight: 8 }} />Locate</span>,
+        <Route
+          path="/"
+          render={routeProps => {
+            Object.assign(routeProps, item);
+            return <span onClick={() => onClickHandler("Visit", routeProps)}  ><ArrowRightOutlined key="list-vertical-star-o" style={{ marginRight: 8 }} />Visit</span>;
+          }}
+        />
 
 
-  ]}>
-    <List.Item.Meta
-      title={item.title}
-      description={<Paragraph ellipsis={{ rows: 5, expandable: true }}>{item.description}</Paragraph>}
-    />
-  </List.Item>
-)}
+
+      ]}>
+      <List.Item.Meta
+        title={item.title}
+        description={<div>{item.userDisplayName && <p>Built by: {item.userDisplayName}</p>}
+          <Paragraph ellipsis={{ rows: 5, expandable: true }}>{item.description}</Paragraph>
+        </div>}
+      />
+    </List.Item>
+  )
+}
 
 export default withFirebase(GalleryList);

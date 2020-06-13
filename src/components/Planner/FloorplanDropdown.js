@@ -2,16 +2,14 @@ import React, { Component } from 'react';
 import { withFirebase } from "../Firebase";
 import { Select } from 'antd';
 import { CanvasTile } from './PreFab';
+import { isEmpty } from 'lodash';
+
 const { Option } = Select;
 
-const List = ({ floorplans, floorplanCallback }) => {
-    const getTiles = (data) => {
-        return (<Option label={data.title} key={data.key} value={data.key}><div>{data.title}</div><CanvasTile plan={data.data} /></Option>);
-    }
-    return (<Select style={{ width: 220 }} optionLabelProp="label" placeholder="Select a Floorplan" onChange={floorplanCallback}>
-        {floorplans.map(data => getTiles(data))}
-    </Select>)
-}
+const defaultValue = "New Gallery"
+
+const masterRefPath = 'users/0XHMilIweAghhLcophtPU4Ekv7D3'
+
 
 class FloorplanDropdown extends Component {
     state = {
@@ -19,34 +17,58 @@ class FloorplanDropdown extends Component {
     };
     constructor(props) {
         super(props);
+        this.dataList = {};
     }
     componentDidMount() {
-        this.props.firebase.getUsersFloorplans(this.plansCallback);
+        const masterOption = {
+            refPath: masterRefPath + "/floorplans",
+            callback: this.masterCallback,
+            orderField: "title"
+        }
+        this.props.firebase.getList(masterOption)
     }
+
     componentWillUnmount() {
         this.props.firebase.detachGetUsersFloorplans();
+    }
+
+    masterCallback = snap => {
+        console.log("masterCallback", snap.val())
+        const list = this.addToList(snap, "master");
+        this.setState({ floorplans: list }, this.props.firebase.getUsersFloorplans(this.userCallback));
+    }
+
+    userCallback = snap => {
+        const list = this.addToList(snap, "user");
+        this.setState({ floorplans: list });
     }
 
     dropdownCallback = id => {
         this.props.floorplanCallback(this.dataList[id])
     }
 
-    plansCallback = (data) => {
-        //this.props.floorplanCallback(this.dataList.id)
-        const list = [];
-        this.dataList = {};
+    addToList = (data, cssClass) => {
+        const list = this.state.floorplans;
         if (data) {
             data.forEach((childSnapshot) => {
-                list.push(Object.assign(childSnapshot.val(), { key: childSnapshot.key }));
-                this.dataList[childSnapshot.key] = childSnapshot.val()
-
+                list.push(Object.assign(childSnapshot.val(), { key: childSnapshot.key, cssClass: cssClass }));
+                this.dataList[childSnapshot.key] = Object.assign(childSnapshot.val(), { id: childSnapshot.key })
             });
         }
-        this.setState({ floorplans: list });
+        return list;
     }
+
+    getTiles = (data) => {
+        const {cssClass, title, key} = data;
+        return (<Option label={title} key={key} value={key} className={cssClass}><div>{title}</div><CanvasTile plan={data.data} /></Option>);
+    }
+
     render() {
+        const { floorplans } = this.state;
         return (
-            <List floorplans={this.state.floorplans} floorplanCallback={(id) => this.dropdownCallback(id)} />
+            <Select style={{ width: 180 }} value={this.props.floorplan && isEmpty(this.props.galleryDesc) ? this.props.floorplan.id : defaultValue} onChange={(id) => this.dropdownCallback(id)}>
+                {floorplans.map(data => this.getTiles(data))}
+            </Select>
         )
     }
 }

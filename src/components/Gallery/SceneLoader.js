@@ -7,8 +7,8 @@ import Surroundings from "../PlanBuilder/Surroundings";
 
 class SceneLoader {
   state = {
-    voxelsX: 14,
-    voxelsY: 10,
+    voxelsX: 16,
+    voxelsY: 12,
     wallWidth: 20
   };
   constructor(options) {
