@@ -48,6 +48,7 @@ class WallDisplayObject {
       transparent: true
     });
     this.wallMesh = new THREE.Mesh(geometry, this.wallMaterial);
+    // this.wallMesh.renderOrder = 1;
     this.wallMesh.name = "wallMesh";
     const textureAdder = new TextureAdder({ material: this.wallMaterial });
     textureAdder.setDataToMaterial(this.texture);
@@ -72,6 +73,7 @@ class WallDisplayObject {
   }
 
   renderSides() {
+    this.artMeshes = []
     Object.keys(this.sides).forEach(side => this.artForSide(side));
   }
 
@@ -87,9 +89,15 @@ class WallDisplayObject {
       };
       const frameObj = new FrameDisplayObject(options);
       frameObj.renderFrame();
-      this.art[side].push(frameObj);
+      this.art[side].push(frameObj); 
+      this.artMeshes.push(frameObj.artMesh)
     });
+  }
+
+  getArt(){
+    return this.artMeshes;
   }
 }
 
 export default WallDisplayObject;
+

@@ -7,7 +7,7 @@ import { UploaderTile } from "../Uploader"
 import AssetEditor from "../Studio/AssetEditor";
 const { confirm } = Modal;
 
-const masterRefPath = 'users/0XHMilIweAghhLcophtPU4Ekv7D3'
+const masterID = '0XHMilIweAghhLcophtPU4Ekv7D3'
 
 
 const RestoreDefaultTile = (props) => {
@@ -46,10 +46,11 @@ componentDidUpdate(oldProps){
   }
 
   addMasterTiles() {
-    this.tilesCall = this.props.firebase.getTiles(masterRefPath + '/' + this.type, this.addMasterTilesCallback);
+    this.tilesCall = this.props.firebase.getTiles('users/' + masterID + '/' + this.type, this.addMasterTilesCallback);
 
   }
   addMasterTilesCallback = (data) => {
+    if (this.props.firebase.currentUID === masterID) {return;}
     const masterTiles = this.state.tilesData;
     if (data) {
       data.forEach((childSnapshot) => {

@@ -200,7 +200,6 @@ class PlanCanvas extends Component {
     // this.props.stats.update();
   }
   userEvents = () => {
-    console.log("userEvents")
     this.doAnyHover();
     if (this.state.mousedown && this.state.buildingWallAr)
       this.doAnyExtendedBuilding();
@@ -274,11 +273,11 @@ class PlanCanvas extends Component {
     if (y < 0) debugger;
     if (x > 5) x -= 5;
     if (y > 5) y -= 5;
-    console.log(
-      "getWallsFromPos",
-      Math.floor(x / voxelSizePlus),
-      Math.floor(y / voxelSizePlus)
-    );
+    // console.log(
+    //   "getWallsFromPos",
+    //   Math.floor(x / voxelSizePlus),
+    //   Math.floor(y / voxelSizePlus)
+    // );
     return this.props.walls[Math.max(0,Math.floor(x / voxelSizePlus))][
       Math.max(0,Math.floor(y / voxelSizePlus))
     ];
@@ -287,11 +286,11 @@ class PlanCanvas extends Component {
   getVoxelFromPos(x, y) {
     // x += 25;
     // y += 5;
-    console.log(
-      "getVoxelFromPos",
-      Math.floor(x / voxelSizePlus),
-      Math.floor(y / voxelSizePlus)
-    );
+    // console.log(
+    //   "getVoxelFromPos",
+    //   Math.floor(x / voxelSizePlus),
+    //   Math.floor(y / voxelSizePlus)
+    // );
     return [Math.max(0,Math.floor(x / voxelSizePlus)), Math.max(0,Math.floor(y / voxelSizePlus))];
   }
 

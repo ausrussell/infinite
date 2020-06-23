@@ -14,16 +14,33 @@ import FrameDisplayObject from "./FrameDisplayObject";
 // import GLTFLoader from "three-gltf-loader";
 import SceneLoader from "./SceneLoader";
 import PageTitle from '../Navigation/PageTitle';
-import {GalleryHelp} from './GalleryHelp'
+import { GalleryHelp } from './GalleryHelp'
+
+// import Gui, { GuiContext } from "./Gui";
+
+import * as dat from "dat.gui";
+
+// class Gui {
+//   constructor() {
+//     // this.gui = new dat.GUI();
+//     this.fov = 60;
+
+//   }
+// }
+
+const Gui = function() {
+    this.fov = 60;
+};
 
 
 class Gallery extends Component {
   state = {
     galleryData: {},
-    voxelsX:14,
-    voxelsY:10,
+    voxelsX: 14,
+    voxelsY: 10,
     wallWidth: 20,
-    wallMeshes: []
+    wallMeshes: [],
+    artMeshes:[]
   };
   constructor(props) {
     super(props);
@@ -34,7 +51,8 @@ class Gallery extends Component {
     this.clock = new THREE.Clock();
     this.frameObjects = [];
     this.wallMeshes = [];
-    this.GalleryHelp = GalleryHelp({callback: this.helpCallback})
+    this.GalleryHelp = GalleryHelp({ callback: this.helpCallback })
+
   }
 
   componentDidMount() {
@@ -44,31 +62,44 @@ class Gallery extends Component {
       this.props.match.params.galleryName,
       this.processGallery
     );
+    console.log("Gui constructor")
+
   }
 
   componentWillUnmount() {
     console.log("unmount");
     window.removeEventListener("resize", this.onWindowResize);
     this.flaneurControls && this.flaneurControls.dispose();
+    this.gui && this.gui.destroy();
     // this.galleryRef && this.props.firebase.detachRefListener(this.galleryRef);
   }
+  addGui(){
+    this.gui = new dat.GUI();
+    this.guiObj = new Gui();
+  // this.gui.add(text, 'fov')
+
+  this.gui.add(this.guiObj, "fov", 25, 180).onChange(e => {
+    this.fov = e;
+    this.flaneurControls.setFov(e);
+  });
+}
 
   setupListeners() {
+    this.addGui();
     this.focusGallery()
     this.setupFlaneurControls();
     window.addEventListener("resize", this.onWindowResize, false);
-
   }
 
   onWindowResize = () => {
     const width = this.mount.clientWidth;
     const height = this.mount.clientHeight;
-    console.log("onWindowResize",width, height)
-
-    this.renderer.setSize( width, height );
+    console.log("onWindowResize", width, height)
+    this.renderer.setSize(width, height);
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
   }
+
   //scene setup and animation
   setUpScene() {
     const width = this.mount.clientWidth;
@@ -128,6 +159,7 @@ class Gallery extends Component {
     this.setupListeners();
     this.setCamera();
     this.animate();
+    this.flaneurControls.setUpCollidableObjects();
 
   };
   emptyScene() {
@@ -174,19 +206,20 @@ class Gallery extends Component {
     var cube = new THREE.Mesh(geometry, material);
     this.scene.add(cube);
   }
-  renderFrames() {
-    console.log("this.frameGroups", this.frameGroups);
-
-    this.frameGroups.forEach(item => {
-      const frameData = {
-        gltf: item,
-        galleryObject: this
-      };
-      const frame = new FrameDisplayObject(frameData);
-      this.frameObjects.push(frame);
-      frame.renderFrame();
-    });
-  }
+//   renderFrames() {
+//     console.log("this.frameGroups", this.frameGroups);
+// const artMeshes = [];
+//     this.frameGroups.forEach(item => {
+//       const frameData = {
+//         gltf: item,
+//         galleryObject: this
+//       };
+//       const frame = new FrameDisplayObject(frameData);
+//       // this.frameObjects.push(frame);
+//       artMeshes.push()
+//       frame.renderFrame();
+//     });
+//   }
 
   helpCallback = () => {
     setTimeout(() => this.flaneurControls.setFocus(), 500);//to overcome ant d difficult refocussing
@@ -205,8 +238,9 @@ class Gallery extends Component {
   render() {
     return (
       <ErrorBoundary>
+
         <div className="page-header-area">
-            <PageTitle title={this.state.galleryData.title} help={this.GalleryHelp} />
+          <PageTitle title={this.state.galleryData.title} help={this.GalleryHelp} />
         </div>
         <MainCanvas refer={mount => (this.mount = mount)} />
       </ErrorBoundary>

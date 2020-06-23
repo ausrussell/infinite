@@ -367,7 +367,7 @@ class Builder extends Component {
       this.setState(initState);
     } else {
     const { name, floorplan } = galleryData;
-    const newState = Object.assign(this.getInitialState(), { galleryTitle: name, floorplan: floorplan, galleryDesc: galleryDesc, galleryId: id, floor: new Floor({ builder: this }) })
+    const newState = Object.assign(this.getInitialState(), { galleryTitle: name, floorplan: floorplan, galleryDesc: galleryDesc, galleryId: id, floor: new Floor({ builder: this }), surroundings: new Surroundings(this)  })
     this.setState(newState, () => this.rebuildGallery(galleryData))}
   }
 
@@ -1029,6 +1029,7 @@ class Builder extends Component {
         });
       }
     }
+
     this.setState({ wallEntities: wallEntities, wallMeshes: wallEntities.map(item => item.getMesh()) }, this.initialWallBuild);
     console.log("setWalls floorplan wallEntities", wallEntities);
   }
@@ -1060,17 +1061,19 @@ class Builder extends Component {
       item.initialAnimateBuild(index, done);
     });
     this.setState({ exportData: this.getExport() });
+    this.flaneurControls.setUpCollidableObjects();
+
   }
 
   setSceneMeshes() {
     const meshesInScene = [];
     this.scene.traverse(node => {
       if (node instanceof THREE.Mesh) {
-        // if (node.objecttype !== )
         meshesInScene.push(node);
       }
     });
-    this.setState({ meshesInScene: meshesInScene })
+    this.setState({ meshesInScene: meshesInScene });
+
   }
 
   rayIntersect(ray, distance) {

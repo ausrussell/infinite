@@ -24,16 +24,41 @@ class Firebase {
     this.auth.onAuthStateChanged(user => {
       this.currentUID = user ? user.uid : null;
       this.currentUser = user;
+      console.log("call updateAccount", this.currentUID);
+
+      this.updateAccount();
       console.log("this.auth.onAuthStateChanged", this.currentUID);
     });
-    this.floorplansRef = this.database.ref("floorplans");
   }
 
-  setupNewUser = (user, { displayName }) => {
+  setupNewUser = (user, { displayName, email, username }) => {
     user.user.updateProfile({
       displayName: displayName
     });
+    return this.user(user.user.uid)
+      .set({
+        displayName,
+        username,
+        email,
+        createdAt: app.database.ServerValue.TIMESTAMP
+      });
   };
+
+  updateAccount = () => {
+    if (this.currentUID) {
+      this.user(this.currentUID).once("value", (snapshot) => {
+        const snap = snapshot.val();
+        let updateOptions = {
+          lastLogin: app.database.ServerValue.TIMESTAMP,
+          displayName: this.currentUser.displayName,//these three values from 
+          // username: this.currentUser.username,
+          email: this.currentUser.email
+        }
+        // console.log("updateOptions",updateOptions)
+        this.user(this.currentUID).set(updateOptions)
+      })
+    }
+  }
 
   getCurrentUser = () => {
     return this.auth.user;
@@ -59,11 +84,35 @@ class Firebase {
 
   // *** User API ***
 
-  user = uid => {
-    this.database.ref(`users/${uid}`);
-  };
+  user = uid => this.database.ref(`users/${uid}/account`);
 
   users = () => this.database.ref("users");
+
+  getList = ({ refPath, callback, orderField }) => {
+    // const ref = this.database.ref(refPath);
+    const ref = app.database().ref(refPath);
+    ref.orderByChild(orderField).on("value", callback);
+    return ref;
+  }
+
+  getAsset = ({ refPath, callback, once }) => {
+    const ref = app.database().ref(refPath);
+    if (once) {
+      ref.once("value", callback);
+    } else {
+      ref.on("value", callback);
+    }
+    return ref;
+  }
+
+  updateAsset = (path, object) => {
+    console.log("updateAsset", path, object)
+    delete object.ref;
+    const ref = this.database
+      .ref(path)
+    return ref.update(object)
+  }
+
 
   storeFloorplan = ({ data, title, timestamp }) => {
     console.log("storeFloorplan", this.currentUID);
@@ -84,13 +133,7 @@ class Firebase {
     return ref.update({ title: title })
   }
 
-  updateAsset = (path, object) => {
-    console.log("updateAsset", path, object)
-    delete object.ref;
-    const ref = this.database
-      .ref(path)
-    return ref.update(object)
-  }
+
 
   assetPath = (type) => "users/" + this.currentUID + "/" + type + "/";
 
@@ -223,22 +266,7 @@ class Firebase {
     return galleryDescs
   };
 
-  getList = ({ refPath, callback, orderField }) => {
-    // const ref = this.database.ref(refPath);
-    const ref = app.database().ref(refPath);
-    ref.orderByChild(orderField).on("value", callback);
-    return ref;
-  }
 
-  getAsset = ({ refPath, callback, once }) => {
-    const ref = app.database().ref(refPath);
-    if (once) {
-      ref.once("value", callback);
-    } else {
-      ref.on("value", callback);
-    }
-    return ref;
-  }
 
   removePlan = key => {
     this.database

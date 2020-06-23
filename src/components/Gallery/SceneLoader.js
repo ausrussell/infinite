@@ -44,11 +44,21 @@ class SceneLoader {
       this.wallEntities.push(new WallDisplayObject(options));
     });
     const wallMeshes = [];
+    const artMeshes = [];
     this.wallEntities.forEach(wall => {
       wall.renderWall();
-      wallMeshes.push(wall.wallMesh)
+      wallMeshes.push(wall.wallMesh);
+      console.log("getArt",wall.getArt());
+      const gotArt = wall.getArt();
+      if (gotArt.length ) {
+        gotArt.forEach(item => {
+        console.log("got art item",item)
+          
+          artMeshes.push(item)})
+      }
     });
-    this.builder.setState({ wallMeshes: wallMeshes })
+    console.log("artMeshes in renderwalls",artMeshes)
+    this.builder.setState({ wallMeshes: wallMeshes, artMeshes: artMeshes })
 
   }
 
