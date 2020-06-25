@@ -83,6 +83,16 @@ class Animate {
   sine(timeFraction) {
     return 1 - Math.sin(timeFraction);
   }
+
+  makeEaseOut(timing) {
+    return function(timeFraction) {
+      return 1 - timing(1 - timeFraction);
+    }
+  }
+
+  easeOut(timeFraction){
+    return 1- Math.pow(timeFraction, 2)
+  }
 }
 
 export default Animate;

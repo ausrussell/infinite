@@ -85,7 +85,7 @@ class Gallery extends Component {
 }
 
   setupListeners() {
-    this.addGui();
+    // this.addGui();
     this.focusGallery()
     this.setupFlaneurControls();
     window.addEventListener("resize", this.onWindowResize, false);
@@ -106,7 +106,7 @@ class Gallery extends Component {
     const height = this.mount.clientHeight;
     this.setState({ width: width, height: height });
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
+    this.camera = new THREE.PerspectiveCamera(60, width / height, 1, 1000);
     this.renderer = new THREE.WebGLRenderer({
       antialias: true
     });

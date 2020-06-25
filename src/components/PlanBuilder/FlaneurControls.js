@@ -2,10 +2,12 @@ import * as THREE from "three";
 import Animate from "../../Helpers/animate";
 import { isEqual } from 'lodash';
 
-
+const { Quaternion, Vector3 } = THREE;
 const degreesToRadians = degrees => {
   return (degrees * Math.PI) / 180;
 };
+
+const defaultCameraSpeed = 1;
 
 class FlaneurControls {
   constructor(object, builder) {
@@ -60,6 +62,7 @@ class FlaneurControls {
     this.spherical = new THREE.Spherical();
     this.target = new THREE.Vector3();
     this.footstepsAngle = new THREE.Vector3();
+    this.cameraRotationQuarternion = new Quaternion();
 
     if (this.domElement !== document) {
       this.domElement.setAttribute("tabindex", -1);
@@ -74,8 +77,22 @@ class FlaneurControls {
     this.currentDestination = null;
     this.defaultObjectY = 50;
     this.collisionDistance = 5;
+    this.setUpAnimations()
+    this.collidableObjects = [];
+    // this.setUpCollidableObjects();
+
+    if (this.mode === "Gallery") this.setUpArtMovement();
+    this.defaultFov = 60;
+    this.onArt = false;
+    this.movingToArt = false;
+    this.cameraRotationSpeed = 1;
+
+  }
+
+
+  setUpAnimations() {
     this.moveToDestinationAni = new Animate({
-      duration: 10000,
+      duration: 5000,
       timing: "circ",
       draw: progress => this.moveToDestinationLoop(progress),
       done: this.doneMoveToDestination
@@ -92,14 +109,27 @@ class FlaneurControls {
       draw: progress => this.restoreDefaultFovLoop(progress),
       done: this.doneRestoreDefaultFov
     });
-    this.collidableObjects = [];
-    // this.setUpCollidableObjects();
+    this.easeOutCameraTurn = new Animate({
+      duration: 200,
+      timing: "easeOut",
+      draw: progress => this.easeOutCameraTurnLoop(progress),
+      done: this.doneEaseOutCameraTurn
+    });
 
-    if (this.mode === "Gallery") this.setUpArtMovement();
-    this.defaultFov = 60;
-    this.onArt = false;
-    this.movingToArt = false;
+  }
 
+  easeCamera(dir) {
+    this.easeOutCameraTurn.end()
+    this.easeOutCameraTurn.begin();
+  }
+
+  easeOutCameraTurnLoop(progress) {
+    this.cameraRotationSpeed = progress;
+  }
+  doneEaseOutCameraTurn = () => {
+    this.moveCameraRight = false;
+    this.moveCameraLeft = false;
+    this.cameraRotationSpeed = defaultCameraSpeed;
   }
 
   setUpCollidableObjects() {
@@ -204,7 +234,7 @@ class FlaneurControls {
   onKeyDown = event => {
     if (!this.moveToArtAni.stop) {
       this.moveToArtAni.end();
-      if (this.object.fov !== this.defaultFov) this.restoreDefaultFov()
+      if (this.object.fov !== this.defaultFov) {this.restoreDefaultFov()}
     }
     switch (event.keyCode) {
       case 38: /*up*/
@@ -215,7 +245,13 @@ class FlaneurControls {
 
       case 37: /*left*/
       case 65:
-        this.moveCameraLeft = true;
+        if (event.shiftKey) {
+          this.moveLeft = true;
+        } else {
+          if (!this.easeOutCameraTurn.stop) this.easeOutCameraTurn.end();
+
+          this.moveCameraLeft = true;
+        }
         // /*A*/ this.moveLeft = true;
         break;
 
@@ -229,7 +265,13 @@ class FlaneurControls {
       case 39: /*right*/
       case 68:
         // /*D*/ this.moveRight = true;
-        this.moveCameraRight = true;
+        if (event.shiftKey) {
+          this.moveRight = true;
+        } else {
+          if (!this.easeOutCameraTurn.stop) this.easeOutCameraTurn.end();
+
+          this.moveCameraRight = true;
+        }
         break;
 
       case 82:
@@ -253,7 +295,11 @@ class FlaneurControls {
       case 37: /*left*/
       case 65:
         // /*A*/ this.moveLeft = false;
-        this.moveCameraLeft = false;
+        // this.moveCameraLeft = false;
+        if (this.moveCameraLeft) {
+          this.easeCamera()
+        }
+        this.moveLeft = false;
         break;
 
       case 40: /*down*/
@@ -264,7 +310,13 @@ class FlaneurControls {
       case 39: /*right*/
       case 68:
         // /*D*/ this.moveRight = false;
-        this.moveCameraRight = false;
+        if (this.moveCameraRight) {
+          console.log("set moveCameraRight")
+          // this.moveCameraRight = false;
+          this.easeCamera()
+          // this.easeCamera("right")
+        }
+        this.moveRight = false;
         break;
 
       case 82:
@@ -381,11 +433,13 @@ class FlaneurControls {
     }
 
     if (this.moveCameraRight) {
-      this.object.rotation.y -= 0.012;
+      this.rotateCamera("right")
+      this.checkForArtHover();
     }
 
     if (this.moveCameraLeft) {
-      this.object.rotation.y += 0.012;
+      this.rotateCamera("left")
+      this.checkForArtHover();
     }
 
     if (!isEqual(oldPosition, Object.assign({}, this.object.position))) {
@@ -396,8 +450,27 @@ class FlaneurControls {
         this.restoreDefaultFov()
         this.onArt = false;
       }
-      // console.log("update this.onArt",this.onArt);
     }
+  }
+
+  cameraRotation(dir) {
+    let rot;
+    switch (dir) {
+      case "left":
+        rot = this.cameraRotationQuarternion.setFromAxisAngle(new Vector3(0, 1, 0), degreesToRadians(this.cameraRotationSpeed));
+        break;
+      case "right":
+        rot = this.cameraRotationQuarternion.setFromAxisAngle(new Vector3(0, 1, 0), degreesToRadians(-this.cameraRotationSpeed));
+        break;
+      default: break;
+    }
+    return rot
+  }
+
+  rotateCamera(dir) {
+    const cur = this.object.quaternion
+    const rot = this.cameraRotation(dir);
+    cur.multiplyQuaternions(rot, cur);
   }
 
   cameraTimer = () => {
@@ -504,14 +577,12 @@ class FlaneurControls {
     this.clickFloorPlane.translateY(0.1);
     this.clickFloorPlane.name = "clickFloorPlane";
     this.builder.scene.add(this.clickFloorPlane);
-    // debugger;
-    // this.setUpFootsteps();
   }
 
   setUpArtMovement() {
     this.artOver = null;
-
   }
+
   setUpFootsteps(imagery) {
     // this.footTexture = imagery;
     const footGeo = new THREE.PlaneBufferGeometry(20, 20);
@@ -578,7 +649,7 @@ class FlaneurControls {
     quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), r);
     this.currentDestination = destinationVector;
     // this.currentDestination.cameraRotation = (this.artOver.frameDisplayObject.wall.pos === 0) ? 1.5 : 0;
-    if (this.artOver.frameDisplayObject.side === "back" && this.artOver.frameDisplayObject.wall.pos === 0) this.currentDestination.cameraRotation = -1.5;
+    // if (this.artOver.frameDisplayObject.side === "back" && this.artOver.frameDisplayObject.wall.pos === 0) this.currentDestination.cameraRotation = -1.5;
     this.currentDestination.cameraQuaternion = quaternion;
     const opp = (this.artOver.frameDisplayObject.ratio <= 1) ? this.artOver.geometry.parameters.height / 2 : this.artOver.geometry.parameters.width / 2;
     console.log("ratio", this.artOver.geometry.parameters.width, this.artOver.geometry.parameters.height, this.artOver.frameDisplayObject.ratio)
@@ -612,8 +683,8 @@ class FlaneurControls {
   }
 
   moveToDestinationLoop(progress) {
-    var newX = (this.moveFrom.x - ((this.moveFrom.x - this.currentDestination.x) * progress)); 
-    var newZ = (this.moveFrom.z - ((this.moveFrom.z - this.currentDestination.z) * progress)); 
+    var newX = (this.moveFrom.x - ((this.moveFrom.x - this.currentDestination.x) * progress));
+    var newZ = (this.moveFrom.z - ((this.moveFrom.z - this.currentDestination.z) * progress));
     this.object.position.set(newX, this.defaultObjectY, newZ);
   }
 
