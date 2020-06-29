@@ -15,21 +15,14 @@ import FrameDisplayObject from "./FrameDisplayObject";
 import SceneLoader from "./SceneLoader";
 import PageTitle from '../Navigation/PageTitle';
 import { GalleryHelp } from './GalleryHelp'
+import { ArtDetails } from './ArtDetails'
 
 // import Gui, { GuiContext } from "./Gui";
 
 import * as dat from "dat.gui";
 
-// class Gui {
-//   constructor() {
-//     // this.gui = new dat.GUI();
-//     this.fov = 60;
-
-//   }
-// }
-
-const Gui = function() {
-    this.fov = 60;
+const Gui = function () {
+  this.fov = 60;
 };
 
 
@@ -40,7 +33,9 @@ class Gallery extends Component {
     voxelsY: 10,
     wallWidth: 20,
     wallMeshes: [],
-    artMeshes:[]
+    artMeshes: [],
+    onArt: null,
+    artMeshes: null
   };
   constructor(props) {
     super(props);
@@ -66,6 +61,10 @@ class Gallery extends Component {
 
   }
 
+  componentDidUpdate(oldProps,oldState){
+console.log("oldState, this.state",oldState, this.state)
+  }
+
   componentWillUnmount() {
     console.log("unmount");
     window.removeEventListener("resize", this.onWindowResize);
@@ -73,16 +72,16 @@ class Gallery extends Component {
     this.gui && this.gui.destroy();
     // this.galleryRef && this.props.firebase.detachRefListener(this.galleryRef);
   }
-  addGui(){
+  addGui() {
     this.gui = new dat.GUI();
     this.guiObj = new Gui();
-  // this.gui.add(text, 'fov')
+    // this.gui.add(text, 'fov')
 
-  this.gui.add(this.guiObj, "fov", 25, 180).onChange(e => {
-    this.fov = e;
-    this.flaneurControls.setFov(e);
-  });
-}
+    this.gui.add(this.guiObj, "fov", 25, 180).onChange(e => {
+      this.fov = e;
+      this.flaneurControls.setFov(e);
+    });
+  }
 
   setupListeners() {
     // this.addGui();
@@ -206,23 +205,27 @@ class Gallery extends Component {
     var cube = new THREE.Mesh(geometry, material);
     this.scene.add(cube);
   }
-//   renderFrames() {
-//     console.log("this.frameGroups", this.frameGroups);
-// const artMeshes = [];
-//     this.frameGroups.forEach(item => {
-//       const frameData = {
-//         gltf: item,
-//         galleryObject: this
-//       };
-//       const frame = new FrameDisplayObject(frameData);
-//       // this.frameObjects.push(frame);
-//       artMeshes.push()
-//       frame.renderFrame();
-//     });
-//   }
+
 
   helpCallback = () => {
     setTimeout(() => this.flaneurControls.setFocus(), 500);//to overcome ant d difficult refocussing
+  }
+
+  getArtDetail(key) {
+    const options = {
+      refPath: "users/" + this.props.firebase.currentUID + "/art/" + key,
+      once: true,
+      callback: this.setArtDetails
+    }
+    console.log("getArtDetail",options)
+    this.props.firebase.getAsset(options);
+  }
+
+  setArtDetails = snap => {
+    const snapVal = (!snap)? null: snap.val()
+    console.log("gotArtDetails", snapVal);
+
+    this.setState({ onArt: snapVal })
   }
 
   animate() {
@@ -243,9 +246,12 @@ class Gallery extends Component {
           <PageTitle title={this.state.galleryData.title} help={this.GalleryHelp} />
         </div>
         <MainCanvas refer={mount => (this.mount = mount)} />
+        {this.state.onArt && <ArtDetails selectedArt={this.state.onArt} />}
       </ErrorBoundary>
     );
   }
 }
+
+
 
 export default withAuthentication(withFirebase(Gallery));

@@ -81,6 +81,7 @@ class WallDisplayObject {
     this.art[side] = [];
     // console.log("this.sides[side]", this.sides[side]);
     this.sides[side].forEach((item, index) => {
+      console.log("artForSide",item)
       const options = {
         scene: this.scene, //??
         wall: this,

@@ -311,7 +311,8 @@ class WallObject {
       file: file || itemData,
       uploadTask: uploadTask,
       holder: this.currentSideOver.defaultFrame,
-      draggableImageRef: draggableImageRef
+      draggableImageRef: draggableImageRef,
+      
     };
     this.currentSideOver.frames[index - 1].addArt(options);
 

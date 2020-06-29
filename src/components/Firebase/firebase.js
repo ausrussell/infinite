@@ -96,9 +96,10 @@ class Firebase {
   }
 
   getAsset = ({ refPath, callback, once }) => {
+    console.log("getAsset refPath",refPath)
     const ref = app.database().ref(refPath);
     if (once) {
-      ref.once("value", callback);
+      ref.once("value").then((snap) => callback(snap));
     } else {
       ref.on("value", callback);
     }
@@ -286,7 +287,7 @@ class Firebase {
 
 
   detachGetUsersFloorplans() {
-    this.userFloorplansRef.off();
+    this.userFloorplansRef && this.userFloorplansRef.off();
   }
   getTiles = (refPath, callback) => {
     console.log("getTiles", refPath);

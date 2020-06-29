@@ -228,19 +228,24 @@ class FlaneurControls {
     this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     this.mouse.y = -((event.clientY - (window.innerHeight - this.domElement.offsetHeight)) / this.domElement.offsetHeight) * 2 + 1;
     this.checkForFloorHover();
-    if (this.mode === "Gallery") this.checkForArtHover();
+    if (this.mode === "Gallery" && !this.onArt) this.checkForArtHover();
   };
 
   onKeyDown = event => {
     if (!this.moveToArtAni.stop) {
       this.moveToArtAni.end();
-      if (this.object.fov !== this.defaultFov) {this.restoreDefaultFov()}
+      if (this.object.fov !== this.defaultFov) { this.restoreDefaultFov() }
     }
     switch (event.keyCode) {
       case 38: /*up*/
       case 87:
         if (!this.moveToDestinationAni.stop) this.moveToDestinationAni.end();
+
+        if (event.shiftKey) {
+          this.moveUp = true;
+        } else {
         /*W*/ this.moveForward = true;
+        }
         break;
 
       case 37: /*left*/
@@ -258,8 +263,11 @@ class FlaneurControls {
       case 40: /*down*/
       case 83:
         if (!this.moveToDestinationAni.stop) this.moveToDestinationAni.end();
-
+        if (event.shiftKey) {
+          this.moveDown = true;
+        } else {
         /*S*/ this.moveBackward = true;
+        }
         break;
 
       case 39: /*right*/
@@ -290,6 +298,7 @@ class FlaneurControls {
       case 38: /*up*/
       case 87:
         /*W*/ this.moveForward = false;
+        this.moveUp = false;
         break;
 
       case 37: /*left*/
@@ -305,6 +314,7 @@ class FlaneurControls {
       case 40: /*down*/
       case 83:
         /*S*/ this.moveBackward = false;
+        this.moveDown = false;
         break;
 
       case 39: /*right*/
@@ -434,24 +444,27 @@ class FlaneurControls {
 
     if (this.moveCameraRight) {
       this.rotateCamera("right")
-      this.checkForArtHover();
+      !this.onArt && this.checkForArtHover();
     }
 
     if (this.moveCameraLeft) {
       this.rotateCamera("left")
-      this.checkForArtHover();
+      !this.onArt && this.checkForArtHover();
     }
 
     if (!isEqual(oldPosition, Object.assign({}, this.object.position))) {
       this.checkForFloorHover();
       this.checkForArtHover();
-      if (this.onArt) {
-        console.log("fire restoreFov")
-        this.restoreDefaultFov()
-        this.onArt = false;
-      }
+      this.onArt && this.offArtHandler()
     }
   }
+
+  offArtHandler() {
+    this.builder.setArtDetails(null);
+    this.restoreDefaultFov();
+    this.onArt = false;
+  }
+
 
   cameraRotation(dir) {
     let rot;
@@ -617,8 +630,6 @@ class FlaneurControls {
     this.bindEvents();
     this.collidableObjects.push(this.footstepsHoverMesh);
     console.log("setUpFootsteps collidableObjects", this.collidableObjects)
-
-
   }
 
   moveToDestination() {
@@ -637,26 +648,25 @@ class FlaneurControls {
   }
 
   moveToArt() {
-    console.log("move to this.artOver", this.artOver, this.artOver.getWorldPosition(), this.artOver.frameDisplayObject.viewingPosition);
+    this.selectedArt = this.artOver.frameDisplayObject;
+    this.selectedArt.data.art && this.builder.getArtDetail(this.selectedArt.data.art.key)
+    console.log("move to this.artOver", this.artOver, this.selectedArt);
     const destinationVector = new THREE.Vector3(0, 1, 0);
-    destinationVector.copy(this.artOver.frameDisplayObject.viewingPosition.getWorldPosition());
+    destinationVector.copy(this.selectedArt.viewingPosition.getWorldPosition());
     var quaternion = new THREE.Quaternion();
     let r;
-    r = (this.artOver.frameDisplayObject.wall.pos === 0) ? Math.PI / 2 : 0;
-    if (this.artOver.frameDisplayObject.side === "back" && this.artOver.frameDisplayObject.wall.pos === 0) r = -Math.PI / 2;
-    if (this.artOver.frameDisplayObject.side === "back" && this.artOver.frameDisplayObject.wall.pos === 1) r = 1;
+    r = (this.selectedArt.wall.pos === 0) ? Math.PI / 2 : 0;
+    if (this.selectedArt.side === "back" && this.selectedArt.wall.pos === 0) r = -Math.PI / 2;
+    if (this.selectedArt.side === "back" && this.selectedArt.wall.pos === 1) r = 1;
 
     quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), r);
     this.currentDestination = destinationVector;
-    // this.currentDestination.cameraRotation = (this.artOver.frameDisplayObject.wall.pos === 0) ? 1.5 : 0;
-    // if (this.artOver.frameDisplayObject.side === "back" && this.artOver.frameDisplayObject.wall.pos === 0) this.currentDestination.cameraRotation = -1.5;
     this.currentDestination.cameraQuaternion = quaternion;
-    const opp = (this.artOver.frameDisplayObject.ratio <= 1) ? this.artOver.geometry.parameters.height / 2 : this.artOver.geometry.parameters.width / 2;
-    console.log("ratio", this.artOver.geometry.parameters.width, this.artOver.geometry.parameters.height, this.artOver.frameDisplayObject.ratio)
+    // const opp = (this.selectedArt.ratio <= 1) ? this.selectedArt.artMesh.geometry.parameters.height / 2 : this.selectedArt.artMesh.parameters.width / 2;
+    const opp = (this.selectedArt.ratio <= 1) ? this.selectedArt.imageHeight / 2 : this.selectedArt.imageWidth / 2;
+
     const adj = 25;
     this.currentDestination.fov = Math.atan(opp / adj) * 180 / Math.PI * 2;
-    console.log("this.currentDestination.fov", this.currentDestination.fov);
-    console.log("destinationVector", destinationVector);
     this.moveFrom = this.object.position;
     this.moveFrom.fov = this.object.fov;
     this.moveToArtAni.begin();
@@ -692,8 +702,17 @@ class FlaneurControls {
     this.moveToArtAni.end();
     this.currentDestination = null;
     this.onArt = true;
+    this.onArtHandler();
     console.log("doneMoveToArt this.onArt", this.onArt);
   };
+
+  onArtHandler() {
+    // debugger;
+    // this.builder.setState({onArt:this.selectedArt})
+
+    this.selectedArt.artLeaveHandler();
+    console.log("this.artOver", this.artOver)
+  }
 
   doneMoveToDestination = () => {
     this.moveToDestinationAni.end();
@@ -755,7 +774,7 @@ class FlaneurControls {
   }
 
   leaveArtHandler() {
-    this.artOver.frameDisplayObject.artLeaveHandler()
+    this.artOver.frameDisplayObject.artLeaveHandler();
     this.artOver = null
   }
 

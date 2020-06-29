@@ -53,7 +53,6 @@ class SceneLoader {
       if (gotArt.length ) {
         gotArt.forEach(item => {
         console.log("got art item",item)
-          
           artMeshes.push(item)})
       }
     });

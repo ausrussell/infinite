@@ -227,7 +227,7 @@ class Uploader extends Component {
   fileUpload = (file) => {
     file.assetType = this.props.type;
     const uploadTask = this.props.firebase.storeArt(file);
-    return uploadTask;
+    return uploadTask; 
   }
 
   fileLoadedHandler = async (e, file) => {
@@ -245,10 +245,12 @@ class Uploader extends Component {
         const newTitle = title.join("");
         const options = {
           url: downloadURL,
-          title: newTitle
+          title: newTitle,
+          key: assetRef.key
         }
         Object.assign(options, defaultArtValues);
-        console.log("fileLoadedHandler", options)
+        console.log("fileLoadedHandler", options);
+        debugger;
         this.props.firebase.updateAsset("users/" + this.props.firebase.currentUID + "/" + path, options)
       })
     })

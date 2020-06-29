@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 const WallLightDisplay = options => {
-  console.log("WallLightDisplay", options);
+  // console.log("WallLightDisplay", options);
   const { intensity, position, color, target, builder } = options;
   const threeColor = new THREE.Color(...color);
   const spotLight = new THREE.SpotLight(threeColor);
@@ -19,8 +19,7 @@ const WallLightDisplay = options => {
   spotLight.penumbra = 1;
 
   scene.add(spotLight);
-  console.log("scene for ligths", scene, scene.children);
-  console.log("target", ...target);
+  // console.log("target", ...target);
   return spotLight;
 };
 

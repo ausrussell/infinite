@@ -44,7 +44,8 @@ class Frame {
     this.export.art = {
       file: this.artMesh.file, //iMaterial.map,
       width: this.artMesh.geometry.parameters.width * this.artMesh.scale.x,
-      height: this.artMesh.geometry.parameters.height * this.artMesh.scale.y
+      height: this.artMesh.geometry.parameters.height * this.artMesh.scale.y,
+      key: this.artKey
     };
     return this.export;
   }
@@ -60,11 +61,11 @@ class Frame {
       // map: texture1
     });
     this.textureAdder = new TextureAdder({ material: this.fmaterial });
-    
+
 
   }
 
-  removeTexture(){
+  removeTexture() {
     console.log("remove frame texture")
     this.fmaterial.dispose();
     this.frameMesh.material = null;
@@ -262,14 +263,17 @@ class Frame {
     return this.group;
   }
   addArt(options) {
-    const { file, uploadTask, holder, draggableImageRef } = options;
+    const { file, uploadTask, holder, draggableImageRef } = options;//file is itemdata or dragged file
     const addingHolder = holder || this;
     console.log("addART", file);
     if (file.url) {
+
       const options = {
+
         file: file.url,
         image: draggableImageRef.current,
-        holder: addingHolder
+        holder: addingHolder,
+
       };
       this.imageLoadedHandler(options);
       this.show(1);
@@ -290,7 +294,6 @@ class Frame {
       };
 
       image.onload = image => this.imageLoadedHandler(options);
-      console.log("show this.artMesh", this.artMesh);
       uploadTask.on("state_changed", {
         next: next
         // complete: complete
@@ -309,8 +312,8 @@ class Frame {
     this.group.position.set(groupPosition.x, groupPosition.y, 0);
   }
 
-  setArt(art) {
-    console.log("art", art);
+  setArt(art) {//from art data
+    console.log("setArt art", art);
     const texture = this.textureLoader.load(art.file);
     const artPlane = new THREE.PlaneGeometry(art.width, art.height, 0);
     this.iMaterial = new THREE.MeshBasicMaterial({
@@ -325,6 +328,17 @@ class Frame {
     this.wallDepth && this.artMesh.translateZ(this.wallDepth);
     this.group.add(this.artMesh);
     if (this.side === "back") this.group.rotateY(Math.PI);
+
+    const fileParts = this.artMesh.file.split("/");
+    console.log("fileParts", fileParts);
+    const finalBit = fileParts[fileParts.length -1 ];
+    const finalBits = finalBit.split("%2F")
+    console.log("finalBits", finalBits)
+
+    const keyToAdd = finalBits[3];//art.key || 
+    console.log("keyToAdd", keyToAdd)
+    this.artKey = keyToAdd;
+
   }
 
   setFrame(frame) {
@@ -356,7 +370,7 @@ class Frame {
     });
     console.log("set final Opacity ", this.fmaterial.opacity);
 
-this.finalOpacity = (this.fmaterial.opacity > 0)?this.fmaterial.opacity: 1;
+    this.finalOpacity = (this.fmaterial.opacity > 0) ? this.fmaterial.opacity : 1;
     fadeAni.animate(performance.now());
   }
   fadingIn = progress => {
