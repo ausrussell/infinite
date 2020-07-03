@@ -22,18 +22,12 @@ export default class Floor {
   }
 
   setFloorMaterial() {
-    this.floorMaterial = new THREE.MeshStandardMaterial({
-      // transparent: true
-      // roughness: 0.8,
-      // color: 0xffffff,
-      // metalness: 0.2,
-      // bumpScale: 0.0005
-      // side: THREE.DoubleSide
-    });
+    this.floorMaterial = new THREE.MeshStandardMaterial();
   }
   addFloorMesh(item) {
     // this.builder.gridDepth,
     // this.builder.gridWidth,
+    this.export = item;
     this.floorPlane = new THREE.PlaneBufferGeometry(
       this.builder.state.voxelsX * this.builder.state.wallWidth,
       this.builder.state.voxelsY * this.builder.state.wallWidth

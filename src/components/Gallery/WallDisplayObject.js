@@ -5,22 +5,17 @@ import TextureAdder from "../../Helpers/TextureAdder"
 
 class WallDisplayObject {
   constructor(options) {
-    console.log("WallDisplayObject", options);
-    // this.builder = options;
+    // console.log("WallDisplayObject", options);
     const { col, row, pos, height, sides, builder,texture } = options;
     this.texture = texture;
-
-    // const { x, y, pos, builder } = options;
     this.col = col;
     this.row = row;
     this.pos = pos;
     this.sides = sides || {};
-    // console.log("Wall display", col, row, pos, height, sides);
     this.builder = builder;
     this.scene = this.builder.scene;
     this.midpointX = this.builder.state.voxelsX / 2;
     this.midpointY = this.builder.state.voxelsY / 2;
-
     this.height = height; //1;
     this.opacity = 1;
     this.wallWidth = this.builder.state.wallWidth;
@@ -48,7 +43,6 @@ class WallDisplayObject {
       transparent: true
     });
     this.wallMesh = new THREE.Mesh(geometry, this.wallMaterial);
-    // this.wallMesh.renderOrder = 1;
     this.wallMesh.name = "wallMesh";
     const textureAdder = new TextureAdder({ material: this.wallMaterial });
     textureAdder.setDataToMaterial(this.texture);
@@ -62,7 +56,6 @@ class WallDisplayObject {
     this.builder.scene.add(this.wallGroup);
     this.builder.scene.updateMatrixWorld(true);
     this.wallGroup.position.set(this.posX, this.height / 2, this.posZ);
-    // console.log("wall pos", this.posX, this.height / 2, this.posZ);
     this.builder.scene.updateMatrixWorld(true);
     if (this.pos === 0) {
       this.wallGroup.translateX(-(this.wallWidth / 2)); //
@@ -79,9 +72,7 @@ class WallDisplayObject {
 
   artForSide(side) {
     this.art[side] = [];
-    // console.log("this.sides[side]", this.sides[side]);
     this.sides[side].forEach((item, index) => {
-      console.log("artForSide",item)
       const options = {
         scene: this.scene, //??
         wall: this,

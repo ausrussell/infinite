@@ -18,7 +18,10 @@ class ThreeAssetPreview extends Component {
     frameWidth = 2;
     state = {
         assetRef: null,
-        selectedItem: null
+        selectedItem: null,
+        voxelsX: 10,
+        voxelsY:13,
+        wallWidth: 20
     }
 
     constructor(props) {
@@ -79,6 +82,9 @@ class ThreeAssetPreview extends Component {
         this.resetFrame();
         this.frameObject.setDataToMaterial(this.props.item);
         if (this.props.item.roughness) this.frameObject.setDataToMaterial({ roughness: this.props.item.roughness });
+        // debugger;
+        this.setState({ assetRef: this.props.firebase.getAssetRef(this.type, this.props.item.key) })
+
         // this.frameObject.fmaterial.needsUpdate = true;
 
     }
@@ -117,6 +123,7 @@ class ThreeAssetPreview extends Component {
             builder: this
         }
         this.frameObject = new Floor(options);
+        this.frameObject.addFloorMesh();
         console.log("addFloor lookAt", this.frameObject.floorMesh.position)
         this.camera.lookAt(this.frameObject.floorMesh.position)
         console.log("addFloor this.scene", this.camera)

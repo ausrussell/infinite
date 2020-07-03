@@ -32,7 +32,6 @@ class Frame {
   
   setArt() {
     const { art } = this.data;
-    console.log("art", art);
     const texture = this.textureLoader.load(art.file);
     const artPlane = new THREE.PlaneGeometry(art.width, art.height, 0);
     this.iMaterial = new THREE.MeshBasicMaterial({
@@ -49,24 +48,18 @@ class Frame {
     this.artMesh.frameDisplayObject = this;
 
     this.viewingPosition = new THREE.Points();
-    console.log(this.viewingPosition, this.artMesh.position);
     this.viewingPosition.position.set(this.artMesh.position.x, this.artMesh.position.y, this.artMesh.position.z);
     this.viewingPosition.translateZ(30);
     this.group.add(this.viewingPosition);
     this.ratio = art.width / art.height
-
-    console.log("this.viewingPosition, artmesh", this.viewingPosition, this.artMesh.getWorldPosition())
   }
   setFrame() {
     const { frame } = this.data;
-    console.log("frame", frame);
     this.setFrameMesh();
     if (frame.opacity && frame.opacity !== 1) this.fmaterial.transparent = true;
     const textureAdder = new TextureAdder({ material: this.fmaterial });
     textureAdder.setDataToMaterial(frame);
     this.group.add(this.frameMesh, this.frameHoverMesh);//this.frameMesh,
-    // debugger;
-
   }
   loadHandler = texture => {
     this.fmaterial.color.set("#fff");
@@ -79,8 +72,6 @@ class Frame {
   setFrameMesh(plane) {
     this.imageWidth = this.data.art.width;
     this.imageHeight = this.data.art.height;
-
-
     this.setFrameGeometry();
     this.setDefaultFrameMaterial();
     this.setDefaultFrameHoverMaterial();
@@ -116,15 +107,9 @@ class Frame {
   }
 
   setFrameGeometry() {
-    console.log("this.artMesh.geometry.parameters.width ", this.artMesh.geometry.parameters.width);
-    console.log("this.imageWidth ", this.imageWidth)
-
-
     const frameOffset = (this.imageWidth > 12) ? 1.1 : .8;
-
     var extrudeSettings = { depth: bevelDepth, bevelEnabled: true, bevelSegments: 6, steps: 6, bevelSize: bevelSize, bevelThickness: bevelThickness };
     var frame = this.getRectangleShape(frameOffset + bevelSize + this.imageWidth, frameOffset + bevelSize + this.imageHeight)
-    // var hole = this.getRectanglePath(this.imageWidth + bevelSize,this.imageHeight + bevelSize);
     var hole = new THREE.Path();
     hole.moveTo(- (this.imageWidth / 2 + bevelSize), -(this.imageHeight / 2 + bevelSize));
     hole.lineTo(this.imageWidth / 2 + bevelSize, -(this.imageHeight / 2 + bevelSize));
@@ -173,7 +158,6 @@ class Frame {
   }
 
   artHoverHandler = () => {
-    // console.log("artHoverHandler begin");
     this.artHoverAni = new Animate({
       duration: 1200,
       timing: "circ",
@@ -181,19 +165,15 @@ class Frame {
       draw: progress => this.artHoverLoop(progress),
       bounce: true
     });
-    // this.fHoverMaterial.transparent=true;
     this.artHoverAni.animate();
   }
 
   artLeaveHandler = () => {
-    // console.log("artHoverAni.end");
     this.artHoverAni.end();
     this.fHoverMaterial.opacity = 0;
-    // this.fHoverMaterial.transparent=false;
   }
 
   artHoverLoop = progress => {
-    // console.log("artHoverLoop progress", progress);
     this.fHoverMaterial.opacity = .25 + (progress * .5);
   }
 }

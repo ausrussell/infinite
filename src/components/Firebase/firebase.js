@@ -138,6 +138,11 @@ class Firebase {
 
   assetPath = (type) => "users/" + this.currentUID + "/" + type + "/";
 
+  getAssetRef = (type, key) => {
+    return this.database
+    .ref("users/" + this.currentUID + "/" + type + '/' + key)
+  }
+
   deleteFolderContents(path) {
     const ref = this.storage.ref(path);
     return ref.listAll()
