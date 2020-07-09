@@ -153,8 +153,7 @@ class Frame {
     // console.log("renderFrame", this.data, this);
     this.setArt();
     this.data.frame && this.setFrame();
-    console.log("this.viewingPosition, artmesh", this.viewingPosition, this.artMesh.getWorldPosition())
-
+    // console.log("this.viewingPosition, artmesh", this.viewingPosition, this.artMesh.getWorldPosition())
   }
 
   artHoverHandler = () => {
@@ -175,6 +174,12 @@ class Frame {
 
   artHoverLoop = progress => {
     this.fHoverMaterial.opacity = .25 + (progress * .5);
+  }
+
+  destroyViewingPosition(){
+    this.viewingPosition.geometry.dispose();
+    this.viewingPosition.material.dispose();
+    this.viewingPosition.remove();
   }
 }
 

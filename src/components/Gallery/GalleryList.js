@@ -45,7 +45,6 @@ class GalleryList extends Component {
     if (data) {
       data.forEach( (childSnapshot)=> {
         const snap = childSnapshot.val();
-        console.log("list data", childSnapshot.key, snap)
         list.push(snap);
       });
     }

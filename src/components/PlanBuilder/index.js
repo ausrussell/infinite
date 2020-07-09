@@ -10,6 +10,7 @@ import WallLight from "./WallLight";
 
 import { withAuthentication } from "../Session";
 import { withFirebase } from "../Firebase";
+import Gui from "../Gui";
 import * as Stats from "stats-js";
 
 // import TilesFloor, { floorData } from "./TilesFloor";
@@ -63,6 +64,8 @@ class Builder extends Component {
 
   componentWillUnmount() {
     this.removeListeners();
+    this.gui && this.gui.gui.destroy();
+    this.stats && document.body.removeChild(this.stats.dom);
   }
 
   componentDidUpdate(props) {
@@ -75,11 +78,14 @@ class Builder extends Component {
     if (this.props.firebase.currentUID && !this.floorplanProcessed) {
       this.processFloorplan();
       this.floorplanProcessed = true;
+      if (this.props.firebase.isCurator && !this.state.guiAdded) {
+        this.addGui();
+        this.setupStats()
+      }
     }
   }
 
   getInitialState = () => ({
-    
       floorplanTitle: "",
       wallEntities: [],
       wallMeshes: [],
@@ -102,15 +108,31 @@ class Builder extends Component {
       voxelsY: 12,
       wallWidth: 20,
       floor: {},
-      exportData: null
+      exportData: null,
+      guiAdded: false,
+      stats: false
   })
+
+  addGui() {
+    console.log("addGui")
+    this.setState({ guiAdded: true });
+    this.gui = new Gui();
+    this.gui.gui.add(this.gui, "fov", 25, 180).onChange(e => {
+      this.fov = e;
+      this.flaneurControls.setFov(e);
+    });
+  }
 
   setupStats() {
     console.log("planbuilder setupStats");
-    if (!this.stats) {
+    if (!this.state.stats) {
+      this.setState({ stats: true })
       this.stats = new Stats();
       this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
       document.body.appendChild(this.stats.dom);
+      this.stats.dom.style.top = "48px";
+      this.stats.dom.style.position = "absolute";
+
     }
   }
   
@@ -388,9 +410,9 @@ class Builder extends Component {
   floorplanSelectedHandler = (data) => {
     console.log("Builder floorplanSelectedHandler", data)
     this.emptyScene();
-    const floor = new Floor({ builder: this });
+    // const floor = new Floor({ builder: this });
     console.log("intialState",this.getInitialState())
-    const newState = Object.assign(this.getInitialState(), { floorplan: data, floor: floor })
+    const newState = Object.assign(this.getInitialState(), { floorplan: data, floor: new Floor({ builder: this }) })
     console.log("newState",newState)
     this.setState(newState, () => this.rebuildFromFloorplan());
   }
@@ -1309,7 +1331,7 @@ class Builder extends Component {
 
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(() => this.animate());
-    // this.stats && this.stats.update();
+    this.stats && this.stats.update();
   }
   render() {
     const { galleryId, floorplan,exportData} = this.state;

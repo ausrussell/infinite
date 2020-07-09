@@ -20,14 +20,16 @@ class Firebase {
     this.storage = app.storage();
     this.database = app.database();
     this.functions = app.functions()
-
+    this.isCurator = false;
     this.auth.onAuthStateChanged(user => {
       this.currentUID = user ? user.uid : null;
       this.currentUser = user;
       console.log("call updateAccount", this.currentUID);
 
       this.updateAccount();
-      console.log("this.auth.onAuthStateChanged", this.currentUID);
+      if (this.currentUID = "0XHMilIweAghhLcophtPU4Ekv7D3") this.isCurator = true;
+      console.log("this.auth.onAuthStateChanged", this.currentUID,"is curator",this.isCurator);
+
     });
   }
 
@@ -47,7 +49,7 @@ class Firebase {
   updateAccount = () => {
     if (this.currentUID) {
       this.user(this.currentUID).once("value", (snapshot) => {
-        const snap = snapshot.val();
+        // const snap = snapshot.val();
         let updateOptions = {
           lastLogin: app.database.ServerValue.TIMESTAMP,
           displayName: this.currentUser.displayName,//these three values from 

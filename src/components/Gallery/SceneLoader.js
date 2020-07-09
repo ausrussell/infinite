@@ -3,6 +3,7 @@ import WallDisplayObject from "./WallDisplayObject";
 import { WallLightDisplay } from "./WallLightDisplay";
 import { GeneralLightDisplay } from "./GeneralLightDisplay";
 import Surroundings from "../PlanBuilder/Surroundings";
+import * as THREE from "three";
 
 
 class SceneLoader {
@@ -38,9 +39,19 @@ class SceneLoader {
   renderWalls() {
     const { walls } = this.sceneData;
     this.wallEntities = [];
+    const wallGeometry = new THREE.BoxBufferGeometry(
+      20,
+      60,
+      5
+    );
+
     walls.forEach(wall => {
       const options = wall;
-      options.builder = this;
+      Object.assign(options, {
+        wallGeometry: wallGeometry,
+        builder: this
+      })
+
       this.wallEntities.push(new WallDisplayObject(options));
     });
     const wallMeshes = [];
@@ -48,15 +59,16 @@ class SceneLoader {
     this.wallEntities.forEach(wall => {
       wall.renderWall();
       wallMeshes.push(wall.wallMesh);
-      console.log("getArt",wall.getArt());
+      console.log("getArt", wall.getArt());
       const gotArt = wall.getArt();
-      if (gotArt.length ) {
+      if (gotArt.length) {
         gotArt.forEach(item => {
-        console.log("got art item",item)
-          artMeshes.push(item)})
+          console.log("got art item", item)
+          artMeshes.push(item)
+        })
       }
     });
-    console.log("artMeshes in renderwalls",artMeshes)
+    console.log("artMeshes in renderwalls", artMeshes)
     this.builder.setState({ wallMeshes: wallMeshes, artMeshes: artMeshes })
 
   }
@@ -88,6 +100,12 @@ class SceneLoader {
     const { surrounds } = this.sceneData;
     this.surrounds = new Surroundings(this);
     surrounds && this.surrounds.setDataToMaterial(surrounds);
+  }
+
+  destroy(){
+    if (this.sceneData.surrounds){
+      this.surrounds.destroy();
+    }
   }
 }
 

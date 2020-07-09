@@ -16,17 +16,12 @@ import SceneLoader from "./SceneLoader";
 import PageTitle from '../Navigation/PageTitle';
 import { GalleryHelp } from './GalleryHelp'
 import { ArtDetails } from './ArtDetails'
+import { compose } from 'recompose';
 
-// import Gui, { GuiContext } from "./Gui";
+import Gui from "../Gui";
+import * as Stats from "stats-js";
 
-import * as dat from "dat.gui";
-
-const Gui = function () {
-  this.fov = 60;
-};
-
-
-class Gallery extends Component {
+class GalleryBase extends Component {
   state = {
     galleryData: {},
     voxelsX: 14,
@@ -35,11 +30,13 @@ class Gallery extends Component {
     wallMeshes: [],
     artMeshes: [],
     onArt: null,
-    artMeshes: null
+    artMeshes: null,
+    guiAdded: false,
+    stats: false
   };
   constructor(props) {
     super(props);
-    console.log("Gallery", props.match.params.galleryName);
+    console.log("Gallery", props.match.params.galleryName, props);
     this.flaneurMode = "Gallery";
     this.walls = props.walls;
     console.log(this.walls, this.voxelsX);
@@ -47,6 +44,7 @@ class Gallery extends Component {
     this.frameObjects = [];
     this.wallMeshes = [];
     this.GalleryHelp = GalleryHelp({ callback: this.helpCallback })
+
 
   }
 
@@ -57,34 +55,114 @@ class Gallery extends Component {
       this.props.match.params.galleryName,
       this.processGallery
     );
-    console.log("Gui constructor")
 
   }
 
-  componentDidUpdate(oldProps,oldState){
-console.log("oldState, this.state",oldState, this.state)
+  componentDidUpdate(oldProps, oldState) {
+    console.log("oldState, this.state", oldState, this.state);
+    if (this.props.firebase.isCurator && !this.state.guiAdded) {
+      this.addGui();
+      this.setupStats()
+    }
   }
 
   componentWillUnmount() {
-    console.log("unmount");
+    console.log("Gallery unmount");
     window.removeEventListener("resize", this.onWindowResize);
     this.flaneurControls && this.flaneurControls.dispose();
-    this.gui && this.gui.destroy();
-    // this.galleryRef && this.props.firebase.detachRefListener(this.galleryRef);
+    this.emptyScene();
+    this.gui && this.gui.gui.destroy();
+    this.stats && document.body.removeChild(this.stats.dom);
   }
-  addGui() {
-    this.gui = new dat.GUI();
-    this.guiObj = new Gui();
-    // this.gui.add(text, 'fov')
 
-    this.gui.add(this.guiObj, "fov", 25, 180).onChange(e => {
+  disposeNode = (parentObject) => {
+    let i = 0
+    parentObject.traverse(function (node) {
+      // console.log("node", node)
+      if (node instanceof THREE.Mesh) {
+        if (node.geometry) {
+          node.geometry.dispose();
+        }
+        if (node.material) {
+          if (node.material instanceof THREE.MeshFaceMaterial || node.material instanceof THREE.MultiMaterial) {
+            node.material.materials.forEach(function (mtrl, idx) {
+              if (mtrl.map) mtrl.map.dispose();
+              if (mtrl.lightMap) mtrl.lightMap.dispose();
+              if (mtrl.bumpMap) mtrl.bumpMap.dispose();
+              if (mtrl.normalMap) mtrl.normalMap.dispose();
+              if (mtrl.specularMap) mtrl.specularMap.dispose();
+              if (mtrl.envMap) mtrl.envMap.dispose();
+
+              mtrl.dispose();    // disposes any programs associated with the material
+            });
+          }
+          else {
+            if (node.material.map) node.material.map.dispose();
+            if (node.material.lightMap) node.material.lightMap.dispose();
+            if (node.material.bumpMap) node.material.bumpMap.dispose();
+            if (node.material.normalMap) node.material.normalMap.dispose();
+            if (node.material.specularMap) node.material.specularMap.dispose();
+            if (node.material.envMap) node.material.envMap.dispose();
+
+            node.material.dispose();   // disposes any programs associated with the material
+          }
+        }
+      }
+      // console.log("end of disposeNode", i++)
+    });
+  }
+
+  emptyScene() {
+    console.log("this.scene.children before", this.scene.children);
+    console.log("renderer.info before", this.renderer.info)
+    console.log("renderer.info.memory before", this.renderer.info.memory)
+    window.cancelAnimationFrame(this.animateCall);
+    this.animateCall = undefined;
+
+    this.state.artMeshes.forEach(item => {
+      item.frameDisplayObject.destroyViewingPosition();
+    })
+    this.disposeNode(this.scene);
+    this.sceneLoader.destroy();//only disposing background at the moment
+    const node = this.scene;
+    for (var i = node.children.length - 1; i >= 0; i--) {
+      var child = node.children[i];
+      this.scene.remove(child);
+    }
+    console.log("this.scene after", this.scene.children);
+    console.log("renderer.info after", this.renderer.info)
+    this.scene.dispose();
+    this.setState({ artMeshes: null })
+    console.log("renderer.info.memory after", this.renderer.info.memory)
+    this.renderer.forceContextLoss()
+    this.renderer.dispose();
+    this.renderer = null;
+    return;
+  }
+
+  addGui() {
+    console.log("addGui")
+    this.setState({ guiAdded: true });
+    this.gui = new Gui();
+    this.gui.gui.add(this.gui, "fov", 25, 180).onChange(e => {
       this.fov = e;
       this.flaneurControls.setFov(e);
     });
   }
 
+  setupStats() {
+    console.log("planbuilder setupStats");
+    if (!this.state.stats) {
+      this.setState({ stats: true })
+      this.stats = new Stats();
+      this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+      document.body.appendChild(this.stats.dom);
+      this.stats.dom.style.top = "48px";
+      this.stats.dom.style.position = "absolute";
+    }
+  }
+
   setupListeners() {
-    // this.addGui();
     this.focusGallery()
     this.setupFlaneurControls();
     window.addEventListener("resize", this.onWindowResize, false);
@@ -157,23 +235,20 @@ console.log("oldState, this.state",oldState, this.state)
     // this.setScene();
     this.setupListeners();
     this.setCamera();
+    // this.animateCall = () => requestAnimationFrame(() => this.animate());
+
     this.animate();
     this.flaneurControls.setUpCollidableObjects();
 
   };
-  emptyScene() {
-    while (this.scene.children.length > 0) {
-      this.scene.remove(this.scene.children[0]);
-    }
-  }
 
   isWallMesh(item) {
     if (item.name === "wallGroup") {
       return item.children.filter(child => child.name === "wallMesh");
     }
   }
+
   setScene() {
-    // debugger;
     // Load a glTF resource
     const options = {
       scene: this.scene,
@@ -182,6 +257,7 @@ console.log("oldState, this.state",oldState, this.state)
     };
     this.sceneLoader = new SceneLoader(options);
     this.sceneLoader.renderData();
+    // this.addBox();
   }
   setCamera() {
     this.camera.position.z = 350;
@@ -200,7 +276,7 @@ console.log("oldState, this.state",oldState, this.state)
 
 
   addBox() {
-    var geometry = new THREE.BoxGeometry(1, 1, 1);
+    var geometry = new THREE.BoxGeometry(10, 10, 10);
     var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
     var cube = new THREE.Mesh(geometry, material);
     this.scene.add(cube);
@@ -217,25 +293,24 @@ console.log("oldState, this.state",oldState, this.state)
       once: true,
       callback: this.setArtDetails
     }
-    console.log("getArtDetail",options)
+    console.log("getArtDetail", options)
     this.props.firebase.getAsset(options);
   }
 
   setArtDetails = snap => {
-    const snapVal = (!snap)? null: snap.val()
+    const snapVal = (!snap) ? null : snap.val()
     console.log("gotArtDetails", snapVal);
 
     this.setState({ onArt: snapVal })
   }
 
   animate() {
-    if (this.flaneurControls) {
-      var delta = this.clock.getDelta();
-      this.flaneurControls.update(delta);
-    }
+    this.flaneurControls.update(this.clock.getDelta());
 
     this.renderer.render(this.scene, this.camera);
-    requestAnimationFrame(() => this.animate());
+    this.stats && this.stats.update();
+    this.animateCall = requestAnimationFrame(() => this.animate());
+
   }
 
   render() {
@@ -252,6 +327,9 @@ console.log("oldState, this.state",oldState, this.state)
   }
 }
 
+const Gallery = compose(
+  withAuthentication,
+  withFirebase,
+)(GalleryBase);
 
-
-export default withAuthentication(withFirebase(Gallery));
+export default Gallery;

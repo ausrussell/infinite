@@ -6,7 +6,7 @@ import TextureAdder from "../../Helpers/TextureAdder"
 class WallDisplayObject {
   constructor(options) {
     // console.log("WallDisplayObject", options);
-    const { col, row, pos, height, sides, builder,texture } = options;
+    const { col, row, pos, height, sides, builder,texture, wallGeometry} = options;
     this.texture = texture;
     this.col = col;
     this.row = row;
@@ -19,8 +19,10 @@ class WallDisplayObject {
     this.height = height; //1;
     this.opacity = 1;
     this.wallWidth = this.builder.state.wallWidth;
-    this.wallHeight = 60;
-    this.wallDepth = 5;
+    // this.wallHeight = this.builder.state.wallHeight;
+    // this.wallDepth = this.builder.state.wallWidth;
+    this.wallGeometry = wallGeometry;
+    // this.wallMaterial = wallMaterial;
     this.setXZPos();
     this.art = [];
   }
@@ -31,18 +33,14 @@ class WallDisplayObject {
   }
 
   renderWall() {
-    const geometry = new THREE.BoxGeometry(
-      this.wallWidth,
-      this.wallHeight,
-      this.wallDepth
-    );
     this.wallMaterial = new THREE.MeshStandardMaterial({
       // wireframe: true
       color: 0xe1f5fe,
       opacity: 1,
       transparent: true
     });
-    this.wallMesh = new THREE.Mesh(geometry, this.wallMaterial);
+
+    this.wallMesh = new THREE.Mesh(this.wallGeometry, this.wallMaterial);
     this.wallMesh.name = "wallMesh";
     const textureAdder = new TextureAdder({ material: this.wallMaterial });
     textureAdder.setDataToMaterial(this.texture);

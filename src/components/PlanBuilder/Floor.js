@@ -27,7 +27,7 @@ export default class Floor {
   addFloorMesh(item) {
     // this.builder.gridDepth,
     // this.builder.gridWidth,
-    this.export = item;
+    this.export = item || this.export;
     this.floorPlane = new THREE.PlaneBufferGeometry(
       this.builder.state.voxelsX * this.builder.state.wallWidth,
       this.builder.state.voxelsY * this.builder.state.wallWidth
@@ -63,5 +63,6 @@ export default class Floor {
     this.setDataToMaterial(item);
   };
 
-  getExport = () => this.export;
+  getExport = () => {
+    return this.export;}
 }

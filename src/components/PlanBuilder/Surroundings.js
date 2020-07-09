@@ -10,30 +10,39 @@ export default class Surroundings {
 
   surroundingsTileCallback = item => {
     console.log("surroundingsTileCallback item", item);
-    if (item){
-    this.export = item;
-    this.setDataToMaterial(item)
+    if (item) {
+      this.export = item;
+      this.setDataToMaterial(item)
     }
     else {
       this.reset();
     }
   };
 
-  setDataToMaterial(item){
-      const urls = [
-        item.px, item.nx, item.py, item.ny, item.pz, item.nz
-      ];
-      var reflectionCube = new THREE.CubeTextureLoader().load(urls);
-      this.scene.background = reflectionCube; 
+  setDataToMaterial(item) {
+    const urls = [
+      item.px, item.nx, item.py, item.ny, item.pz, item.nz
+    ];
+    var reflectionCube = new THREE.CubeTextureLoader().load(urls);
+    console.log("reflectionCube",reflectionCube)
+    this.scene.background = reflectionCube;
   }
 
-  reset(){
+  reset() {
     this.export = null;
+    this.destroy();
     this.scene.background = null;
   }
 
   getExport = () => {
-    // debugger;
     this.export && delete this.export.ref;
-    return this.export;}
+    return this.export;
+  }
+
+  destroy() {
+    this.scene.background.image = []
+    this.scene.background.dispose();
+    this.scene.background = null;
+
+  }
 }

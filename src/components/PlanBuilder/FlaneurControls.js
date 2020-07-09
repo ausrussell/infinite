@@ -134,7 +134,7 @@ class FlaneurControls {
 
   setUpCollidableObjects() {
     this.collidableObjects = [this.clickFloorPlane, ...this.builder.state.wallMeshes];
-    if (this.mode === "Gallery") {
+    if (this.mode === "Gallery" && this.builder.state.artMeshes) {
       this.collidableObjects.push(...this.builder.state.artMeshes);
       // console.log("collidableObjects", collidableObjects)
     }
