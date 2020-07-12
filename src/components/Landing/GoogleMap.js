@@ -33,13 +33,13 @@ export class MapContainer extends Component {
       activeMarker: marker,
       showingInfoWindow: true
     })
+    this.props.markerCallback(props)
   };
 
   onMarkerDragEnd = (hoverKey, childProps, mouse) => {
     // console.log("onMarkerDragEnd", hoverKey, childProps, mouse)
     const { latLng } = mouse;
     console.log("onMarkerDragEnd", latLng)
-
     this.props.latLngCallBack({ lat: latLng.lat(), lng: latLng.lng() });
   }
 
@@ -63,6 +63,7 @@ export class MapContainer extends Component {
               key={index}
               onClick={this.onMarkerClick}
               icon={{ url: (item.galleryImg) ? item.galleryImg.url : defaultIconURL, scaledSize: { width: 32, height: 32 } }}
+              id={item.id}
             />
           )
         })

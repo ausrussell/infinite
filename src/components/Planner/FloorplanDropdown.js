@@ -18,6 +18,7 @@ class FloorplanDropdown extends Component {
     constructor(props) {
         super(props);
         this.dataList = {};
+        console.log("FloorplanDropdown", props)
     }
     componentDidMount() {
         const masterOption = {
@@ -39,8 +40,9 @@ class FloorplanDropdown extends Component {
     }
 
     userCallback = snap => {
+        if (!this.props.firebase.isCurator){
         const list = this.addToList(snap, "user");
-        this.setState({ floorplans: list });
+        this.setState({ floorplans: list });}
     }
 
     dropdownCallback = id => {
@@ -48,6 +50,7 @@ class FloorplanDropdown extends Component {
     }
 
     addToList = (data, cssClass) => {
+        console.log("add to floorplan list")
         const list = this.state.floorplans;
         if (data) {
             data.forEach((childSnapshot) => {
@@ -59,6 +62,7 @@ class FloorplanDropdown extends Component {
     }
 
     getTiles = (data) => {
+        console.log("getTiles",data,this.state.floorplans )
         const {cssClass, title, key} = data;
         return (<Option label={title} key={key} value={key} className={cssClass}><div>{title}</div><CanvasTile plan={data.data} /></Option>);
     }

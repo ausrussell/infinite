@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { Button } from 'antd';
 import { Marker } from 'google-maps-react';//
-import { message, Alert } from "antd";
+import { Alert } from "antd";
 import { isEqual } from 'lodash';
 
 
@@ -123,6 +123,9 @@ export class CurrentLocation extends Component {
     if (map) {
       let center = new maps.LatLng(current.lat, current.lng);
       map.panTo(center);
+      map.setZoom(14);
+
+      // debugger;
     }
   }
 
@@ -135,7 +138,7 @@ export class CurrentLocation extends Component {
 
 
   renderChildren() {
-    console.log("renderChildren this.state", this.state)
+    // console.log("renderChildren this.state", this.state)
     if (this.props.modal) {
       const modalMarker = <Marker position={this.state.currentLocation} name={'Your Gallery\'s location'} draggable={true} onDragend={this.onMarkerDragEnd} />
       const modalMarkerClone = React.cloneElement(modalMarker, {
@@ -231,7 +234,7 @@ export class CurrentLocation extends Component {
 export default CurrentLocation;
 
 CurrentLocation.defaultProps = {
-  zoom: 14,
+  zoom: 2,
   initialCenter: {
     lat: 37.80521330475583,
     lng: -122.27177955554198

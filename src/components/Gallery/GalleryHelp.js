@@ -2,81 +2,115 @@ import React from 'react';
 import { Row, Col, Typography } from "antd";
 import { CaretUpOutlined, CaretDownOutlined, CaretLeftOutlined, CaretRightOutlined } from '@ant-design/icons';
 const { Title } = Typography;
-const iconStyle= { fontSize: '26px' };
-const colStyle= { textAlign: 'center' }
+const iconStyle = { fontSize: '36px', margin: 10 };
+const colStyle = { textAlign: 'center' }
+const colStyleTall = { height: 120 }
 
-export const GalleryHelp = (props) => {return {
-    title: 'Moving round the gallery',
-    width:"60vw",
-    callback:props.callback,
-    showOnce: true,
-    content:
-        (<Row>
-            <Col span={18}>
-                <Row gutter={16}>
-                    <Col span={6} offset={3}>
-                    </Col>
-                    <Col span={6} style={colStyle}>
-                        Move Forward
-                        <Title level={3}>W</Title>
-                        <CaretUpOutlined style={iconStyle}/>
-                    </Col>
-                    <Col span={6}>
+const frameHoverStyle = {
+    borderColor: "#4527a0",
+    borderWidth: 5,
+    borderStyle: "solid",
 
+    width: "90px",
+    height: "60px",
+    margin: 10,
+    opacity: .7
+}
+const itemBox = {
+    borderColor: "#4527a0",
+    borderWidth: 1,
+    borderStyle: "solid",
+    display: "flex", alignItems: "center",
+    maxWidth: 300,
+    margin: "auto"
+
+}
+
+const itemBoxIcon = {
+    paddingTop: 10,
+    borderColor: "#4527a0",
+    borderWidth: 1,
+    borderStyle: "solid",
+    display: "flex", alignItems: "center",
+    maxWidth: 300,
+    margin: "auto"
+}
+const footstepHolder = {
+    width: 90,
+    height: 60,
+    margin: 10,
+    opacity: 0.7
+}
+
+export const GalleryHelp = (props) => {
+    return {
+        title: 'Moving round the gallery',
+        width: "60vw",
+        callback: props.callback,
+        showOnce: true,
+        content:
+            (<>
+
+                <Row>
+                    <Col span={10} offset={7} style={colStyleTall}><div style={itemBox}><div style={frameHoverStyle} /><span>Click on an artwork</span></div></Col>
+                </Row>
+                <Row>
+                    <Col span={10} offset={7} style={colStyle}><Title level={2}>Arrow keys</Title></Col>
+                </Row>
+                <Row>
+                    <Col span={10} offset={7}>
+                        <div style={itemBoxIcon}>
+                            <CaretUpOutlined style={iconStyle} />
+
+                            <div>
+                                <Title level={4}>Move Forward</Title>
+                                <p>+ SHIFT to Move UP in space</p>
+                            </div>
+                        </div>
                     </Col>
                 </Row>
+                <Row style={{marginTop:15,marginBottom:15}}>
+                    <Col span={10}>
+                        <div style={itemBoxIcon}>
+                            <CaretLeftOutlined style={iconStyle} />
+                            <div>
+                                <Title level={4}>Turn Left</Title>
+                                <p>+ SHIFT to Move Left in space</p>
+                            </div>
+                        </div>
+                    </Col>
 
-                <Row gutter={16}>
-                    <Col span={6} offset={3} style={colStyle}>
-                        Turn Left
-<Title level={3}>A</Title>
-                        <CaretLeftOutlined style={iconStyle} />
-                    </Col>
-                    <Col span={6}>
-
-                    </Col>
-                    <Col span={6} style={colStyle}>
-                        Turn Right
-<Title level={3}>D</Title>
-                        <CaretRightOutlined style={iconStyle} />
-                    </Col>
-                </Row>
-                <Row gutter={16}>
-                    <Col span={6} offset={3}>
-
-                    </Col>
-                    <Col span={6} style={colStyle}>
-                        Move Backward
-<Title level={3}>S</Title>
-                        <CaretDownOutlined style={iconStyle} />
-                    </Col>
-                    <Col span={6}>
-
+                    <Col span={10} offset={4}>
+                        <div style={itemBoxIcon}>
+                            <CaretRightOutlined style={iconStyle} />
+                            <div>
+                                <Title level={4}>Turn Right</Title>
+                                <p>+ SHIFT to Move Right in space</p>
+                            </div>
+                        </div>
                     </Col>
                 </Row>
                 <Row>
-                    <Col span={6} offset={3} style={colStyle}>
-                        You can also click on the floor
+                    <Col span={10} offset={7}>
+                        <div style={itemBoxIcon}>
+                            <CaretDownOutlined style={iconStyle} />
+                            <div>
+                                <Title level={4}>Move Back</Title>
+                                <p>+ SHIFT to Move Down in space</p>
+                            </div>
+                        </div>
                     </Col>
                 </Row>
-            </Col>
-            <Col span={6}>
-                <Row gutter={[0,16]}>
-                    <Col span={24} style={colStyle}>
-                        Move Up
-<Title level={3}>R</Title>
+                <Row gutter={16} style={{marginTop:30}}>
+                    <Col span={10} offset={7} style={colStyleTall}>
+                        <div style={itemBox}>
+                            <div style={footstepHolder}><img className="footstep-help" src="../imagery/foot.png" /></div>
+                            <span>Click on the floor</span>
+                        </div>
+                    </Col>
+                </Row>
 
-                    </Col>
-                </Row>
-                <Row gutter={[0,16]}>
-                    <Col span={24} style={colStyle}>
-                        Move Down
-<Title level={3}>F</Title>
-
-                    </Col>
-                </Row>
-            </Col>
-        </Row>
-        )
+            </>
+            )
     }
 }

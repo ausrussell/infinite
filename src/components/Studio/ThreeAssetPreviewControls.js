@@ -43,7 +43,7 @@ const ThreeAssetPreviewControls = props => {
         const updateTitle = () => {
             console.log("updateTitle", props)
             form.resetFields();
-            initDensity(selectedItem.density)
+            initDensity(selectedItem.density);
             form.setFieldsValue(
                 selectedItem
                 , [props]);
@@ -54,7 +54,6 @@ const ThreeAssetPreviewControls = props => {
             setBumpScaleDisabled(!selectedItem.bumpMap)
         }
         console.log("useEffect", props)
-
         selectedItem && updateTitle(props)
     }, [props]);
 

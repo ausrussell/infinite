@@ -27,7 +27,7 @@ class Firebase {
       console.log("call updateAccount", this.currentUID);
 
       this.updateAccount();
-      if (this.currentUID = "0XHMilIweAghhLcophtPU4Ekv7D3") this.isCurator = true;
+      this.isCurator = (this.currentUID === "0XHMilIweAghhLcophtPU4Ekv7D3");
       console.log("this.auth.onAuthStateChanged", this.currentUID,"is curator",this.isCurator);
 
     });
@@ -93,8 +93,8 @@ class Firebase {
   getList = ({ refPath, callback, orderField }) => {
     // const ref = this.database.ref(refPath);
     const ref = app.database().ref(refPath);
-    ref.orderByChild(orderField).on("value", callback);
-    return ref;
+    ref.orderByChild(orderField).once("value", callback);
+    // return ref;
   }
 
   getAsset = ({ refPath, callback, once }) => {

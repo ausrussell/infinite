@@ -1,6 +1,5 @@
-import React, { Component, createRef, useState, useRef } from "react";
+import React, { createRef, useState, useRef } from "react";
 import "../../css/elevator.css";
-// import { Spring, config } from "react-spring/renderprops"; //Transition,
 import { useSpring, animated } from 'react-spring'
 import { List } from 'antd'
 import { LeftCircleOutlined, DownCircleOutlined } from '@ant-design/icons';
@@ -15,7 +14,6 @@ const FloorWrapper = React.forwardRef((props, ref) => {
     </div>
   );
 })
-// const floorRefs = [];
 
 const Elevator = (props) => {
   const [springProps, setSpringProps, stopSpringProps] = useSpring(() => ({ scroll: 1 }))
@@ -36,11 +34,11 @@ const Elevator = (props) => {
   }
 
   const floorClickHandler = (no) => {
-    console.log("animatedDiv", animatedDiv.current.scrollTop)
     setSpringProps({ scroll: floorRefs.current[no].current.offsetTop });
     setCurrentFloor(no);
     props.floorCalledCallback && props.floorCalledCallback(props.floors[no])
   }
+  
   return (
     <div className={`vault-container ${vaultOpen ? "open" : "closed"}`}  onClick={props.elevatorInnerClickHandler}>
       {vaultOpen && (<div draggable="true" />)}

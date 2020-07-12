@@ -9,6 +9,8 @@ import {HangarHelp} from './HangarHelp'
 const Landing = () => {
   const [list, setList] = useState([]);
   const [selected, setSelected] = useState([]);
+  const [markerSelected, setMarkerSelected] = useState([]);
+
   const listCallback = (list) => {
     console.log("Landing list", list)
     setList(list)
@@ -16,15 +18,19 @@ const Landing = () => {
   const selectCallback = (item) => {
     setSelected(item)
   }
+  const markerCallback = ({id}) => {
+    console.log("markerCallback",id);
+    setMarkerSelected(id)
+  }
   return (
     <div>
       <PageTitle title={'Hangar'} help={HangarHelp} />
       <Row>
         <Col span="10" style={{ 
-        height:'calc(100vh - 126px)', overflow:"auto" }}>
-          <GalleryList listCallback={listCallback} selectCallback={selectCallback} />
+         maxWidth: 500 }}>
+          <GalleryList listCallback={listCallback} selectCallback={selectCallback} markerSelected={markerSelected} />
         </Col>
-        <Col span="14"><GoogleApiWrapper list={list} selected={selected} /></Col>
+        <Col span="14"><GoogleApiWrapper list={list} selected={selected} markerCallback={markerCallback} /></Col>
       </Row>
     </div>)
 }

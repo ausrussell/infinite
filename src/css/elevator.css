@@ -35,7 +35,6 @@ box-shadow: 1px -5px 10px -2px rgba(0,0,0,0.75);
 .vault-floors-container {
   overflow-y: auto;
   flex: 1;
-  /* display: flex; */
   position: relative;
   height: 17em;
   flex-direction: column;

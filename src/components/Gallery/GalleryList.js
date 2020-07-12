@@ -1,4 +1,6 @@
-import React, { Component } from "react";
+import React, { createRef, useState, useRef, useEffect } from "react";
+
+import { useSpring, animated } from 'react-spring'
 
 import { withFirebase } from "../Firebase";
 import { List } from 'antd';
@@ -9,27 +11,61 @@ const { Paragraph } = Typography;
 
 const galleryPlaceholder = 'https://firebasestorage.googleapis.com/v0/b/infinite-a474a.appspot.com/o/images%2Fhanger_placeholder.png?alt=media&token=4f847f15-48d6-43d9-92df-80eea32394f5';
 
-class GalleryList extends Component {
-  state = {
-    galleriesList: []
-  };
+const GalleryList = props => {
+  const [galleriesList, setGalleriesList] = useState([]);
+  const [selectedListItem, setSelectedListItem] = useState();
 
-  componentDidMount() {
-    // this.listCall = this.props.firebase.getGalleryList(this.fillList);
+  const galleriesRefs = useRef([])
+  const [springProps, setSpringProps, stopSpringProps] = useSpring(() => ({ scroll: 1 }))
+
+  useEffect(() => {
     const options = {
       refPath: "publicGalleries",
-      callback: this.fillList,
+      callback: fillList,
       orderField: "title"
     }
-    this.listCall = this.props.firebase.getList(options);
+    galleriesList.length === 0 && props.firebase.getList(options);
+    console.log("db called")
+  }, [props.selectCallback]);
+
+  useEffect(() => {
+    console.log("useEffect props.markerSelected", props.markerSelected);
+    const markerSelected = galleriesRefs.current.filter(item => item.current.id === props.markerSelected);
+    if (markerSelected.length) {
+      const itemSelected = markerSelected[0].current.parentElement.parentElement
+
+      setSpringProps({ scroll: itemSelected.offsetTop });
+      resetMarkerSelected(itemSelected);
+    }
   }
-  componentWillUnmount() {
-    this.props.firebase.detachRefListener(this.listCall);
+    , [props.markerSelected]);
+
+  const resetMarkerSelected = itemSelected => {
+    selectedListItem && selectedListItem.classList.remove("gallery-list-item--selected");
+    setSelectedListItem(itemSelected);
 
   }
-  onClickHandler = (action, item) => {
+
+  useEffect(() => {
+    console.log("useEffect selectedListItem", selectedListItem);
+    if (selectedListItem) {
+      selectedListItem.classList.add("gallery-list-item--selected");
+    }
+  }
+    , [selectedListItem]);
+
+const getItemFromId = id => {
+  const markerSelected = galleriesRefs.current.filter(filterItem => filterItem.current.id === id);
+  return  (markerSelected.length) ? markerSelected[0].current.parentElement.parentElement : null
+}
+
+
+  const onClickHandler = (action, item) => {
     console.log("e", action, item)
-    if (action === "Locate") this.props.selectCallback(item);
+    if (action === "Locate") {
+      resetMarkerSelected(getItemFromId(item.id))
+      props.selectCallback(item);
+    }
 
     if (action === "Visit") {
       const { history, nameEncoded } = item
@@ -38,41 +74,51 @@ class GalleryList extends Component {
 
   }
 
-  fillList = data => {
+  const fillList = data => {
     console.log("Galleries callback", data);
-
     const list = [];
     if (data) {
-      data.forEach( (childSnapshot)=> {
+      data.forEach((childSnapshot) => {
         const snap = childSnapshot.val();
+        snap.ref = createRef();
+        galleriesRefs.current.push(snap.ref);
+        snap.id = childSnapshot.key
         list.push(snap);
       });
     }
-    this.setState({ galleriesList: list });
     console.log("Galleries plansCallback", list);
-    this.props.listCallback && this.props.listCallback(list)
+    setGalleriesList(list);
+    props.listCallback(list)
   };
-
-  render() {
-    return (
+  return (
+    <animated.div
+      scrollTop={springProps.scroll}
+      onWheel={stopSpringProps}
+      className="gallery-list-holder">
       <List
         itemLayout="vertical"
-        dataSource={this.state.galleriesList}
-        renderItem={item => <GalleryListItem item={item} onClickHandler={this.onClickHandler} />}
+        dataSource={galleriesList}
+        renderItem={item => {
+          return <GalleryListItem item={item} onClickHandler={onClickHandler} ref={item.ref} />
+        }}
       />
-    );
-  }
+    </animated.div>
+  );
 }
 
-const GalleryListItem = ({ item, onClickHandler }) => {
-
+const GalleryListItem = React.forwardRef((props, ref) => {
+  const { item, onClickHandler } = props;
+  const galleryImg = (item.galleryImg) ? item.galleryImg.thumb : galleryPlaceholder;
   return (
-    <List.Item style={{ backgroundColor: "#F5F5F6", padding: 10 }}
+    <List.Item
+      className="gallery-list-item"
       extra={
-        <img
-          width={172}
-          alt={`${item.title} Gallery`}
-          src={item.galleryImg ? `${item.galleryImg.thumb || item.galleryImg.url}` : galleryPlaceholder}
+        <div style={{
+          backgroundImage: "url(" + galleryImg + ")"
+        }}
+          className="gallery-list-item-image"
+          ref={ref}
+          id={item.id}
         />
       }
       actions={[
@@ -81,13 +127,12 @@ const GalleryListItem = ({ item, onClickHandler }) => {
           path="/"
           render={routeProps => {
             Object.assign(routeProps, item);
-            return <span onClick={() => onClickHandler("Visit", routeProps)}  ><ArrowRightOutlined key="list-vertical-star-o" style={{ marginRight: 8 }} />Visit</span>;
+            return <span onClick={() => onClickHandler("Visit", routeProps)} ><ArrowRightOutlined key="list-vertical-star-o" style={{ marginRight: 8 }} />Visit</span>;
           }}
+
         />
-
-
-
-      ]}>
+      ]}
+    >
       <List.Item.Meta
         title={item.title}
         description={<div>{item.userDisplayName && <p>Built by: {item.userDisplayName}</p>}
@@ -96,6 +141,6 @@ const GalleryListItem = ({ item, onClickHandler }) => {
       />
     </List.Item>
   )
-}
+})
 
 export default withFirebase(GalleryList);

@@ -1,17 +1,12 @@
 import React, { Component } from "react";
 import * as THREE from "three";
 import "../../css/builder.css";
-
 import { withAuthentication } from "../Session";
 import { withFirebase } from "../Firebase";
 import FlaneurControls from "../PlanBuilder/FlaneurControls";
-
 import MainCanvas from "./MainCanvas";
 import ErrorBoundary from "../ErrorBoundary";
-
 import GeneralLight from "../PlanBuilder/GeneralLight";
-import FrameDisplayObject from "./FrameDisplayObject";
-// import GLTFLoader from "three-gltf-loader";
 import SceneLoader from "./SceneLoader";
 import PageTitle from '../Navigation/PageTitle';
 import { GalleryHelp } from './GalleryHelp'
@@ -30,7 +25,6 @@ class GalleryBase extends Component {
     wallMeshes: [],
     artMeshes: [],
     onArt: null,
-    artMeshes: null,
     guiAdded: false,
     stats: false
   };
@@ -44,8 +38,6 @@ class GalleryBase extends Component {
     this.frameObjects = [];
     this.wallMeshes = [];
     this.GalleryHelp = GalleryHelp({ callback: this.helpCallback })
-
-
   }
 
   componentDidMount() {
@@ -76,7 +68,6 @@ class GalleryBase extends Component {
   }
 
   disposeNode = (parentObject) => {
-    let i = 0
     parentObject.traverse(function (node) {
       // console.log("node", node)
       if (node instanceof THREE.Mesh) {
@@ -136,7 +127,7 @@ class GalleryBase extends Component {
     console.log("renderer.info.memory after", this.renderer.info.memory)
     this.renderer.forceContextLoss()
     this.renderer.dispose();
-    this.renderer = null;
+    // this.renderer = null;
     return;
   }
 

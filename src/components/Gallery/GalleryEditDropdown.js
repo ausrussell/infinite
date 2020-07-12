@@ -14,20 +14,55 @@ class GalleryEditDropdown extends Component {
   constructor(props) {
     super(props);
     console.log("GalleryEditDropdown props", props);
+    this.curatorUsers = {};
   }
 
-  componentDidUpdate(oldProps){
+  componentDidUpdate(oldProps) {
     // console.log("GalleryEditDropdown oldProps, this.props",oldProps, this.props)
     // console.log("isEmpty(this.props.galleryDesc)",isEmpty(this.props.galleryDesc))
   }
 
   componentDidMount() {
-    const options = {
-      refPath: "users/" + this.props.firebase.currentUID + "/galleryDesc",
-      callback: this.fillList,
-      orderField: "title"
+    let options = {}
+    if (this.props.firebase.isCurator) {//
+      options = {
+        refPath: "users",
+        callback: this.fillCuratorList,
+        orderField: "title"
+      }
+    } else {
+      options = {
+        refPath: "users/" + this.props.firebase.currentUID + "/galleryDesc",
+        callback: this.fillList,
+        orderField: "title"
+      }
     }
     this.listCall = this.props.firebase.getList(options);
+  }
+
+  fillCuratorList = data => {//do differently when there's many users
+  console.log("fillCuratorList",data, data.val());
+    const dataList = {};
+    this.curatorUsers = {}
+    if (data) {
+      data.forEach((childSnapshot) => {
+
+        const snap = childSnapshot.val();
+        console.log("snap val",snap)
+        if (snap.galleryDesc) {
+          console.log("there are snap.galleryDesc", snap.galleryDesc)
+          for (const [key, value] of Object.entries(snap.galleryDesc)) {
+            console.log(`${key}:`, value);
+            this.curatorUsers[key] = childSnapshot.key;
+            dataList[key] = value;
+          }
+        }
+        console.log("childSnapshot.val()", childSnapshot.val())
+      });
+    }
+    console.log("datalist",dataList);
+    console.log("this.curatorUsers",this.curatorUsers)
+    this.setState({ dataList: dataList });
   }
 
   componentWillUnmount() {
@@ -37,26 +72,25 @@ class GalleryEditDropdown extends Component {
 
   fillList = data => {
     console.log("Galleries callback", data);
-    const list = [];
     const dataList = {};
     if (data) {
-      data.forEach( (childSnapshot) => {
-        list.push(childSnapshot);
+      data.forEach((childSnapshot) => {
         dataList[childSnapshot.key] = childSnapshot.val();
+        this.setState({ dataList: dataList });
       });
     }
-    this.setState({ galleriesList: list, dataList: dataList });
   };
 
-  getGalleryData =  (id) => {
+  getGalleryData = (id) => {
     this.selectedId = id;
-
-
     this.desc = this.state.dataList[id];
+
+    const userId = this.curatorUsers[id] || this.props.firebase.currentUID;
+    // debugger;
     const options = {
-      refPath: "users/" + this.props.firebase.currentUID + "/galleryData/" + id,
+      refPath: "users/" + userId + "/galleryData/" + id,
       callback: this.returnData,
-      once: true 
+      once: true
     }
     this.assetCall = this.props.firebase.getAsset(options)
   };
@@ -68,31 +102,42 @@ class GalleryEditDropdown extends Component {
       galleryData: galleryData,
       id: this.selectedId
     }
-    console.log("dataToReturn",dataToReturn);
+    console.log("dataToReturn", dataToReturn);
     this.props.callback(dataToReturn)
   }
 
-  listItem(data) {
-    const galleryData = data.val();
-    console.log("galleryData listItem",galleryData)
+  listItem(key, value) {
+    console.log("listItem", key, value.title)
+    return <Option key={key} label={value.title || "Untitled"}>
+      {value.title || "Untitled"}
+    </Option>
+    //     let option;
+    //     if (data.val) {
+    //       const galleryData = data;// data.val();
+    //       console.log("galleryData listItem", galleryData)
 
-    const { key } = data;
-    const { title } = galleryData;
-    return (
-      <Option key={key} label={data.title || "Untitled"}>
-        {title || "Untitled"}
-      </Option>
-    );
+    //       const { key } = data;
+    //       const { title } = galleryData;
+    //       option = (<Option key={key} label={data.title || "Untitled"}>
+    //         {title || "Untitled"}
+    //       </Option>)
+    //  }   else {
+
+    //       }
+    //       return option;
   }
+  // {this.state.galleriesList.map(data => this.listItem(data))}
 
   render() {
+    const items = [];
+    Object.entries(this.state.dataList).forEach((key) => items.push(this.listItem(key[0], key[1])))
     return (
       <Select
-        style={{ width: 180 }}        
+        style={{ width: 180 }}
         onChange={(id) => this.getGalleryData(id)}
-        value={(isEmpty(this.props.galleryDesc) || isNil(this.props.galleryDesc.title))? defaultValue : this.props.id}
+        value={(isEmpty(this.props.galleryDesc) || isNil(this.props.galleryDesc.title)) ? defaultValue : this.props.id}
       >
-        {this.state.galleriesList.map(data => this.listItem(data))}
+        {items}
       </Select>
     );
   }
