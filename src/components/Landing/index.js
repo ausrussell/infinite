@@ -26,11 +26,10 @@ const Landing = () => {
     <div>
       <PageTitle title={'Hangar'} help={HangarHelp} />
       <Row>
-        <Col span="10" style={{ 
-         maxWidth: 500 }}>
+        <Col  flex="0 1 420px">
           <GalleryList listCallback={listCallback} selectCallback={selectCallback} markerSelected={markerSelected} />
         </Col>
-        <Col span="14"><GoogleApiWrapper list={list} selected={selected} markerCallback={markerCallback} /></Col>
+        <Col flex="auto"><GoogleApiWrapper list={list} selected={selected} markerCallback={markerCallback} /></Col>
       </Row>
     </div>)
 }

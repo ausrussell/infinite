@@ -54,10 +54,10 @@ const GalleryList = props => {
   }
     , [selectedListItem]);
 
-const getItemFromId = id => {
-  const markerSelected = galleriesRefs.current.filter(filterItem => filterItem.current.id === id);
-  return  (markerSelected.length) ? markerSelected[0].current.parentElement.parentElement : null
-}
+  const getItemFromId = id => {
+    const markerSelected = galleriesRefs.current.filter(filterItem => filterItem.current.id === id);
+    return (markerSelected.length) ? markerSelected[0].current.parentElement.parentElement : null
+  }
 
 
   const onClickHandler = (action, item) => {
@@ -122,14 +122,13 @@ const GalleryListItem = React.forwardRef((props, ref) => {
         />
       }
       actions={[
-        <span onClick={() => onClickHandler("Locate", item)}><EnvironmentOutlined key="list-vertical-star-o" style={{ marginRight: 8 }} />Locate</span>,
+        <span className="icon-link" onClick={() => onClickHandler("Locate", item)}><EnvironmentOutlined key="list-vertical-star-o" style={{ marginRight: 8 }} />Locate</span>,
         <Route
           path="/"
           render={routeProps => {
             Object.assign(routeProps, item);
-            return <span onClick={() => onClickHandler("Visit", routeProps)} ><ArrowRightOutlined key="list-vertical-star-o" style={{ marginRight: 8 }} />Visit</span>;
+            return <span className="icon-link" onClick={() => onClickHandler("Visit", routeProps)} ><ArrowRightOutlined key="list-vertical-star-o" style={{ marginRight: 8 }} />Visit</span>;
           }}
-
         />
       ]}
     >

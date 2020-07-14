@@ -8,38 +8,23 @@ export const HangarHelp = {
     size: "full",
     content:
         (<div><p>Thanks for joining in, having a look, testing this prototype out, and making your own galleries!</p>
-            <p>Only Two steps to make a gallery once you've signed in</p>
-            <Row gutter={[32, 32]}>
-                <Col span={12}>
-                    <Title level={4}>1.</Title>
-      Create a <a href="./planner">Floorplan</a> or select a pre-made plan from the Vault at the bottom of the screen.
-      </Col>
-                <Col span={12}>
-                    <Title level={4}>2.</Title>
+            <Title level={4}>Builder</Title>
+            <ol>
+                <li>Jump to the Builder to make your own gallery.</li>
+                <li>Under New Gallery you can select a pre-made floorplan.</li>
+                <li>Fill in details and pick a location. Set it to public to let it appear on the map.</li>
+                <li>Drag an image from your desktop directly onto the wall.</li>
+                <li>Your Vault is at the bottom of the Builder page and in it are all the images you've uploaded and different floors, frames, walls etc which you can add.</li>
+                <li>Your images in the Vault have an edit icon to allow you to add titles, descriptions and other details.</li>
+                <li>You can make as many galleries as you like and update them as often as you like.</li>
+            </ol>
 
-      Selecting a floorplan takes you to the Builder page where you can drag images straight onto a wall or into your vault. Your vault also contains the materials to customize your gallery.
-      </Col>
-            </Row>
-
+            <Title level={4}>Floorplan</Title>
+            <p>You can create and edit you're own floorplans to build on.</p>
             <Title level={4}>Studio</Title>
             <p>The Studio is where you can create and edit the different materials you use in your gallery or galleries, like frames, flooring. You can also upload your own textures.
     </p>
 
-            <Title level={4}>Roadmap</Title>
-            <ul>
-                <li>Improved image resizing - please use smaller image files for now</li>
-                <li>Fix the big bugs - let me know the buggiest ones, please</li>
-            </ul>
-            <p>These are the features I'm moving to next but am keen to hear what would make this work better for you</p>
-            <ul>
-                <li>Descriptions for artworks and wall text</li>
-                <li>Tours - so users can glide through your gallery in a simple way of your design</li>
-                <li>Video - on the walls</li>
-                <li>Sculpture - 3D art</li>
-                <li>Shareable art and materials - a user borrows a work from someone else's gallery, and viewers of the borrowed work can use it as a portal to visit the original owner's gallery</li>
-                <li>Open studios - monthly shows highlghting works from the community</li>
-                <li>Shop - so artists can sell their work</li>
-            </ul>
             <Title level={4}>Philosophy</Title>
             <p>The internet is a flatland of images dominated by timelines. There is nothing out there to properly curate a display of images,
             to create particular narratives and emphasize particular images, to create an experience for viewers that has a physical sense of discovery.
@@ -54,6 +39,20 @@ export const HangarHelp = {
 
             <p>I want to build up a community and create an enjoyable way for citizens of this world to discover the work of friends and strangers... a safe way, in this era of the coronavirus.</p>
             <p>Hangar, if that's what it is to be called, will always be mainly free. I'm still thinking through the best way to monetize it... possibly subscriptions for advanced features and/or a cut from sales. </p>
+
+            <Title level={4}>Roadmap</Title>
+            <ul>
+                <li>Fix the big bugs - let me know the buggiest ones, please</li>
+            </ul>
+            <p>These are the features I'm moving to next but am keen to hear what would make this work better for you</p>
+            <ul>
+                <li>Tours - so users can glide through your gallery in a simple way of your design</li>
+                <li>Video - on the walls</li>
+                <li>Sculpture - 3D art</li>
+                <li>Shareable art and materials - a user borrows a work from someone else's gallery, and viewers of the borrowed work can use it as a portal to visit the original owner's gallery</li>
+                <li>Open studios - monthly shows highlghting works from the community</li>
+                <li>Shop - so artists can sell their work</li>
+            </ul>
         </div>
         )
 }

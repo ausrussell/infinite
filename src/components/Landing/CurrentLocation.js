@@ -4,7 +4,7 @@ import { Button } from 'antd';
 import { Marker } from 'google-maps-react';//
 import { Alert } from "antd";
 import { isEqual } from 'lodash';
-
+const styles = require('./GoogleMapStyles.json')
 
 const permissionAlert = <Alert
   message="Please grant permission to use your location"
@@ -103,8 +103,8 @@ export class CurrentLocation extends Component {
         {},
         {
           center: center,
-          zoom: zoom
-
+          zoom: zoom,
+          styles: styles
         }
       );
 

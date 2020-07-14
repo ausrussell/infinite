@@ -129,3 +129,19 @@ perspective-origin: 50% 0%;
   border-right: 2px solid #d1c4e9; */
 
 }
+
+.map-info-window {
+  border: 1px solid #d1c4e9;
+padding: 10px;
+text-align: center;
+}
+
+.map-info-window-link {
+  cursor:pointer;
+  font-size: 15px;
+}
+
+.map-info-window-link:hover, .icon-link:hover {
+  color:#4527a0;
+}
+

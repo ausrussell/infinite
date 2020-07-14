@@ -1,14 +1,19 @@
 
 import { GoogleApiWrapper, InfoWindow, Marker } from 'google-maps-react';//
 import React, { Component } from "react";
+import { withRouter } from "react-router-dom";
+
+import ReactDOM from "react-dom";
 import '../../css/map.css';
+import { ArrowRightOutlined } from '@ant-design/icons';
+
 
 import CurrentLocation from './CurrentLocation';
 // import { ExpandOutlined, StarOutlined, StarFilled, StarTwoTone } from '@ant-design/icons';
 
 const defaultIconURL = "https://firebasestorage.googleapis.com/v0/b/infinite-a474a.appspot.com/o/images%2Fwhite_cube.png?alt=media&token=f852da15-6e33-448a-ab0f-2da3fdac8149"
 
-export class MapContainer extends Component {
+export class MapContainerBase extends Component {
   state = {
     showingInfoWindow: false,  //Hides or the shows the infoWindow
     activeMarker: {},          //Shows the active marker upon click
@@ -35,12 +40,32 @@ export class MapContainer extends Component {
     })
     this.props.markerCallback(props)
   };
+  onClickHandler = (action, item) => {
+    console.log("e", action, item)
+
+    if (action === "Visit") {
+      const { history, nameEncoded } = item;
+      debugger;
+      this.props.history.push("/Gallery/" + item.item.nameEncoded);
+    }
+
+  }
 
   onMarkerDragEnd = (hoverKey, childProps, mouse) => {
     // console.log("onMarkerDragEnd", hoverKey, childProps, mouse)
     const { latLng } = mouse;
     console.log("onMarkerDragEnd", latLng)
     this.props.latLngCallBack({ lat: latLng.lat(), lng: latLng.lng() });
+  }
+
+  renderInfoWindow = (routeProps) => {
+    console.log("renderInfoWindow", this.state.selectedPlace)
+    if (this.state.selectedPlace) {
+      return (<div><h4>{this.state.selectedPlace.name}</h4>
+        <span onClick={() => this.onClickHandler("Visit",this.state.selectedPlace)} className="map-info-window-link"><ArrowRightOutlined key="list-vertical-star-o" style={{ marginRight: 8 }} />Visit</span>
+      </div>
+      )
+    }
   }
 
   render() {
@@ -56,29 +81,31 @@ export class MapContainer extends Component {
       latLngCallBack={this.props.latLngCallBack}
     >
       {!this.props.modal && this.props.list.map((item, index) => {
-          return (
-            <Marker
-              position={item.location}
-              name={item.title}
-              key={index}
-              onClick={this.onMarkerClick}
-              icon={{ url: (item.galleryImg) ? item.galleryImg.url : defaultIconURL, scaledSize: { width: 32, height: 32 } }}
-              id={item.id}
-            />
-          )
-        })
+        return (
+          <Marker
+            position={item.location}
+            name={item.title}
+            key={index}
+            onClick={this.onMarkerClick}
+            icon={{ url: (item.galleryImg) ? item.galleryImg.url : defaultIconURL, scaledSize: { width: 32, height: 32 } }}
+            id={item.id}
+            item={item}
+          />
+        )
+      })
       }
 
 
-      <InfoWindow
+      <InfoWindowEx
         marker={this.state.activeMarker}
         visible={this.state.showingInfoWindow}
         onClose={this.onClose}
       >
-        <div>
-          <h4>{this.state.selectedPlace.name}</h4>
+        <div className="map-info-window">
+          {this.renderInfoWindow()}
+
         </div>
-      </InfoWindow>
+      </InfoWindowEx>
     </CurrentLocation >
 
     );
@@ -86,6 +113,29 @@ export class MapContainer extends Component {
 
 }
 
+class InfoWindowEx extends Component {
+  constructor(props) {
+    super(props);
+    this.infoWindowRef = React.createRef();
+    this.contentElement = document.createElement(`div`);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.children !== prevProps.children) {
+      ReactDOM.render(
+        React.Children.only(this.props.children),
+        this.contentElement
+      );
+      this.infoWindowRef.current.infowindow.setContent(this.contentElement);
+    }
+  }
+
+  render() {
+    return <InfoWindow ref={this.infoWindowRef} {...this.props} />;
+  }
+}
+
+const MapContainer = withRouter(MapContainerBase)
 export default GoogleApiWrapper({
   apiKey: process.env.REACT_APP_GOOGLE_MAP_API_KEY
 })(MapContainer);
