@@ -34,7 +34,6 @@ class FloorplanDropdown extends Component {
     }
 
     masterCallback = snap => {
-        console.log("masterCallback", snap.val())
         const list = this.addToList(snap, "master");
         this.setState({ floorplans: list }, this.props.firebase.getUsersFloorplans(this.userCallback));
     }
@@ -50,7 +49,6 @@ class FloorplanDropdown extends Component {
     }
 
     addToList = (data, cssClass) => {
-        console.log("add to floorplan list")
         const list = this.state.floorplans;
         if (data) {
             data.forEach((childSnapshot) => {
@@ -62,7 +60,6 @@ class FloorplanDropdown extends Component {
     }
 
     getTiles = (data) => {
-        console.log("getTiles",data,this.state.floorplans )
         const {cssClass, title, key} = data;
         return (<Option label={title} key={key} value={key} className={cssClass}><div>{title}</div><CanvasTile plan={data.data} /></Option>);
     }

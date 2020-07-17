@@ -30,7 +30,7 @@ export default class TextureAdder {
                     this.textures["map"] = this.textureLoader.load(item[1], texture => {
                         this.loadHandler(item[0], texture);
                     })
-                    console.log("set map")
+                    // console.log("set map")
                     if (data.density) {
                         if (Array.isArray(data.density)) {//for rectangles
                             this.textures["map"].repeat.set(data.density[1], data.density[0]);

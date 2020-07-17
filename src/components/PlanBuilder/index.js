@@ -110,7 +110,8 @@ class Builder extends Component {
       floor: {},
       exportData: null,
       guiAdded: false,
-      stats: false
+      stats: false,
+      userId:null
   })
 
   addGui() {
@@ -381,7 +382,7 @@ class Builder extends Component {
     }
   }
 
-  onEditDropdownChangeHandler = ({ galleryDesc, galleryData, id }) => {
+  onEditDropdownChangeHandler = ({ galleryDesc, galleryData, id, userId }) => {
     console.log("galleryDesc, galleryData, id ",galleryDesc, galleryData, id )
     this.emptyScene();
     if (!id){
@@ -389,7 +390,7 @@ class Builder extends Component {
       this.setState(initState);
     } else {
     const { name, floorplan } = galleryData;
-    const newState = Object.assign(this.getInitialState(), { galleryTitle: name, floorplan: floorplan, galleryDesc: galleryDesc, galleryId: id, floor: new Floor({ builder: this }), surroundings: new Surroundings(this)  })
+    const newState = Object.assign(this.getInitialState(), { galleryTitle: name, floorplan: floorplan, galleryDesc: galleryDesc, galleryId: id, floor: new Floor({ builder: this }), surroundings: new Surroundings(this), userId:userId  })
     this.setState(newState, () => this.rebuildGallery(galleryData))}
   }
 
@@ -521,10 +522,14 @@ class Builder extends Component {
     galleryData.floorplan = this.state.floorplan;
     galleryData.floor = this.state.floor.getExport();
     galleryData.walls = [];
+    galleryData.art = [];
 
     this.state.wallEntities.forEach(item => {
+      const wallExport = item.getExport()
       galleryData.walls.push(item.getExport());
+      wallExport.artKeys && galleryData.art.push(...wallExport.artKeys);
     });
+
     galleryData.lights = [];
     this.state.lights.forEach(item => {
       galleryData.lights.push(item.getExport());
@@ -532,9 +537,24 @@ class Builder extends Component {
 
     if (this.state.generalLight) galleryData.generalLight = this.state.generalLight.getExport();
     if (this.state.surroundings) galleryData.surrounds = this.state.surroundings.getExport();
-
+    if (galleryData.art.length) this.addCatalogue(galleryData.art);
     return galleryData;
   };
+  getArtDetail(key) {
+    const options = {
+      refPath: "users/" + this.props.firebase.currentUID + "/art/" + key,
+      once: true,
+      callback: this.setArtDetails
+    }
+    console.log("getArtDetail", options)
+    this.props.firebase.getAsset(options);
+  }
+  addCatalogue(artKeys){
+    artKeys.forEach(key => this.getArtDetail(key))
+  }
+  setArtDetails = data => {
+    console.log("setArtDetails",data.val())
+  }
 
   resetTranslatedArt() {
     this.transformOriginVector.copy(this.activeArtMesh.getWorldPosition());
@@ -942,27 +962,65 @@ class Builder extends Component {
 
 
 
-  disposeHierarchy(node, callback) {
-    for (var i = node.children.length - 1; i >= 0; i--) {
-      var child = node.children[i];
-      this.disposeHierarchy(child, this.disposeNode);
-      callback(child);
-    }
-  }
+  // disposeHierarchy(node, callback) {
+  //   for (var i = node.children.length - 1; i >= 0; i--) {
+  //     var child = node.children[i];
+  //     this.disposeHierarchy(child, this.disposeNode);
+  //     callback(child);
+  //   }
+  // }
 
-  disposeNode(parentObject) {
+  // disposeNode(parentObject) {
+  //   parentObject.traverse(function (node) {
+  //     if (node instanceof THREE.Mesh) {
+  //       if (node.geometry) {
+  //         node.geometry.dispose();
+  //       }
+
+  //       if (node.material) {
+  //         //console.log("node.material", node.material);
+  //         if (
+  //           node.material instanceof THREE.MeshFaceMaterial ||
+  //           node.material instanceof THREE.MultiMaterial
+  //         ) {
+  //           node.material.materials.forEach(function (mtrl, idx) {
+  //             if (mtrl.map) mtrl.map.dispose();
+  //             if (mtrl.lightMap) mtrl.lightMap.dispose();
+  //             if (mtrl.bumpMap) mtrl.bumpMap.dispose();
+  //             if (mtrl.normalMap) mtrl.normalMap.dispose();
+  //             if (mtrl.specularMap) mtrl.specularMap.dispose();
+  //             if (mtrl.envMap) mtrl.envMap.dispose();
+
+  //             mtrl.dispose(); // disposes any programs associated with the material
+  //           });
+  //         } else {
+  //           if (node.material.map) node.material.map.dispose();
+  //           if (node.material.lightMap) node.material.lightMap.dispose();
+  //           if (node.material.bumpMap) node.material.bumpMap.dispose();
+  //           if (node.material.normalMap) node.material.normalMap.dispose();
+  //           if (node.material.specularMap) node.material.specularMap.dispose();
+  //           if (node.material.envMap) node.material.envMap.dispose();
+
+  //           node.material.dispose(); // disposes any programs associated with the material
+  //         }
+  //       }
+  //     }
+  //   });
+  // }
+  // disposeCallback = item => {
+  //   console.log("disposeCallback", item);
+  //   item.remove();
+  // };
+
+  disposeNode = (parentObject) => {
     parentObject.traverse(function (node) {
+      // console.log("node", node)
       if (node instanceof THREE.Mesh) {
         if (node.geometry) {
           node.geometry.dispose();
         }
-
         if (node.material) {
-          //console.log("node.material", node.material);
-          if (
-            node.material instanceof THREE.MeshFaceMaterial ||
-            node.material instanceof THREE.MultiMaterial
-          ) {
+          if (node.material instanceof THREE.MeshFaceMaterial || node.material instanceof THREE.MultiMaterial) {
             node.material.materials.forEach(function (mtrl, idx) {
               if (mtrl.map) mtrl.map.dispose();
               if (mtrl.lightMap) mtrl.lightMap.dispose();
@@ -971,9 +1029,10 @@ class Builder extends Component {
               if (mtrl.specularMap) mtrl.specularMap.dispose();
               if (mtrl.envMap) mtrl.envMap.dispose();
 
-              mtrl.dispose(); // disposes any programs associated with the material
+              mtrl.dispose();    // disposes any programs associated with the material
             });
-          } else {
+          }
+          else {
             if (node.material.map) node.material.map.dispose();
             if (node.material.lightMap) node.material.lightMap.dispose();
             if (node.material.bumpMap) node.material.bumpMap.dispose();
@@ -981,58 +1040,38 @@ class Builder extends Component {
             if (node.material.specularMap) node.material.specularMap.dispose();
             if (node.material.envMap) node.material.envMap.dispose();
 
-            node.material.dispose(); // disposes any programs associated with the material
+            node.material.dispose();   // disposes any programs associated with the material
           }
         }
       }
+      // console.log("end of disposeNode", i++)
     });
   }
-  disposeCallback = item => {
-    console.log("disposeCallback", item);
-    item.remove();
-  };
-
 
   emptyScene() {
-    const node = this.scene;
+    console.log("this.scene.children before", this.scene.children);
+    console.log("renderer.info before", this.renderer.info)
+    console.log("renderer.info.memory before", this.renderer.info.memory)
 
+    // this.state.artMeshes.forEach(item => {
+    //   item.frameDisplayObject.destroyViewingPosition();
+    // })
+    const node = this.scene;
     for (var i = node.children.length - 1; i >= 0; i--) {
       var child = node.children[i];
-      if (sceneHelperObjects.indexOf(child.name) === -1) this.scene.remove(child);
+    
+    if (sceneHelperObjects.indexOf(child.name) === -1) {
+      this.disposeNode(child);
+      this.scene.remove(child);}
+
     }
-    // this.disposeHierarchy(this.scene, this.disposeCallback);
-    console.log("this.scene", this.scene.children)
+    console.log("this.scene after", this.scene.children);
+    console.log("renderer.info after", this.renderer.info)
+    console.log("renderer.info.memory after", this.renderer.info.memory)
 
     return;
-    // const cleanMaterial = material => {
-    //   console.log('dispose material!')
-    //   material.dispose()
-
-    //   // dispose textures
-    //   for (const key of Object.keys(material)) {
-    //     const value = material[key]
-    //     if (value && typeof value === 'object' && 'minFilter' in value) {
-    //       console.log('dispose texture!')
-    //       value.dispose()
-    //     }
-    //   }
-    // }
-    // this.scene.traverse(object => {
-    //   if (!object.isMesh) return
-
-    //   console.log('dispose geometry!')
-    //   object.geometry.dispose()
-
-    //   if (object.material.isMaterial) {
-    //     cleanMaterial(object.material)
-    //   } else {
-    //     // an array of materials
-    //     for (const material of object.material) cleanMaterial(material)
-    //   }
-    // })
-
-
   }
+
 
   //set objects
 
@@ -1334,7 +1373,7 @@ class Builder extends Component {
     this.stats && this.stats.update();
   }
   render() {
-    const { galleryId, floorplan,exportData} = this.state;
+    const { galleryId, floorplan,exportData, userId} = this.state;
     return (
       <ErrorBoundary>
         {(this.props.firebase.currentUID) &&
@@ -1348,7 +1387,8 @@ class Builder extends Component {
             galleryId={galleryId}
             floorplan={floorplan}
             floorplanSelectedHandler={(data) => this.floorplanSelectedHandler(data)} 
-            exportData={exportData} />)}
+            exportData={exportData} 
+            userId={userId} />)}
         <MainCanvas refer={mount => (this.mount = mount)} />
         {this.state.draggableVaultElementActive && (
           <Draggable

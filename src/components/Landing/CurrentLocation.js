@@ -164,34 +164,36 @@ export class CurrentLocation extends Component {
   }
 
   setLocationPermission() {
+    if (navigator.permissions) {
     let locationPermission;
-    navigator.permissions.query({ name: 'geolocation' }).then((result) => {
-      if (result.state === 'granted') {
-        locationPermission = result.state;
-        this.setState({ locationPermission: result.state });
-        console.log("locationPermission", locationPermission);
+      navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+        if (result.state === 'granted') {
+          locationPermission = result.state;
+          this.setState({ locationPermission: result.state });
+          console.log("locationPermission", locationPermission);
 
-      } else if (result.state === 'prompt') {
-        locationPermission = result.state;
-        this.setState({ locationPermission: result.state });
+        } else if (result.state === 'prompt') {
+          locationPermission = result.state;
+          this.setState({ locationPermission: result.state });
 
-        console.log("locationPermission", locationPermission);
+          console.log("locationPermission", locationPermission);
 
 
-      } else if (result.state === 'denied') {
-        locationPermission = result.state;
-        this.setState({ locationPermission: result.state });
-        console.log("locationPermission", locationPermission);
+        } else if (result.state === 'denied') {
+          locationPermission = result.state;
+          this.setState({ locationPermission: result.state });
+          console.log("locationPermission", locationPermission);
 
-      }
-      result.onchange = () => {
-        locationPermission = result.state;
-        this.setState({ locationPermission: result.state });
-        if (result.state === "granted") this.setState({ displayPermissionAlert: false })
-        console.log("locationPermission", locationPermission);
+        }
+        result.onchange = () => {
+          locationPermission = result.state;
+          this.setState({ locationPermission: result.state });
+          if (result.state === "granted") this.setState({ displayPermissionAlert: false })
+          console.log("locationPermission", locationPermission);
 
-      }
-    });
+        }
+      });
+    }
   }
 
 

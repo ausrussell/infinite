@@ -48,6 +48,8 @@ class GalleryEditDropdown extends Component {
       data.forEach((childSnapshot) => {
 
         const snap = childSnapshot.val();
+        const userUID = childSnapshot.key;
+        console.log("userUID",userUID)
         console.log("snap val",snap)
         if (snap.galleryDesc) {
           console.log("there are snap.galleryDesc", snap.galleryDesc)
@@ -57,11 +59,9 @@ class GalleryEditDropdown extends Component {
             dataList[key] = value;
           }
         }
-        console.log("childSnapshot.val()", childSnapshot.val())
       });
     }
-    console.log("datalist",dataList);
-    console.log("this.curatorUsers",this.curatorUsers)
+
     this.setState({ dataList: dataList });
   }
 
@@ -71,7 +71,6 @@ class GalleryEditDropdown extends Component {
   }
 
   fillList = data => {
-    console.log("Galleries callback", data);
     const dataList = {};
     if (data) {
       data.forEach((childSnapshot) => {
@@ -85,10 +84,10 @@ class GalleryEditDropdown extends Component {
     this.selectedId = id;
     this.desc = this.state.dataList[id];
 
-    const userId = this.curatorUsers[id] || this.props.firebase.currentUID;
+    this.userId = this.curatorUsers[id] || this.props.firebase.currentUID;
     // debugger;
     const options = {
-      refPath: "users/" + userId + "/galleryData/" + id,
+      refPath: "users/" + this.userId + "/galleryData/" + id,
       callback: this.returnData,
       once: true
     }
@@ -100,33 +99,18 @@ class GalleryEditDropdown extends Component {
     const dataToReturn = {
       galleryDesc: this.desc,
       galleryData: galleryData,
-      id: this.selectedId
+      id: this.selectedId,
+      userId:this.userId
     }
     console.log("dataToReturn", dataToReturn);
     this.props.callback(dataToReturn)
   }
 
   listItem(key, value) {
-    console.log("listItem", key, value.title)
     return <Option key={key} label={value.title || "Untitled"}>
       {value.title || "Untitled"}
     </Option>
-    //     let option;
-    //     if (data.val) {
-    //       const galleryData = data;// data.val();
-    //       console.log("galleryData listItem", galleryData)
-
-    //       const { key } = data;
-    //       const { title } = galleryData;
-    //       option = (<Option key={key} label={data.title || "Untitled"}>
-    //         {title || "Untitled"}
-    //       </Option>)
-    //  }   else {
-
-    //       }
-    //       return option;
   }
-  // {this.state.galleriesList.map(data => this.listItem(data))}
 
   render() {
     const items = [];

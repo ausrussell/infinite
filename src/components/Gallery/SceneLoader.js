@@ -59,7 +59,7 @@ class SceneLoader {
     this.wallEntities.forEach(wall => {
       wall.renderWall();
       wallMeshes.push(wall.wallMesh);
-      console.log("getArt", wall.getArt());
+      // console.log("getArt", wall.getArt());
       const gotArt = wall.getArt();
       if (gotArt.length) {
         gotArt.forEach(item => {
@@ -68,7 +68,7 @@ class SceneLoader {
         })
       }
     });
-    console.log("artMeshes in renderwalls", artMeshes)
+    // console.log("artMeshes in renderwalls", artMeshes)
     this.builder.setState({ wallMeshes: wallMeshes, artMeshes: artMeshes })
 
   }

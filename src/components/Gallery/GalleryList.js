@@ -2,7 +2,6 @@ import React, { createRef, useState, useRef, useEffect } from "react";
 
 import { useSpring, animated } from 'react-spring'
 
-import { withFirebase } from "../Firebase";
 import { List } from 'antd';
 import { EnvironmentOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import { Route } from "react-router-dom";
@@ -11,60 +10,111 @@ const { Paragraph } = Typography;
 
 const galleryPlaceholder = 'https://firebasestorage.googleapis.com/v0/b/infinite-a474a.appspot.com/o/images%2Fhanger_placeholder.png?alt=media&token=4f847f15-48d6-43d9-92df-80eea32394f5';
 
-const GalleryList = props => {
+const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected }) => {
   const [galleriesList, setGalleriesList] = useState([]);
-  const [selectedListItem, setSelectedListItem] = useState();
+  const [selectedListItem, setSelectedListItem] = useState({ old: null, new: null });
 
   const galleriesRefs = useRef([])
   const [springProps, setSpringProps, stopSpringProps] = useSpring(() => ({ scroll: 1 }))
+  const { getList, getAssetOnce } = firebase
+  useEffect(() => {
+
+    const fillList = async (data) => {
+      console.log("Galleries callback", data);
+      const list = [];
+      if (data) {
+        data.forEach((childSnapshot) => {
+          const snap = childSnapshot.val();
+          snap.ref = createRef();
+          galleriesRefs.current.push(snap.ref);
+          snap.id = childSnapshot.key
+          if (snap.art) {
+            const parts = snap.dataPath.split("/");
+            const newPath = parts[0] + "/" + parts[1] + "/art/" + snap.art[Math.floor(Math.random() * snap.art.length)]
+            const options = {
+              refPath: newPath,
+              once: true,
+              extras: snap,
+              callback: (snap2, extras) => {
+                debugger;
+                console.log("addImages", snap2.val(), extras)
+              },
+              // orderField: "title"
+            }
+            snap.call = getAssetOnce(options)
+            list.push(snap);
+
+          } else {
+            list.push(snap);
+          }
+
+        });
+      }
+      console.log("Galleries plansCallback", list);
+      setGalleriesList(list);
+      listCallback(list);
+    };
+    const dbCall = async () => {
+      const options = {
+        refPath: "publicGalleries",
+        callback: fillList,
+        orderField: "title"
+      }
+      getList(options);
+    }
+    dbCall();
+  }, [getList, listCallback]);
+
+  // const resetMarkerSelected = useCallback(itemSelected => {
+  //   selectedListItem && selectedListItem.classList.remove("gallery-list-item--selected");
+  //   setSelectedListItem(itemSelected)}, )
 
   useEffect(() => {
-    const options = {
-      refPath: "publicGalleries",
-      callback: fillList,
-      orderField: "title"
-    }
-    galleriesList.length === 0 && props.firebase.getList(options);
-    console.log("db called")
-  }, [props.selectCallback]);
+    console.log("useEffect galleriesList", galleriesList)
+  }, [galleriesList])
+
+
 
   useEffect(() => {
-    console.log("useEffect props.markerSelected", props.markerSelected);
-    const markerSelected = galleriesRefs.current.filter(item => item.current.id === props.markerSelected);
-    if (markerSelected.length) {
-      const itemSelected = markerSelected[0].current.parentElement.parentElement
-
-      setSpringProps({ scroll: itemSelected.offsetTop });
-      resetMarkerSelected(itemSelected);
+    console.log("useEffect props.markerSelected", markerSelected, galleriesRefs.current);
+    const resetItemSelected = itemSelected => {
+      selectedListItem.new && selectedListItem.new.current.classList.remove("gallery-list-item--selected");
+      setSelectedListItem({ new: itemSelected })
     }
-  }
-    , [props.markerSelected]);
+    const doSelect = () => {
+      const markerSelected2 = galleriesRefs.current.filter(item => item.current.id === markerSelected);
+      if (markerSelected2.length) {
+        const itemSelected = markerSelected2[0];
+        console.log("itemSelected", itemSelected)
+        setSpringProps({ scroll: itemSelected.current.offsetTop });
+        resetItemSelected(itemSelected)
+        // selectedListItem.new && selectedListItem.new.current.classList.remove("gallery-list-item--selected");
+        // setSelectedListItem({ new: itemSelected })
+      }
+    }
+    doSelect();
+  }, [markerSelected, setSpringProps]);
 
-  const resetMarkerSelected = itemSelected => {
-    selectedListItem && selectedListItem.classList.remove("gallery-list-item--selected");
-    setSelectedListItem(itemSelected);
 
-  }
 
   useEffect(() => {
-    console.log("useEffect selectedListItem", selectedListItem);
-    if (selectedListItem) {
-      selectedListItem.classList.add("gallery-list-item--selected");
+    console.log("useEffect selectedListItem.new", selectedListItem.new)
+    if (selectedListItem.new) {
+      selectedListItem.new.current.classList.add("gallery-list-item--selected");
     }
-  }
-    , [selectedListItem]);
+  }, [selectedListItem.new]);
 
-  const getItemFromId = id => {
-    const markerSelected = galleriesRefs.current.filter(filterItem => filterItem.current.id === id);
-    return (markerSelected.length) ? markerSelected[0].current.parentElement.parentElement : null
-  }
-
-
-  const onClickHandler = (action, item) => {
-    console.log("e", action, item)
+  const onClickHandler = (action, item, ref) => {
+    console.log("e", action, item, ref)
     if (action === "Locate") {
-      resetMarkerSelected(getItemFromId(item.id))
-      props.selectCallback(item);
+      // resetMarkerSelected(getItemFromId(item.id))
+      // debugger;
+      selectedListItem.new && console.log("selectedListItem.new && selectedListItem.new.current", selectedListItem.new, selectedListItem.new.current)
+      selectedListItem.new && selectedListItem.new.current.classList.remove("gallery-list-item--selected");
+
+      setSelectedListItem({ new: ref })
+
+      selectCallback(item);
     }
 
     if (action === "Visit") {
@@ -74,22 +124,7 @@ const GalleryList = props => {
 
   }
 
-  const fillList = data => {
-    console.log("Galleries callback", data);
-    const list = [];
-    if (data) {
-      data.forEach((childSnapshot) => {
-        const snap = childSnapshot.val();
-        snap.ref = createRef();
-        galleriesRefs.current.push(snap.ref);
-        snap.id = childSnapshot.key
-        list.push(snap);
-      });
-    }
-    console.log("Galleries plansCallback", list);
-    setGalleriesList(list);
-    props.listCallback(list)
-  };
+
   return (
     <animated.div
       scrollTop={springProps.scroll}
@@ -107,22 +142,32 @@ const GalleryList = props => {
 }
 
 const GalleryListItem = React.forwardRef((props, ref) => {
+  const [art, setArt] = useState();
+
   const { item, onClickHandler } = props;
-  const galleryImg = (item.galleryImg) ? item.galleryImg.thumb : galleryPlaceholder;
-  return (
+  const galleryImg = (item.galleryImg) ? item.galleryImg.thumb || item.galleryImg.url : galleryPlaceholder;
+  if (item.call && !art) {
+    item.call.then((snap) => {
+      const artItem = snap.val()
+      artItem && setArt(artItem.thumb || artItem.url)
+    })
+  }
+  const artToShow = art || galleryImg;
+  return <div ref={ref}
+    id={item.id}
+    className="gallery-list-item-holder">
     <List.Item
       className="gallery-list-item"
       extra={
         <div style={{
-          backgroundImage: "url(" + galleryImg + ")"
+          backgroundImage: "url(" + artToShow + ")"
         }}
           className="gallery-list-item-image"
-          ref={ref}
-          id={item.id}
-        />
+
+        ></div>
       }
       actions={[
-        <span className="icon-link" onClick={() => onClickHandler("Locate", item)}><EnvironmentOutlined key="list-vertical-star-o" style={{ marginRight: 8 }} />Locate</span>,
+        <span className="icon-link" onClick={() => onClickHandler("Locate", item, ref)}><EnvironmentOutlined key="list-vertical-star-o" style={{ marginRight: 8 }} />Locate</span>,
         <Route
           path="/"
           render={routeProps => {
@@ -134,12 +179,15 @@ const GalleryListItem = React.forwardRef((props, ref) => {
     >
       <List.Item.Meta
         title={item.title}
+
         description={<div>{item.userDisplayName && <p>Built by: {item.userDisplayName}</p>}
           <Paragraph ellipsis={{ rows: 5, expandable: true }}>{item.description}</Paragraph>
         </div>}
       />
     </List.Item>
-  )
+  </div>;
+
+
 })
 
-export default withFirebase(GalleryList);
+export default GalleryList;

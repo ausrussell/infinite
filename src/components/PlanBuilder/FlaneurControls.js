@@ -177,8 +177,6 @@ class FlaneurControls {
       this.domElement.focus();
     }
 
-
-
     if (this.activeLook) {
       switch (event.button) {
         case 0:
@@ -228,7 +226,7 @@ class FlaneurControls {
     this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     this.mouse.y = -((event.clientY - (window.innerHeight - this.domElement.offsetHeight)) / this.domElement.offsetHeight) * 2 + 1;
     this.checkForFloorHover();
-    if (this.mode === "Gallery" && !this.onArt) this.checkForArtHover();
+    if (this.mode === "Gallery") this.checkForArtHover();
   };
 
   onKeyDown = event => {
@@ -254,7 +252,6 @@ class FlaneurControls {
           this.moveLeft = true;
         } else {
           if (!this.easeOutCameraTurn.stop) this.easeOutCameraTurn.end();
-
           this.moveCameraLeft = true;
         }
         // /*A*/ this.moveLeft = true;

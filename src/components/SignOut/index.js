@@ -9,7 +9,7 @@ const SignOutButtonBase = (props) =>{
   const onClick = () => {
     props.firebase
       .doSignOut()
-      .then(() => props.history.push(ROUTES.HOME));
+      .then(() => props.history.push(ROUTES.LANDING))
   };
     return (
       <span onClick={onClick}>

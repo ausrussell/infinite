@@ -3,7 +3,8 @@ import * as THREE from "three";
 import Frame from "./Frame";
 import WallLight from "./WallLight";
 import Animate from "../../Helpers/animate";
-import TextureAdder from "../../Helpers/TextureAdder"
+import TextureAdder from "../../Helpers/TextureAdder";
+
 
 class WallObject {
   constructor(options) {
@@ -59,17 +60,25 @@ class WallObject {
 
   addArtToExport() {
     this.export.sides = {};
+    const artToSave = []
+
     Object.entries(this.sides).forEach((value, index) => {
       const side = value[1];
       const framesToSave = [];
       const sideFrames = side.frames;
       sideFrames.forEach(item => {
         const frameData = item.getExport();
+        console.log("frameData",frameData.art.key)
+        artToSave.push(frameData.art.key)
         framesToSave.push(JSON.stringify(frameData));
       });
       this.export.sides[value[0]] = framesToSave;
     });
+
+    if (artToSave.length) this.export.artKeys = artToSave;
+
   }
+
 
   getExport = () => {
     this.addArtToExport();
@@ -295,16 +304,6 @@ class WallObject {
   }) {
     this.builder.scene.updateMatrixWorld(true);
     this.sides[side].hasArt = true;
-    // console.log(
-    //   "addImageFile",
-    //   this.sides[side].frames,
-    //   file,
-    //   side,
-    //   holderOver,
-    //   uploadTask,
-    //   itemData
-    // );
-    // if (holderOver.defaultArtMesh || holderOver.wallOver) {
     this.sides[side].wallLight.hoverOff();
     let index = this.sides[side].frames.push(new Frame(this, side));
     const options = {

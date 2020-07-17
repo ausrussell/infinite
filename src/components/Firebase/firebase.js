@@ -101,11 +101,18 @@ class Firebase {
     console.log("getAsset refPath",refPath)
     const ref = app.database().ref(refPath);
     if (once) {
-      ref.once("value").then((snap) => callback(snap));
+      ref.once("value").then((snap) => {callback(snap)});
     } else {
       ref.on("value", callback);
     }
     return ref;
+  }
+
+  getAssetOnce = ({ refPath }) => {
+    console.log("getAsset refPath",refPath)
+    const ref = app.database().ref(refPath);
+    
+    return  ref.once("value")
   }
 
   updateAsset = (path, object) => {
@@ -233,12 +240,12 @@ class Firebase {
     console.log("getGalleryByName", name);
     const galleryRef = this.database.ref("publicGalleries");
     const selected = galleryRef.orderByChild("title").equalTo(name.replace("_", " "));
-    selected.on("child_added", snapshot => {
+    selected.once("child_added", snapshot => {
       console.log("getGalleryByName then ", snapshot.val())
       const returnedValues = snapshot.val();
       console.log("getGalleryByName returnedValues", returnedValues)
       const ref = app.database().ref(returnedValues.dataPath);
-      ref.on("value", (snapshot) => {
+      ref.once("value", (snapshot) => {
         console.log("getGalleryByName snapshot data", snapshot.val());
         this.detachRefListener(selected);
         this.detachRefListener(ref);

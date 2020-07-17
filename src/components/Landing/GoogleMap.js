@@ -26,8 +26,13 @@ export class MapContainerBase extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
+    console.log("this.props.list",this.props)
     if (this.props.selected !== prevProps.selected) {
       console.log("this.props.selected", this.props.selected)
+    }
+
+    if (this.props.list !== prevProps.list) {
+      console.log("this.props.list", this.props.list)
     }
   }
   onMarkerClick = (props, marker, e) => {
@@ -42,10 +47,7 @@ export class MapContainerBase extends Component {
   };
   onClickHandler = (action, item) => {
     console.log("e", action, item)
-
     if (action === "Visit") {
-      const { history, nameEncoded } = item;
-      debugger;
       this.props.history.push("/Gallery/" + item.item.nameEncoded);
     }
 

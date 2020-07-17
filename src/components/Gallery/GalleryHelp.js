@@ -104,7 +104,7 @@ export const GalleryHelp = (props) => {
                 <Row gutter={16} style={{marginTop:30}}>
                     <Col span={10} offset={7} style={colStyleTall}>
                         <div style={itemBox}>
-                            <div style={footstepHolder}><img className="footstep-help" src="../imagery/foot.png" /></div>
+                            <div style={footstepHolder}><img className="footstep-help" src="../imagery/foot.png" alt="footsteps" /></div>
                             <span>Click on the floor</span>
                         </div>
                     </Col>

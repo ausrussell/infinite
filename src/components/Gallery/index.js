@@ -127,7 +127,6 @@ class GalleryBase extends Component {
     console.log("renderer.info.memory after", this.renderer.info.memory)
     this.renderer.forceContextLoss()
     this.renderer.dispose();
-    // this.renderer = null;
     return;
   }
 

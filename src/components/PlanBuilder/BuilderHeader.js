@@ -125,7 +125,7 @@ const MapModal = ({ setCenter, locationSet }) => {
     </div>)
 }
 
-const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeHandler, saveGallery, selectingArt, setSelectingArt, floorplan, floorplanSelectedHandler, exportData }) => {
+const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeHandler, saveGallery, selectingArt, setSelectingArt, floorplan, floorplanSelectedHandler, exportData, userId }) => {
     // console.log("BuilderHeader props", props)
     const [title, setTitle] = useState(galleryDesc.title || "");
     const [id, setId] = useState("");
@@ -139,6 +139,7 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
     const [currentExportData, setCurrentExportData] = useState(null);
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [locationAlert, setLocationAlert] = useState(false);
+    const [curatorsUID, setCuratorsUID] = useState(false);
 
 
     const [form] = Form.useForm();
@@ -159,8 +160,10 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
             setCurrentExportData(exportData);
             setTitle(galleryDesc.title);
             setId(galleryId);
+            setCuratorsUID(userId)
             console.log("updating id to", id)
             console.log("after galleryDesc, exportData", galleryDesc, exportData)
+            console.log("after curatorsUID save",curatorsUID)
 
             setLocation(galleryDesc.location);
             // publicChange(galleryDesc.public);
@@ -261,21 +264,26 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
         values.location = location;
 
         // console.log("firebase.currentUser", firebase.currentUser, firebase.currentUser.displayName);
-        values.userDisplayName = firebase.currentUser.displayName;
+        if  (!firebase.isCurator) values.userDisplayName = firebase.currentUser.displayName;
         Object.keys(values).forEach(key => { values[key] = values[key] || null });
         if (values.title) values.nameEncoded = encodeURIComponent(values.title.replace(" ", "_"));
+        const galleryData = saveGallery();
+        if (galleryData.art) values.art = galleryData.art
         const data = {
             desc: values,
-            galleryData: saveGallery()
+            galleryData: galleryData
         }
         return data;
     }
 
     const saveProcessedValues = async (desc, galleryData) => {
-        const dataPath = "users/" + firebase.currentUID + "/galleryData/" + id;
+        console.log("curators",firebase.currentUID)
+        console.log("curatorsUID save",curatorsUID)
+        const uidToSaveTo = (firebase.isCurator && curatorsUID) ? curatorsUID :firebase.currentUID;
+        const dataPath = "users/" + uidToSaveTo + "/galleryData/" + id;
         const dataSave = firebase.updateAsset(dataPath, galleryData);
         await dataSave;
-        const descPath = "users/" + firebase.currentUID + "/galleryDesc/" + id;
+        const descPath = "users/" + uidToSaveTo + "/galleryDesc/" + id;
         const dbSave = firebase.updateAsset(descPath, desc);
         await dbSave;
         const galleriesPath = "publicGalleries/" + id;
@@ -297,8 +305,9 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
             return;
         }
         saveProcessedValues(desc, galleryData);
+        const uidToSaveTo = (firebase.isCurator && curatorsUID) ? curatorsUID :firebase.currentUID;
         const options = {
-            refPath: "users/" + firebase.currentUID + "/galleryData/" + id,
+            refPath: "users/" + uidToSaveTo + "/galleryData/" + id,
             callback: (savedData) => {
                 const refreshOptions = {
                     galleryDesc: desc, galleryData: savedData.val(), id: id
@@ -356,11 +365,12 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
         });
     }
     const doDelete = async () => {
-        const dataPath = "users/" + firebase.currentUID + "/galleryData/" + id;
+        const uidToSaveTo = (firebase.isCurator && curatorsUID) ? curatorsUID :firebase.currentUID;
+        const dataPath = "users/" + uidToSaveTo + "/galleryData/" + id;
 
         const dataRemove = firebase.removeRef(dataPath);
         await dataRemove;
-        const descPath = "users/" + firebase.currentUID + "/galleryDesc/" + id;
+        const descPath = "users/" + uidToSaveTo + "/galleryDesc/" + id;
         const descRemove = firebase.removeRef(descPath);
         await descRemove;
         if (currentGalleryDesc.public) {
@@ -381,15 +391,12 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
         console.log("publicChange", target.checked, location)
         setLocationAlert(target.checked && !location)
         setVisitable(target.checked && location && nameEncoded);
-
     }
 
 
     return (
         <div className="page-header-area">
-
             <PageTitle title={title ? 'Building gallery: ' + title : "Builder"} help={BuilderHelp} />
-
             <Row gutter={16}>
                 <Col span={12}>
                     <Form
