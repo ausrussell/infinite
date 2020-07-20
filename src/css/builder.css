@@ -136,12 +136,22 @@ box-shadow: 6px 0px 10px 0px rgba(28,49,58,0.7);
 
 }
 
+.gallery-list-item-holder .ant-list-item-meta-title {
+  cursor:pointer;
+}
+
+.gallery-list-item-holder .ant-list-item-meta-title {
+  cursor:pointer;
+  padding-left: 10px;
+}
+
+.gallery-list-item-holder .ant-list-item-meta-title:hover {
+  background-color: #4527a0;
+  color: #fff;
+}
+
 .gallery-list-item--selected .gallery-list-item {
   background-color: #fff;
-  /* border-right: 2px solid #d1c4e9;
-  border-right: 2px solid #d1c4e9;
-  border-right: 2px solid #d1c4e9; */
-
 }
 
 .map-info-window {

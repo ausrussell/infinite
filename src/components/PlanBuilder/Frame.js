@@ -40,7 +40,7 @@ class Frame {
     this.export.groupPosition = this.group.position;
     this.export.frame = this.frameData;
     this.export.side = this.side;
-
+if (!this.artKey) this.artKey = this.getKeyFromFile();
     this.export.art = {
       file: this.artMesh.file, //iMaterial.map,
       width: this.artMesh.geometry.parameters.width * this.artMesh.scale.x,
@@ -262,15 +262,15 @@ class Frame {
   getFrameGroup() {
     return this.group;
   }
-  addArt(options) {
+  addArt(options) {//from dropping or dragging an image
     const { file, uploadTask, holder, draggableImageRef } = options;//file is itemdata or dragged file
     const addingHolder = holder || this;
     console.log("addART", file);
-    if (file.url) {
+    if (file.url || file.thumb) {//not sure why some old art has thumb but no url
 
       const options = {
 
-        file: file.url,
+        file: file.url || file.thumb,
         image: draggableImageRef.current,
         holder: addingHolder,
 
@@ -329,6 +329,12 @@ class Frame {
     this.group.add(this.artMesh);
     if (this.side === "back") this.group.rotateY(Math.PI);
 
+
+    this.artKey = this.getKeyFromFile();
+
+  }
+
+  getKeyFromFile(){
     const fileParts = this.artMesh.file.split("/");
     console.log("fileParts", fileParts);
     const finalBit = fileParts[fileParts.length -1 ];
@@ -337,8 +343,7 @@ class Frame {
 
     const keyToAdd = finalBits[3];//art.key || 
     console.log("keyToAdd", keyToAdd)
-    this.artKey = keyToAdd;
-
+    return keyToAdd;
   }
 
   setFrame(frame) {

@@ -163,7 +163,6 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
             setCuratorsUID(userId)
             console.log("updating id to", id)
             console.log("after galleryDesc, exportData", galleryDesc, exportData)
-            console.log("after curatorsUID save",curatorsUID)
 
             setLocation(galleryDesc.location);
             // publicChange(galleryDesc.public);
@@ -188,7 +187,7 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
         // }
 
         updateFields()
-    }, [galleryDesc, galleryId, id, form, galleryDesc.galleryImg, exportData]);
+    }, [galleryDesc, galleryId, userId, id, form, galleryDesc.galleryImg, exportData]);
 
     const selectArt = () => {
         setSelectingArt()
@@ -197,8 +196,14 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
     const checkForChanges = (data, callback) => {
         const values = form.getFieldsValue();
         console.log("Values", values)
+        debugger;
         const { desc, galleryData } = processValues(values)
-        const dataIsChanged = (currentExportData && JSON.stringify(galleryData) !== JSON.stringify(currentExportData));
+        const galleryDataToTest = galleryData;
+        if (galleryDataToTest.art) delete galleryDataToTest.art;
+
+        const dataIsChanged = (currentExportData && JSON.stringify(galleryDataToTest) !== JSON.stringify(currentExportData));
+
+        console.log("data isEqual", isEqual(galleryDataToTest, currentExportData));
         console.log("dataIsChanged, currentExportData, galleryData", dataIsChanged, currentExportData, galleryData);
         console.log("currentGalleryDesc, desc", currentGalleryDesc, desc);
 
@@ -206,9 +211,13 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
         let currentGalleryDescTest = currentGalleryDesc;
 
         if (!currentGalleryDesc.location) delete desctest.location;
+
         desctest = removeEmptyObjects(desctest);//?? 
         currentGalleryDescTest = removeEmptyObjects(currentGalleryDescTest);//?? 
+        // if (desctest.art) delete desctest.art; //don;t test for art because mightn't have been added in initial galleries
+if (currentGalleryDescTest.art) delete currentGalleryDescTest.art;
         const descIsChanged = (desc && !isEqual(currentGalleryDescTest, desctest));
+
         console.log("descIsChanged, currentGalleryDesc, desctest", descIsChanged, currentGalleryDescTest, desctest);
         if (dataIsChanged || descIsChanged) {
             Modal.confirm({
@@ -264,11 +273,10 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
         values.location = location;
 
         // console.log("firebase.currentUser", firebase.currentUser, firebase.currentUser.displayName);
-        if  (!firebase.isCurator) values.userDisplayName = firebase.currentUser.displayName;
+        if  (!firebase.isCurator || firebase.currentUser.displayName === "curator") values.userDisplayName = firebase.currentUser.displayName;
         Object.keys(values).forEach(key => { values[key] = values[key] || null });
         if (values.title) values.nameEncoded = encodeURIComponent(values.title.replace(" ", "_"));
         const galleryData = saveGallery();
-        if (galleryData.art) values.art = galleryData.art
         const data = {
             desc: values,
             galleryData: galleryData
@@ -279,6 +287,8 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
     const saveProcessedValues = async (desc, galleryData) => {
         console.log("curators",firebase.currentUID)
         console.log("curatorsUID save",curatorsUID)
+        if (galleryData.art) desc.art = galleryData.art; //puts art keys in description and data
+
         const uidToSaveTo = (firebase.isCurator && curatorsUID) ? curatorsUID :firebase.currentUID;
         const dataPath = "users/" + uidToSaveTo + "/galleryData/" + id;
         const dataSave = firebase.updateAsset(dataPath, galleryData);

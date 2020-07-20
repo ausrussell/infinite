@@ -30,11 +30,14 @@ const Landing = (props) => {
   );
 
   const selectCallback = (item) => {
-    setSelected(item)
+    console.log("selectCallback",item)
+    setSelected(item);
+    // setMarkerSelected(item.id);
   }
   const markerCallback = ({id}) => {
-    console.log("markerCallback",id);
-    setMarkerSelected(id)
+    const selectedItem = list.filter(item => item.id === id);
+    setSelected(selectedItem[0])
+    setMarkerSelected(id);
   }
   return (
     <div>

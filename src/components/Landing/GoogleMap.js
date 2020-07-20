@@ -63,7 +63,8 @@ export class MapContainerBase extends Component {
   renderInfoWindow = (routeProps) => {
     console.log("renderInfoWindow", this.state.selectedPlace)
     if (this.state.selectedPlace) {
-      return (<div><h4>{this.state.selectedPlace.name}</h4>
+      return (<div>
+        <h4>{this.state.selectedPlace.name}</h4>
         <span onClick={() => this.onClickHandler("Visit",this.state.selectedPlace)} className="map-info-window-link"><ArrowRightOutlined key="list-vertical-star-o" style={{ marginRight: 8 }} />Visit</span>
       </div>
       )

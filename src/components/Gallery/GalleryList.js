@@ -5,12 +5,14 @@ import { useSpring, animated } from 'react-spring'
 import { List } from 'antd';
 import { EnvironmentOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import { Route } from "react-router-dom";
+import { withRouter } from "react-router-dom";
+
 import { Typography } from 'antd';
 const { Paragraph } = Typography;
 
 const galleryPlaceholder = 'https://firebasestorage.googleapis.com/v0/b/infinite-a474a.appspot.com/o/images%2Fhanger_placeholder.png?alt=media&token=4f847f15-48d6-43d9-92df-80eea32394f5';
 
-const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected }) => {
+const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected, history }) => {
   const [galleriesList, setGalleriesList] = useState([]);
   const [selectedListItem, setSelectedListItem] = useState({ old: null, new: null });
 
@@ -123,7 +125,10 @@ const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected })
     }
 
   }
-
+const onContainerClickHandler = (e,item,ref) => {
+      const {nameEncoded} = item;
+      if (e.target.classList[0] === "ant-list-item-meta-title") history.push({ pathname: "/Gallery/" + nameEncoded })
+}
 
   return (
     <animated.div
@@ -134,7 +139,7 @@ const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected })
         itemLayout="vertical"
         dataSource={galleriesList}
         renderItem={item => {
-          return <GalleryListItem item={item} onClickHandler={onClickHandler} ref={item.ref} />
+          return <GalleryListItem item={item} onClickHandler={onClickHandler} onContainerClickHandler={onContainerClickHandler} ref={item.ref} />
         }}
       />
     </animated.div>
@@ -144,7 +149,7 @@ const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected })
 const GalleryListItem = React.forwardRef((props, ref) => {
   const [art, setArt] = useState();
 
-  const { item, onClickHandler } = props;
+  const { item, onClickHandler, onContainerClickHandler } = props;
   const galleryImg = (item.galleryImg) ? item.galleryImg.thumb || item.galleryImg.url : galleryPlaceholder;
   if (item.call && !art) {
     item.call.then((snap) => {
@@ -155,7 +160,9 @@ const GalleryListItem = React.forwardRef((props, ref) => {
   const artToShow = art || galleryImg;
   return <div ref={ref}
     id={item.id}
-    className="gallery-list-item-holder">
+    className="gallery-list-item-holder"
+    onClick={(e) => onContainerClickHandler(e, item, ref)}
+    >
     <List.Item
       className="gallery-list-item"
       extra={
@@ -190,4 +197,4 @@ const GalleryListItem = React.forwardRef((props, ref) => {
 
 })
 
-export default GalleryList;
+export default withRouter(GalleryList);

@@ -526,8 +526,9 @@ class Builder extends Component {
 
     this.state.wallEntities.forEach(item => {
       const wallExport = item.getExport()
-      galleryData.walls.push(item.getExport());
+      galleryData.walls.push(wallExport);
       wallExport.artKeys && galleryData.art.push(...wallExport.artKeys);
+      console.log("wallExport",wallExport)
     });
 
     galleryData.lights = [];
@@ -537,12 +538,12 @@ class Builder extends Component {
 
     if (this.state.generalLight) galleryData.generalLight = this.state.generalLight.getExport();
     if (this.state.surroundings) galleryData.surrounds = this.state.surroundings.getExport();
-    if (galleryData.art.length) this.addCatalogue(galleryData.art);
+    // if (galleryData.art.length) this.addCatalogue(galleryData.art);
     return galleryData;
   };
   getArtDetail(key) {
     const options = {
-      refPath: "users/" + this.props.firebase.currentUID + "/art/" + key,
+      refPath: "users/" + this.props.firebase.currentUID + "/art/" + key, //change this to deal with user from curator editing
       once: true,
       callback: this.setArtDetails
     }
