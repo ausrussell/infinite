@@ -26,20 +26,6 @@
   text-decoration: none;
   color: #263238;
 }
-.desk-button {
-  width: 140px;
-  /* background-color: #efebe9; */
-  border-top: 12px solid #a1887f;
-  border-left: 6px solid #3e2723;
-  border-right: 6px solid #3e2723;
-  border-bottom: 4px solid #fff8e1;
-  padding: 0.6em 0;
-  /* border: none; */
-  font-size: 1.1em;
-  outline: none;
-  top: 0;
-  left: 0;
-}
 
 .art-details {
   position:absolute;
@@ -59,14 +45,6 @@
 box-shadow: 1px -5px 10px -2px rgba(0,0,0,0.75);
 }
 
-@keyframes slideInFromLeft {
-  0% {
-    transform: translateY(-100%);
-  }
-  100% {
-    transform: translateY(0);
-  }
-}
 
 
 

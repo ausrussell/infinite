@@ -38,7 +38,7 @@ const HelpModal = (props) => {
             maskClosable
         >{props.content.content}
         </Modal>
-        <div style={{ width: 32, marginLeft: "auto" }}>
+        <div className="help-modal-button">
 
             <TweenOne
                 animation={animation} >

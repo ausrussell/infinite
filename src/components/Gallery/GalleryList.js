@@ -12,15 +12,14 @@ const { Paragraph } = Typography;
 
 const galleryPlaceholder = 'https://firebasestorage.googleapis.com/v0/b/infinite-a474a.appspot.com/o/images%2Fhanger_placeholder.png?alt=media&token=4f847f15-48d6-43d9-92df-80eea32394f5';
 
-const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected, history }) => {
+const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected, history, artLoadedCallback }) => {
   const [galleriesList, setGalleriesList] = useState([]);
   const [selectedListItem, setSelectedListItem] = useState({ old: null, new: null });
-
   const galleriesRefs = useRef([])
   const [springProps, setSpringProps, stopSpringProps] = useSpring(() => ({ scroll: 1 }))
-  const { getList, getAssetOnce } = firebase
+  const { getList, getAssetOnce } = firebase;
+  const [loadedCounter, setLoadedCounter] = useState(0)
   useEffect(() => {
-
     const fillList = async (data) => {
       console.log("Galleries callback", data);
       const list = [];
@@ -75,8 +74,6 @@ const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected, h
     console.log("useEffect galleriesList", galleriesList)
   }, [galleriesList])
 
-
-
   useEffect(() => {
     console.log("useEffect props.markerSelected", markerSelected, galleriesRefs.current);
     const resetItemSelected = itemSelected => {
@@ -125,10 +122,17 @@ const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected, h
     }
 
   }
-const onContainerClickHandler = (e,item,ref) => {
-      const {nameEncoded} = item;
-      if (e.target.classList[0] === "ant-list-item-meta-title") history.push({ pathname: "/Gallery/" + nameEncoded })
-}
+  const onContainerClickHandler = (e, item, ref) => {
+    const { nameEncoded } = item;
+    if (e.target.classList[0] === "ant-list-item-meta-title") history.push({ pathname: "/Gallery/" + nameEncoded })
+  }
+
+  const artLoadedListCallback = item => {
+    console.log("artLoadedListCallback", loadedCounter, galleriesList.length);
+    artLoadedCallback(item, loadedCounter + 2 === galleriesList.length)
+    setLoadedCounter(loadedCounter + 1);
+
+  }
 
   return (
     <animated.div
@@ -139,7 +143,7 @@ const onContainerClickHandler = (e,item,ref) => {
         itemLayout="vertical"
         dataSource={galleriesList}
         renderItem={item => {
-          return <GalleryListItem item={item} onClickHandler={onClickHandler} onContainerClickHandler={onContainerClickHandler} ref={item.ref} />
+          return <GalleryListItem item={item} artLoadedListCallback={artLoadedListCallback} onClickHandler={onClickHandler} onContainerClickHandler={onContainerClickHandler} ref={item.ref} />
         }}
       />
     </animated.div>
@@ -149,7 +153,7 @@ const onContainerClickHandler = (e,item,ref) => {
 const GalleryListItem = React.forwardRef((props, ref) => {
   const [art, setArt] = useState();
 
-  const { item, onClickHandler, onContainerClickHandler } = props;
+  const { item, onClickHandler, onContainerClickHandler, artLoadedListCallback } = props;
   const galleryImg = (item.galleryImg) ? item.galleryImg.thumb || item.galleryImg.url : galleryPlaceholder;
   if (item.call && !art) {
     item.call.then((snap) => {
@@ -162,7 +166,7 @@ const GalleryListItem = React.forwardRef((props, ref) => {
     id={item.id}
     className="gallery-list-item-holder"
     onClick={(e) => onContainerClickHandler(e, item, ref)}
-    >
+  >
     <List.Item
       className="gallery-list-item"
       extra={
@@ -171,7 +175,13 @@ const GalleryListItem = React.forwardRef((props, ref) => {
         }}
           className="gallery-list-item-image"
 
-        ></div>
+        >
+          <img src={artToShow}
+            style={{ display: "none" }}
+            onLoad={(e) => {
+              artLoadedListCallback(e.target);
+            }} />
+        </div>
       }
       actions={[
         <span className="icon-link" onClick={() => onClickHandler("Locate", item, ref)}><EnvironmentOutlined key="list-vertical-star-o" style={{ marginRight: 8 }} />Locate</span>,

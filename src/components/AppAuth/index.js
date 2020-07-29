@@ -20,10 +20,12 @@ import StudioPage from "../Studio";
 import * as ROUTES from "../../constants/routes";
 import { withAuthentication } from "../Session";
 import { Layout } from "antd";
+const logoSrc = "https://firebasestorage.googleapis.com/v0/b/infinite-a474a.appspot.com/o/images%2Flogo-letters-tagline.png?alt=media&token=cb1c760d-1f11-4f4e-b978-5179f4769ffa";
 
 const AppAuth = () => {
   return (
     <Layout>
+      <img src={logoSrc} style={{display:"none"}} />
       <Router>
         <Navigation />
         <Route exact path={ROUTES.LANDING} component={Landing} />

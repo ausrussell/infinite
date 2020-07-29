@@ -61,16 +61,13 @@ const NavigationAuth = (props) => {
   return (
     <Menu selectedKeys={selectedKeys} mode="horizontal" onClick={props.onClick}>
       <Menu.Item key="map">
-        <Link to={ROUTES.LANDING}>Map</Link>
-      </Menu.Item>
-      <Menu.Item key="floorplan">
-        <Link to={ROUTES.PLANNER}>Floorplan</Link>
+        <Link to={ROUTES.LANDING}>World</Link>
       </Menu.Item>
       <Menu.Item key="builder">
-        <Link to={ROUTES.BUILDER}>Builder</Link>
+        <Link to={ROUTES.BUILDER}>Build</Link>
       </Menu.Item>
       <Menu.Item key="studio">
-        <Link to={ROUTES.STUDIO}>Studio</Link>
+        <Link to={ROUTES.STUDIO}>Resources</Link>
       </Menu.Item>
       <Menu.Item key="signout">
         <SignOutButton />
@@ -85,7 +82,7 @@ const NavigationNonAuth = (props) => {
     <Menu selectedKeys={selectedKeys} mode="horizontal" onClick={props.onClick}>
 
       <Menu.Item key="map">
-        <Link to={ROUTES.LANDING}>Map</Link>
+        <Link to={ROUTES.LANDING}>World</Link>
       </Menu.Item>
 
       <Menu.Item key="signin">

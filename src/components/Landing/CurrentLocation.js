@@ -110,7 +110,11 @@ export class CurrentLocation extends Component {
 
       // maps.Map() is constructor that instantiates the map
       this.map = new maps.Map(node, mapConfig);
-      this.map.addListener("idle", () => this.setState({ recentering: false }))
+      maps.event.addListenerOnce(this.map, 'tilesloaded', () => console.log("tilesloaded"));
+
+      this.map.addListener("idle", () => {
+        console.log("map idle")
+        this.setState({ recentering: false })})
     }
   }
 

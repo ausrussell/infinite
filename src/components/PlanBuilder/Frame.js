@@ -40,7 +40,7 @@ class Frame {
     this.export.groupPosition = this.group.position;
     this.export.frame = this.frameData;
     this.export.side = this.side;
-if (!this.artKey) this.artKey = this.getKeyFromFile();
+    if (!this.artKey) this.artKey = this.getKeyFromFile();
     this.export.art = {
       file: this.artMesh.file, //iMaterial.map,
       width: this.artMesh.geometry.parameters.width * this.artMesh.scale.x,
@@ -300,9 +300,10 @@ if (!this.artKey) this.artKey = this.getKeyFromFile();
       });
       uploadTask.then(snapshot => {
         console.log("uploaded file", snapshot);
-        uploadTask.snapshot.ref.getDownloadURL().then(downloadURL => {
-          this.artMesh.file = downloadURL;
-        });
+        uploadTask.snapshot.ref.getDownloadURL()
+          .then(downloadURL => {
+            this.artMesh.file = downloadURL;
+          });
       });
     }
   }
@@ -334,10 +335,10 @@ if (!this.artKey) this.artKey = this.getKeyFromFile();
 
   }
 
-  getKeyFromFile(){
+  getKeyFromFile() {
     const fileParts = this.artMesh.file.split("/");
     console.log("fileParts", fileParts);
-    const finalBit = fileParts[fileParts.length -1 ];
+    const finalBit = fileParts[fileParts.length - 1];
     const finalBits = finalBit.split("%2F")
     console.log("finalBits", finalBits)
 
