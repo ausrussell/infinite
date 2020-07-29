@@ -23,7 +23,7 @@ const LandingLoading = ({ images }) => {
             let obj = images[images.length - 1]
             let artObj = {
                 obj: obj,
-                width: obj.offsetWidth * 1.5,
+                width: obj.width * 1.5,
                 height: obj.height * 1.5
             }
 
@@ -122,9 +122,10 @@ const LandingLoading = ({ images }) => {
                 newx *= item.speed
                 const scaleProjected = perspective.perspective / (perspective.perspective + item.z + (newy * 2));
 
-                // context.globalCompositeOperation = 'destination-atop';
+                // context.globalCompositeOperation = 'source-over';
 
                 if (item.art) {
+                    // debugger;
                     const polyx = item.x + newx + radius * 5 * scaleProjected, polyy = item.y + dimensions.h / 5 * scaleProjected
                     context.beginPath();
                     if (i < 6) {

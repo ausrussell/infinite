@@ -170,14 +170,8 @@ const GalleryListItem = React.forwardRef((props, ref) => {
     <List.Item
       className="gallery-list-item"
       extra={
-        <div style={{
-          backgroundImage: "url(" + artToShow + ")"
-        }}
-          className="gallery-list-item-image"
-
-        >
+        <div className="gallery-list-item-image">
           <img src={artToShow}
-            style={{ display: "none" }}
             onLoad={(e) => {
               artLoadedListCallback(e.target);
             }} />

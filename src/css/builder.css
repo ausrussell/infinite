@@ -112,6 +112,11 @@ perspective-origin: 50% 0%;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
+  text-align: center;
+}
+
+.gallery-list-item-image img {
+  max-height:100%;
 }
 
 .gallery-list-column {
