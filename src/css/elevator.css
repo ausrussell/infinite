@@ -181,9 +181,21 @@ background: rgba(1,255,200,.3);
   cursor: pointer;
   }
 .master:hover, .user:hover {
-background-color: rgba(69, 39, 160, .2)
+background-color: #4527a0;
+color: #fff;
 }
 
+
+.floorplan-new-button {
+  border-top: 1px solid #b0bec5;
+
+  border-bottom:1px solid #b0bec5;
+/* margin:auto; */
+width: 100%;
+text-align: center;
+margin: 2px;
+
+}
 .master:after {
   position:absolute;
   content: "H";
@@ -193,4 +205,9 @@ background-color: rgba(69, 39, 160, .2)
   background-color: #4527a0;
   color:#fff;
   opacity:.8;
+}
+
+.gallery-edit-dropdown .ant-select-item.ant-select-item-option:hover{
+  background-color: #4527a0;
+  color: #fff;
 }

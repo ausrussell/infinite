@@ -802,7 +802,6 @@ var TransformControlsGizmo = function () {
 	};
 	var setUpImagery = (targetMesh, imagery) => {
 		targetMesh.map = imagery;
-		console.log("adding imagery", imagery)
 	};
 
 	const matMoveIcon = matWhiteTransparent.clone();

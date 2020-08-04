@@ -8,7 +8,7 @@ import TextureAdder from "../../Helpers/TextureAdder";
 
 class WallObject {
   constructor(options) {
-    console.log("WallObject", options);
+    // console.log("WallObject", options);
     const { x, y, pos, builder, texture } = options;
     this.texture = texture;
     this.col = x;
@@ -68,7 +68,7 @@ class WallObject {
       const sideFrames = side.frames;
       sideFrames.forEach(item => {
         const frameData = item.getExport();
-        console.log("frameData",frameData.art.key)
+        // console.log("frameData",frameData.art.key)
         artToSave.push(frameData.art.key)
         framesToSave.push(JSON.stringify(frameData));
       });

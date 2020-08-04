@@ -360,6 +360,10 @@ class Firebase {
     return newArtRef.set(artData);
   };
 
+  setLandingLoaded = () => {
+    this.landingLoaded = true;
+  }
+
 
 }
 

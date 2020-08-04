@@ -75,7 +75,7 @@ class FlaneurControls {
     this.createClickFloor();
     this.loadImagery();
     this.currentDestination = null;
-    this.defaultObjectY = 50;
+    this.defaultObjectY = 40;
     this.collisionDistance = 5;
     this.setUpAnimations()
     this.collidableObjects = [];
@@ -237,7 +237,7 @@ class FlaneurControls {
     switch (event.keyCode) {
       case 38: /*up*/
       case 87:
-        if (!this.moveToDestinationAni.stop) this.moveToDestinationAni.end();
+        // if (!this.moveToDestinationAni.stop) this.doneMoveToDestination();//this.moveToDestinationAni.end();
 
         if (event.shiftKey) {
           this.moveUp = true;
@@ -259,7 +259,7 @@ class FlaneurControls {
 
       case 40: /*down*/
       case 83:
-        if (!this.moveToDestinationAni.stop) this.moveToDestinationAni.end();
+        // if (!this.moveToDestinationAni.stop) this.doneMoveToDestination();//this.moveToDestinationAni.end();
         if (event.shiftKey) {
           this.moveDown = true;
         } else {
@@ -318,8 +318,6 @@ class FlaneurControls {
       case 68:
         // /*D*/ this.moveRight = false;
         if (this.moveCameraRight) {
-          console.log("set moveCameraRight")
-          // this.moveCameraRight = false;
           this.easeCamera()
           // this.easeCamera("right")
         }
@@ -450,6 +448,7 @@ class FlaneurControls {
     }
 
     if (!isEqual(oldPosition, Object.assign({}, this.object.position))) {
+      !this.moveToDestinationAni.stop && this.doneMoveToDestination();
       this.checkForFloorHover();
       this.checkForArtHover();
       this.onArt && this.offArtHandler()
@@ -503,6 +502,7 @@ class FlaneurControls {
     // window.e
     this.domElement.removeEventListener("keydown", this.onKeyDown, false);
     window.removeEventListener("keyup", this.onKeyUp, false);
+    // this.builder.scene.remove()
   }
 
   bindEvents() {
@@ -622,11 +622,12 @@ class FlaneurControls {
       footDestinationMaterial
     );
     this.footstepsDestinationMesh.name = "footDestination";
+    this.footstepsHoverMesh.translateY(-1);//initial hide
     this.builder.scene.add(this.footstepsHoverMesh);
     this.footstepHoverOffset = new THREE.Vector3(10, 0.2, 10)
     this.bindEvents();
     this.collidableObjects.push(this.footstepsHoverMesh);
-    console.log("setUpFootsteps collidableObjects", this.collidableObjects)
+    // console.log("setUpFootsteps collidableObjects", this.collidableObjects)
   }
 
   moveToDestination() {
@@ -692,7 +693,9 @@ class FlaneurControls {
   moveToDestinationLoop(progress) {
     var newX = (this.moveFrom.x - ((this.moveFrom.x - this.currentDestination.x) * progress));
     var newZ = (this.moveFrom.z - ((this.moveFrom.z - this.currentDestination.z) * progress));
-    this.object.position.set(newX, this.defaultObjectY, newZ);
+    var newY = (this.moveFrom.y - ((this.moveFrom.y - this.defaultObjectY) * progress));
+
+    this.object.position.set(newX, newY, newZ);
   }
 
   doneMoveToArt = () => {
@@ -704,16 +707,14 @@ class FlaneurControls {
   };
 
   onArtHandler() {
-    // debugger;
-    // this.builder.setState({onArt:this.selectedArt})
-
     this.selectedArt.artLeaveHandler();
-    console.log("this.artOver", this.artOver)
   }
 
   doneMoveToDestination = () => {
     this.moveToDestinationAni.end();
+    // debugger;
     this.builder.scene.remove(this.footstepsDestinationMesh);
+    // this.footstepsHoverMesh.translateY(10)
     this.currentDestination = null;
   };
 
@@ -747,8 +748,11 @@ class FlaneurControls {
 
   checkForFloorHover() {
     const intersect = this.checkForIntersecting();
-    if (this.footstepsHoverMesh && intersect.clickFloorPlane) {
-      this.positionFootstepsHover(intersect.clickFloorPlane);
+    if (intersect.clickFloorPlane|| intersect.footstepsHover) {//this.footstepsHoverMesh && 
+      intersect.clickFloorPlane && this.positionFootstepsHover(intersect.clickFloorPlane );
+    } else {
+      // console.log("checkForFloorHover interesect",intersect)
+      this.footstepsHoverMesh.translateY(-1);//hide under floor
     }
   }
 
@@ -764,7 +768,6 @@ class FlaneurControls {
   overArtHandler(artMesh) {
     if (!this.artOver || (this.artOver && artMesh.object.uuid !== this.artOver.uuid)) {
       // console.log("artMesh.object.uuid !== this.artOver.uuid", artMesh.object, this.artOver)
-      console.log()
       this.artOver = artMesh.object;
       this.artOver.frameDisplayObject.artHoverHandler()
     }

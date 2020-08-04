@@ -41,7 +41,7 @@ class GalleryEditDropdown extends Component {
   }
 
   fillCuratorList = data => {//do differently when there's many users
-  console.log("fillCuratorList",data, data.val());
+    console.log("fillCuratorList", data, data.val());
     const dataList = {};
     this.curatorUsers = {}
     if (data) {
@@ -49,8 +49,8 @@ class GalleryEditDropdown extends Component {
 
         const snap = childSnapshot.val();
         const userUID = childSnapshot.key;
-        console.log("userUID",userUID)
-        console.log("snap val",snap)
+        console.log("userUID", userUID)
+        console.log("snap val", snap)
         if (snap.galleryDesc) {
           console.log("there are snap.galleryDesc", snap.galleryDesc)
           for (const [key, value] of Object.entries(snap.galleryDesc)) {
@@ -100,7 +100,7 @@ class GalleryEditDropdown extends Component {
       galleryDesc: this.desc,
       galleryData: galleryData,
       id: this.selectedId,
-      userId:this.userId
+      userId: this.userId
     }
     console.log("dataToReturn", dataToReturn);
     this.props.callback(dataToReturn)
@@ -118,8 +118,14 @@ class GalleryEditDropdown extends Component {
     return (
       <Select
         style={{ width: 180 }}
+        listHeight={512}
         onChange={(id) => this.getGalleryData(id)}
+        dropdownClassName="gallery-edit-dropdown"
         value={(isEmpty(this.props.galleryDesc) || isNil(this.props.galleryDesc.title)) ? defaultValue : this.props.id}
+                    dropdownRender={menu => (<div>
+                {items.length > 0 ? menu : <div style={{margin: 10}}>Your previously built galleries will applear here</div>} 
+                </div>
+        )} 
       >
         {items}
       </Select>

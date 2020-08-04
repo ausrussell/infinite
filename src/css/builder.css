@@ -117,6 +117,7 @@ perspective-origin: 50% 0%;
 
 .gallery-list-item-image img {
   max-height:100%;
+  max-width:100%;
 }
 
 .gallery-list-column {
@@ -141,7 +142,7 @@ box-shadow: 6px 0px 10px 0px rgba(28,49,58,0.7);
 
 }
 
-.gallery-list-item-holder .ant-list-vertical .ant-list-item-extra {
+.gallery-list-item-holder .ant-list-item-extra {
   margin-left:10px;
 }
 
@@ -226,8 +227,8 @@ text-align: center;
   }
 
   .title-row-no-title  .help-modal-button {
-margin-right:16px;
-margin-top:16px;
+    margin-right:16px;
+    margin-top:16px;
   }
 
   .help-modal-button{ width: 32px; margin-left: auto; } 
@@ -250,11 +251,9 @@ z-index:25;
 
   .landing-holder {
     height: calc(100% - 50px);
-  top:47px;
-
+    top:47px;
     width: 100vw;
     z-index:20;
     position: absolute;
-  background-color: #273238;
-
+    background-color: #273238;
   }

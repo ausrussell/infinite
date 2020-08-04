@@ -21,7 +21,6 @@ const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected, h
   const [loadedCounter, setLoadedCounter] = useState(0)
   useEffect(() => {
     const fillList = async (data) => {
-      console.log("Galleries callback", data);
       const list = [];
       if (data) {
         data.forEach((childSnapshot) => {
@@ -38,7 +37,6 @@ const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected, h
               extras: snap,
               callback: (snap2, extras) => {
                 debugger;
-                console.log("addImages", snap2.val(), extras)
               },
               // orderField: "title"
             }
@@ -66,16 +64,7 @@ const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected, h
     dbCall();
   }, [getList, listCallback]);
 
-  // const resetMarkerSelected = useCallback(itemSelected => {
-  //   selectedListItem && selectedListItem.classList.remove("gallery-list-item--selected");
-  //   setSelectedListItem(itemSelected)}, )
-
   useEffect(() => {
-    console.log("useEffect galleriesList", galleriesList)
-  }, [galleriesList])
-
-  useEffect(() => {
-    console.log("useEffect props.markerSelected", markerSelected, galleriesRefs.current);
     const resetItemSelected = itemSelected => {
       selectedListItem.new && selectedListItem.new.current.classList.remove("gallery-list-item--selected");
       setSelectedListItem({ new: itemSelected })
@@ -84,7 +73,6 @@ const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected, h
       const markerSelected2 = galleriesRefs.current.filter(item => item.current.id === markerSelected);
       if (markerSelected2.length) {
         const itemSelected = markerSelected2[0];
-        console.log("itemSelected", itemSelected)
         setSpringProps({ scroll: itemSelected.current.offsetTop });
         resetItemSelected(itemSelected)
         // selectedListItem.new && selectedListItem.new.current.classList.remove("gallery-list-item--selected");
@@ -97,7 +85,6 @@ const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected, h
 
 
   useEffect(() => {
-    console.log("useEffect selectedListItem.new", selectedListItem.new)
     if (selectedListItem.new) {
       selectedListItem.new.current.classList.add("gallery-list-item--selected");
     }
@@ -128,7 +115,6 @@ const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected, h
   }
 
   const artLoadedListCallback = item => {
-    console.log("artLoadedListCallback", loadedCounter, galleriesList.length);
     artLoadedCallback(item, loadedCounter + 2 === galleriesList.length)
     setLoadedCounter(loadedCounter + 1);
 
@@ -174,7 +160,8 @@ const GalleryListItem = React.forwardRef((props, ref) => {
           <img src={artToShow}
             onLoad={(e) => {
               artLoadedListCallback(e.target);
-            }} />
+            }} 
+            alt={item.title}/>
         </div>
       }
       actions={[

@@ -66,7 +66,7 @@ class Frame {
   }
 
   removeTexture() {
-    console.log("remove frame texture")
+    //console.log("remove frame texture")
     this.fmaterial.dispose();
     this.frameMesh.material = null;
     this.setDefaultFrameMaterial();
@@ -94,7 +94,7 @@ class Frame {
   }
 
   setFrameMesh(plane) {
-    console.log("setFrameMesh", this.frameData);
+    // //console.log("setFrameMesh", this.frameData);
     const imageWidth = plane.parameters.width * this.artMesh.scale.x;
     const imageHeight = plane.parameters.height * this.artMesh.scale.y;
     // console.log("imageWidth", imageWidth, this.artMesh.scale.x);
@@ -150,7 +150,7 @@ class Frame {
       totalHeight:
         this.artMesh.geometry.parameters.height * this.artMesh.scale.y
     };
-    console.log("rescale options", options);
+    //console.log("rescale options", options);
     this.setFrameMeshRescaled(options);
     this.setFramePosition();
 
@@ -198,7 +198,7 @@ class Frame {
 
   setArtMesh(artMesh) {
     //only used by positionMovedHolder in WallObject
-    console.log("setArtMesh", this.wall.col);
+    //console.log("setArtMesh", this.wall.col);
     this.artMesh = artMesh;
     this.oldGroup = artMesh.parent;
     this.frameData = this.oldGroup.holderClass.frameData;
@@ -228,7 +228,7 @@ class Frame {
       );
     }
 
-    console.log("this.offset", this.offset);
+    //console.log("this.offset", this.offset);
     this.artMesh.position.set(0, 0, this.wallDepth);
     this.artMesh.getWallData = this.getWallData;
     this.showFrameMesh();
@@ -265,7 +265,7 @@ class Frame {
   addArt(options) {//from dropping or dragging an image
     const { file, uploadTask, holder, draggableImageRef } = options;//file is itemdata or dragged file
     const addingHolder = holder || this;
-    console.log("addART", file);
+    //console.log("addART", file);
     if (file.url || file.thumb) {//not sure why some old art has thumb but no url
 
       const options = {
@@ -289,8 +289,8 @@ class Frame {
         // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
         var progress = snapshot.bytesTransferred / snapshot.totalBytes;
         if (this.artMesh) this.show(progress);
-        console.log("Upload is " + progress + "% done");
-        console.log("snapshot", snapshot.ref);
+        //console.log("Upload is " + progress + "% done");
+        //console.log("snapshot", snapshot.ref);
       };
 
       image.onload = image => this.imageLoadedHandler(options);
@@ -299,7 +299,7 @@ class Frame {
         // complete: complete
       });
       uploadTask.then(snapshot => {
-        console.log("uploaded file", snapshot);
+        //console.log("uploaded file", snapshot);
         uploadTask.snapshot.ref.getDownloadURL()
           .then(downloadURL => {
             this.artMesh.file = downloadURL;
@@ -314,7 +314,7 @@ class Frame {
   }
 
   setArt(art) {//from art data
-    console.log("setArt art", art);
+    //console.log("setArt art", art);
     const texture = this.textureLoader.load(art.file);
     const artPlane = new THREE.PlaneGeometry(art.width, art.height, 0);
     this.iMaterial = new THREE.MeshBasicMaterial({
@@ -337,22 +337,22 @@ class Frame {
 
   getKeyFromFile() {
     const fileParts = this.artMesh.file.split("/");
-    console.log("fileParts", fileParts);
+    //console.log("fileParts", fileParts);
     const finalBit = fileParts[fileParts.length - 1];
     const finalBits = finalBit.split("%2F")
-    console.log("finalBits", finalBits)
+    //console.log("finalBits", finalBits)
 
     const keyToAdd = finalBits[3];//art.key || 
-    console.log("keyToAdd", keyToAdd)
+    //console.log("keyToAdd", keyToAdd)
     return keyToAdd;
   }
 
   setFrame(frame) {
-    console.log("frame", frame);
+    //console.log("frame", frame);
     this.frameData = frame;
     this.setFrameMesh(this.artMesh.geometry);
     this.fmaterial.opacity = 0;
-    console.log("setFrame this.frameMesh", this.frameMesh);
+    //console.log("setFrame this.frameMesh", this.frameMesh);
     this.setDataToMaterial(frame)
     this.group.add(this.frameMesh);
   }
@@ -388,7 +388,7 @@ class Frame {
   };
 
   addFrameFromData(item) {
-    console.log("addFrameFromData", item);
+    //console.log("addFrameFromData", item);
     const { groupPosition, art, frame } = item;
     this.setGroup(groupPosition);
     this.setArt(art);
@@ -396,7 +396,7 @@ class Frame {
   }
 
   fitToFrame(w, h, fitW, fitH) {
-    console.log("fitToFrame w,h", w, h);
+    //console.log("fitToFrame w,h", w, h);
     let imageDimensions = w / h;
     const returnDimensions = [];
     let checkW = fitW / w;
@@ -457,7 +457,7 @@ class Frame {
     this.group.add(this.artMesh);
     if (this.side === "back") this.group.rotateY(Math.PI);
 
-    console.log("add art this.group", this.group.position);
+    //console.log("add art this.group", this.group.position);
 
     //ONLY add if added to default
     if (!holder.hasArt) {

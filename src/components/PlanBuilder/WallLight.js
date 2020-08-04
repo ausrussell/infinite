@@ -16,7 +16,7 @@ class WallLight {
       this.spotLight = new THREE.SpotLight(threeColor);
 
       this.spotLight.position.set(...position);
-      console.log("settingh this.spotLight", this.spotLight);
+      //console.log("settingh this.spotLight", this.spotLight);
 
       this.spotLight.shadow.camera.near = 1;
       this.spotLight.shadow.camera.far = 500;
@@ -39,22 +39,15 @@ class WallLight {
       this.spotLight.distance = 0;
       if (target) {
         //when added by button
-        console.log("target", target);
+        //console.log("target", target);
         this.spotLight.intensity = 0.6;
         this.setTarget(target);
         this.builder.scene.add(this.spotLight);
       } else {
         //for default wall light
         this.spotLight.intensity = 0.2;
-
         this.spotLight.target = this.wall.wallGroup;
-        console.log(
-          "this.wall.wallMesh",
-          this.wall.wallMesh,
-          this.wall.wallGroup.position
-        );
         const { x, y, z } = this.spotLight.target.position;
-        console.log("this.spotLight.target x, y, z", x, y, z);
         this.setTarget([x, y, z]);
       }
       // this.spotLight.castShadow = true;
@@ -110,7 +103,7 @@ class WallLight {
     const helperTargetMaterial = new THREE.MeshNormalMaterial({
       color: 0xcfccee,
       transparent: true,
-      opacity: 0.5
+      opacity: 0
     });
     this.helperTarget = new THREE.Mesh(
       helperTargetGeometry,
@@ -118,13 +111,9 @@ class WallLight {
     );
     this.helperTarget.name = "helperTarget";
     this.posHolder = this.spotLight.target.getWorldPosition();
-    console.log("target posHolder", this.posHolder);
     this.helperTarget.position.set(...targetPositionArray);
-
     this.scene.add(this.helperTarget);
-
     this.spotLight.target = this.helperTarget;
-    console.log("this.helperTarget", this.helperTarget);
   }
   setConeHelper() {
     var geometry = new THREE.ConeGeometry(5, 20, 32);
@@ -169,7 +158,6 @@ class WallLight {
     );
   };
   hoverOff(intensity = 0) {
-    console.log("hoverOff");
     this.spotLight.intensity = intensity;
     this.spotLight.color.setHex(0xffffff);
     this.hoverAni && this.hoverAni.end();
@@ -184,10 +172,8 @@ class WallLight {
     this.hoverOff();
   }
   switchOn(intensity = 0.8) {
-    console.log("switchOn", this.wall.col);
     this.spotLight.intensity = intensity;
     this.spotLight.color.setHex(0xffffff);
-
     if (this.builder.addLightToArray) {
       this.builder.addLightToArray(this);
     }
@@ -229,11 +215,6 @@ class WallLight {
     window.addEventListener("keydown", this.keydownHandler.bind(this));
     // window.addEventListener("mousedown", this.mousedownHandler);
   }
-
-  // mousedownHandler = () => {
-  //   console.log("light mousedownHandler");
-  //   this.wall.builder.detachTransformControls();
-  // };
 
   keydownHandler = e => {
     const keycode = e.keyCode;

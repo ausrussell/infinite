@@ -9,20 +9,14 @@ class Navigation extends Component {
   state = {
     current: "map"
   };
-  constructor(props) {
-    super(props);
-    console.log("Navigation", this.props);
-  }
 
   componentDidMount() {
     this.listener = this.props.firebase.auth.onAuthStateChanged(authUser => {
       console.log("onAuthStateChanged", authUser);
-
       this.setState({ user: authUser });
       console.log("Navigation componentDidMount", authUser);
     });
   }
-
 
   componentWillUnmount() {
     this.listener();
@@ -37,7 +31,6 @@ class Navigation extends Component {
 
   render() {
     return (
-
       <AuthUserContext.Consumer>
         {authUser =>
           authUser ? (
@@ -47,19 +40,13 @@ class Navigation extends Component {
             )
         }
       </AuthUserContext.Consumer>
-
     );
   }
 }
 
-const NavigationAuth = (props) => {
-  const { selectedKeys } = props;
-  // console.log("NavigationAuth , user, authuser", user, authuser);
-  //   <Menu.Item key="account">
-  //   <Link to={ROUTES.ACCOUNT}>Account</Link>
-  // </Menu.Item>
+const NavigationAuth = ({ selectedKeys, onClick}) => {
   return (
-    <Menu selectedKeys={selectedKeys} mode="horizontal" onClick={props.onClick}>
+    <Menu selectedKeys={selectedKeys} mode="horizontal" onClick={onClick}>
       <Menu.Item key="map">
         <Link to={ROUTES.LANDING}>World</Link>
       </Menu.Item>
@@ -83,6 +70,9 @@ const NavigationNonAuth = (props) => {
 
       <Menu.Item key="map">
         <Link to={ROUTES.LANDING}>World</Link>
+      </Menu.Item>
+      <Menu.Item key="builder">
+        <Link to={ROUTES.SIGN_IN}>Build</Link>
       </Menu.Item>
 
       <Menu.Item key="signin">

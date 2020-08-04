@@ -170,7 +170,8 @@ class GalleryBase extends Component {
   //scene setup and animation
   setUpScene() {
     const width = this.mount.clientWidth;
-    const height = this.mount.clientHeight;
+    // const height = this.mount.clientHeight;
+    const height = this.mount.parentElement.clientHeight - 48;// height wasn't getting set after new landing animation
     this.setState({ width: width, height: height });
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(60, width / height, 1, 1000);
@@ -250,7 +251,7 @@ class GalleryBase extends Component {
     // this.addBox();
   }
   setCamera() {
-    this.camera.position.z = 350;
+    this.camera.position.z = 245;
     this.camera.position.y = 45;
     // this.initialCameraAnimation();
   }
@@ -306,7 +307,6 @@ class GalleryBase extends Component {
   render() {
     return (
       <ErrorBoundary>
-
         <div className="page-header-area">
           <PageTitle title={this.state.galleryData.title} help={this.GalleryHelp} />
         </div>

@@ -35,6 +35,7 @@ export default class Floor {
     this.setFloorMaterial();
     this.textureAdder = new TextureAdder({ material: this.floorMaterial });
     if (item) this.setDataToMaterial(item);
+
     this.floorMesh = new THREE.Mesh(this.floorPlane, this.floorMaterial);
     this.floorMesh.name = "mainFloor";
     this.floorMesh.receiveShadow = true;

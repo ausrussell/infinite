@@ -19,7 +19,6 @@ const LandingLoading = ({ images }) => {
 
     useEffect(() => {
         const doSet = () => {
-            console.log("images", images)
             let obj = images[images.length - 1]
             let artObj = {
                 obj: obj,
@@ -47,8 +46,6 @@ const LandingLoading = ({ images }) => {
             const width = canvas.offsetWidth
             const height = canvas.offsetHeight;
             setDimensions({ w: width, h: height });
-            console.log("setDimensions", width, height)
-
             setPerspective({
                 perspective: width * 0.8,
                 perspective_center_x: width / 2,
@@ -74,8 +71,6 @@ const LandingLoading = ({ images }) => {
                 })
 
             }
-            console.log("shafts", items)
-            console.log("width", width, canvas)
             setShafts(items)
         }
         setShaftsArray()

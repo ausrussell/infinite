@@ -3,6 +3,10 @@ import { withFirebase } from "../Firebase";
 import { Select } from 'antd';
 import { CanvasTile } from './PreFab';
 import { isEmpty } from 'lodash';
+import { withRouter } from "react-router-dom";
+import { compose } from "recompose";
+import * as ROUTES from "../../constants/routes";
+
 
 const { Option } = Select;
 
@@ -45,7 +49,10 @@ class FloorplanDropdown extends Component {
     }
 
     dropdownCallback = id => {
-        this.props.floorplanCallback(this.dataList[id])
+        if (id === "new"){
+this.props.history.push(ROUTES.PLANNER)
+        } else{
+        this.props.floorplanCallback(this.dataList[id])}
     }
 
     addToList = (data, cssClass) => {
@@ -61,19 +68,28 @@ class FloorplanDropdown extends Component {
 
     getTiles = (data) => {
         const {cssClass, title, key} = data;
+        console.log("cssClass",cssClass)
         return (<Option label={title} key={key} value={key} className={cssClass}><div>{title}</div><CanvasTile plan={data.data} /></Option>);
     }
 
     render() {
         const { floorplans } = this.state;
         return (
-            <Select style={{ width: 180 }} value={this.props.floorplan && isEmpty(this.props.galleryDesc) ? this.props.floorplan.id : defaultValue} onChange={(id) => this.dropdownCallback(id)}>
+            <Select style={{ width: 180 }} listHeight={512} value={this.props.floorplan && isEmpty(this.props.galleryDesc) ? this.props.floorplan.id : defaultValue} onChange={(id) => this.dropdownCallback(id)}
+            dropdownRender={menu => (<div>
+                <div style={{fontWeight: 600, color:"#333333", marginLeft: 10}}>Select a floorplan</div>
+                {menu}
+                </div>
+        )} >
+                <Option label="New Floorplan" key="new" value="new" className="user floorplan-new-button"><div>New Floorplan</div><div>Make Your Own</div></Option>
+
                 {floorplans.map(data => this.getTiles(data))}
             </Select>
         )
     }
 }
 
-
-
-export default withFirebase(FloorplanDropdown)
+export default compose(
+    withRouter,
+    withFirebase
+  )(FloorplanDropdown);

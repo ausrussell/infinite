@@ -8,7 +8,6 @@ import FlaneurControls from "./FlaneurControls";
 import GeneralLight from "./GeneralLight";
 import WallLight from "./WallLight";
 
-import { withAuthentication } from "../Session";
 import { withFirebase } from "../Firebase";
 import Gui from "../Gui";
 import * as Stats from "stats-js";
@@ -58,8 +57,10 @@ class Builder extends Component {
   }
   componentDidMount() {
     // this.setupStats();
+    console.log("Builder did mount")
     this.setUpScene();
-    // this.processFloorplan();
+    // this.addHelperGrid()
+    this.initialFloorAnimation();
   }
 
   componentWillUnmount() {
@@ -86,33 +87,39 @@ class Builder extends Component {
   }
 
   getInitialState = () => ({
-      floorplanTitle: "",
-      wallEntities: [],
-      wallMeshes: [],
-      meshesInScene: [],
-      width: null,
-      height: null,
-      draggableVaultElementActive: null,
-      draggableVaultItem: null,
-      galleryTitle: "",
-      galleryDesc: {},
-      lights: [],
-      selectedSpotlight: null,
-      generalLight: null,
-      plannerGallery: false,
-      galleryId: null,
-      floorplan: null,
-      selectedTile: null,
-      surroundings: null,
-      voxelsX: 16,
-      voxelsY: 12,
-      wallWidth: 20,
-      floor: {},
-      exportData: null,
-      guiAdded: false,
-      stats: false,
-      userId:null
+    floorplanTitle: "",
+    wallEntities: [],
+    wallMeshes: [],
+    meshesInScene: [],
+    width: null,
+    height: null,
+    draggableVaultElementActive: null,
+    draggableVaultItem: null,
+    galleryTitle: "",
+    galleryDesc: {},
+    lights: [],
+    selectedSpotlight: null,
+    generalLight: null,
+    plannerGallery: false,
+    galleryId: null,
+    floorplan: null,
+    selectedTile: null,
+    surroundings: null,
+    voxelsX: 16,
+    voxelsY: 12,
+    wallWidth: 20,
+    floor: new Floor({ builder: this }),
+    exportData: null,
+    guiAdded: false,
+    stats: false,
+    userId: null
   })
+
+  initialFloorAnimation() {
+    this.state.floor.addFloorMesh({ color: "#f8f1f0" });
+    this.addGeneralLight()
+    this.initialCameraAnimation();
+  }
 
   addGui() {
     console.log("addGui")
@@ -136,7 +143,7 @@ class Builder extends Component {
 
     }
   }
-  
+
   setUpGui() {
     var controls = new function () {
       this.fov = 45;
@@ -162,6 +169,7 @@ class Builder extends Component {
     );
     window.addEventListener("resize", this.onWindowResize, false);
     this.setupFlaneurControls();
+    console.log("setupListeners this.scene",this.scene.children)
   }
 
   removeListeners() {
@@ -383,21 +391,22 @@ class Builder extends Component {
   }
 
   onEditDropdownChangeHandler = ({ galleryDesc, galleryData, id, userId }) => {
-    console.log("galleryDesc, galleryData, id ",galleryDesc, galleryData, id )
+    console.log("galleryDesc, galleryData, id ", galleryDesc, galleryData, id)
     this.emptyScene();
-    if (!id){
+    if (!id) {
       let initState = this.getInitialState();
       this.setState(initState);
     } else {
-    const { name, floorplan } = galleryData;
-    const newState = Object.assign(this.getInitialState(), { galleryTitle: name, floorplan: floorplan, galleryDesc: galleryDesc, galleryId: id, floor: new Floor({ builder: this }), surroundings: new Surroundings(this), userId:userId  })
-    this.setState(newState, () => this.rebuildGallery(galleryData))}
+      const { name, floorplan } = galleryData;
+      const newState = Object.assign(this.getInitialState(), { galleryTitle: name, floorplan: floorplan, galleryDesc: galleryDesc, galleryId: id, floor: new Floor({ builder: this }), surroundings: new Surroundings(this), userId: userId })
+      this.setState(newState, () => this.rebuildGallery(galleryData))
+    }
   }
 
-  
+
 
   rebuildGallery(galleryData) {
-    console.log("rebuildGallery galleryData, this.state",galleryData, this.state)
+    console.log("rebuildGallery galleryData, this.state", galleryData, this.state)
     const { walls, floor, lights, generalLight, surrounds } = galleryData;
     this.setEditFloor(floor);
     this.setEditWalls(walls);
@@ -412,16 +421,16 @@ class Builder extends Component {
     console.log("Builder floorplanSelectedHandler", data)
     this.emptyScene();
     // const floor = new Floor({ builder: this });
-    console.log("intialState",this.getInitialState())
+    console.log("intialState", this.getInitialState())
     const newState = Object.assign(this.getInitialState(), { floorplan: data, floor: new Floor({ builder: this }) })
-    console.log("newState",newState)
+    console.log("newState", newState)
     this.setState(newState, () => this.rebuildFromFloorplan());
   }
 
 
   rebuildFromFloorplan = (data) => {
     console.log("rebuildFromFloorplan", data);
-// this.checkForChanges();
+    // this.checkForChanges();
     this.setFloor();
     this.setWalls();//?
     this.addGeneralLight();
@@ -448,11 +457,9 @@ class Builder extends Component {
     });
     if (this.state.generalLight) galleryData.generalLight = this.state.generalLight.getExport();
     if (this.state.surroundings) galleryData.surrounds = this.state.surroundings.getExport();
-    console.log("setExport", galleryData)
+    // console.log("setExport", galleryData)
     return galleryData;
   }
-
-
 
   setEditGeneralLight(generalLight) {
     console.log("setEditGeneralLight generalLight", generalLight);
@@ -469,7 +476,7 @@ class Builder extends Component {
       lights.push(newWallLight);
     });
     this.setState({ lights: lights });
-    console.log("wallLights", wallLights);
+    // console.log("wallLights", wallLights);
   }
 
   lightConeHelperSelected(helper) {
@@ -518,7 +525,6 @@ class Builder extends Component {
   //**** SAVE  */
   saveGallery = () => {
     const galleryData = {};
-    console.log("saveGallery galleryData", this.state);
     galleryData.floorplan = this.state.floorplan;
     galleryData.floor = this.state.floor.getExport();
     galleryData.walls = [];
@@ -528,7 +534,6 @@ class Builder extends Component {
       const wallExport = item.getExport()
       galleryData.walls.push(wallExport);
       wallExport.artKeys && galleryData.art.push(...wallExport.artKeys);
-      console.log("wallExport",wallExport)
     });
 
     galleryData.lights = [];
@@ -550,11 +555,11 @@ class Builder extends Component {
     console.log("getArtDetail", options)
     this.props.firebase.getAsset(options);
   }
-  addCatalogue(artKeys){
+  addCatalogue(artKeys) {
     artKeys.forEach(key => this.getArtDetail(key))
   }
   setArtDetails = data => {
-    console.log("setArtDetails",data.val())
+    console.log("setArtDetails", data.val())
   }
 
   resetTranslatedArt() {
@@ -806,9 +811,9 @@ class Builder extends Component {
 
   //scene setup and animation
   setUpScene() {
-
+// debugger;
     const width = this.mount.clientWidth;
-    const height = this.mount.clientHeight;
+    const height = this.mount.parentElement.clientHeight - 48;// height wasn't getting set after new landing animation
     this.setState({ width: width, height: height });
     this.scene = new THREE.Scene();
     // this.scene.background = new THREE.Color().setHSL(0.6, 0, 1);
@@ -831,9 +836,9 @@ class Builder extends Component {
     // this.setFloor(); //move to didMount... but needs to be after editWalls // remove previous
     this.setSurroundings();
     this.addTransformControls();
-    this.setupFlaneurControls();
-    this.animate();
+    // this.setupFlaneurControls();
     this.setupListeners();
+    this.animate();
 
   }
 
@@ -866,6 +871,7 @@ class Builder extends Component {
     this.scene.add(sky);
   }
   setupFlaneurControls() {
+    // if(this.flaneurControls) this.flaneurControls.dispose();
     this.flaneurControls = new FlaneurControls(this.camera, this);
   }
 
@@ -915,10 +921,10 @@ class Builder extends Component {
     var spotlightPos = light.getWorldPosition();
     let { x, y, z } = spotlightPos;
     const spotlightPosArr = [x, y, z];
-    console.log("spotlightPosArr", spotlightPosArr);
+    // console.log("spotlightPosArr", spotlightPosArr);
     const targetPos = light.target.position;
     const targetAr = [targetPos.x, targetPos.y, targetPos.z];
-    console.log("targetAr", targetAr);
+    // console.log("targetAr", targetAr);
 
     const options = {
       position: spotlightPosArr,
@@ -927,10 +933,6 @@ class Builder extends Component {
     };
     const newWallLight = new WallLight(options);
     this.setState({ lights: [...this.state.lights, newWallLight] })
-    // this.lights.push(newWallLight);
-
-    // this.lights.push(light);
-    console.log("this.lights", this.state.lights);
   }
 
   addGeneralLight(options = {}) {
@@ -960,58 +962,6 @@ class Builder extends Component {
     const floorSnapshot = snapshot.val();
     this.floorplanSelectedHandler(floorSnapshot)
   };
-
-
-
-  // disposeHierarchy(node, callback) {
-  //   for (var i = node.children.length - 1; i >= 0; i--) {
-  //     var child = node.children[i];
-  //     this.disposeHierarchy(child, this.disposeNode);
-  //     callback(child);
-  //   }
-  // }
-
-  // disposeNode(parentObject) {
-  //   parentObject.traverse(function (node) {
-  //     if (node instanceof THREE.Mesh) {
-  //       if (node.geometry) {
-  //         node.geometry.dispose();
-  //       }
-
-  //       if (node.material) {
-  //         //console.log("node.material", node.material);
-  //         if (
-  //           node.material instanceof THREE.MeshFaceMaterial ||
-  //           node.material instanceof THREE.MultiMaterial
-  //         ) {
-  //           node.material.materials.forEach(function (mtrl, idx) {
-  //             if (mtrl.map) mtrl.map.dispose();
-  //             if (mtrl.lightMap) mtrl.lightMap.dispose();
-  //             if (mtrl.bumpMap) mtrl.bumpMap.dispose();
-  //             if (mtrl.normalMap) mtrl.normalMap.dispose();
-  //             if (mtrl.specularMap) mtrl.specularMap.dispose();
-  //             if (mtrl.envMap) mtrl.envMap.dispose();
-
-  //             mtrl.dispose(); // disposes any programs associated with the material
-  //           });
-  //         } else {
-  //           if (node.material.map) node.material.map.dispose();
-  //           if (node.material.lightMap) node.material.lightMap.dispose();
-  //           if (node.material.bumpMap) node.material.bumpMap.dispose();
-  //           if (node.material.normalMap) node.material.normalMap.dispose();
-  //           if (node.material.specularMap) node.material.specularMap.dispose();
-  //           if (node.material.envMap) node.material.envMap.dispose();
-
-  //           node.material.dispose(); // disposes any programs associated with the material
-  //         }
-  //       }
-  //     }
-  //   });
-  // }
-  // disposeCallback = item => {
-  //   console.log("disposeCallback", item);
-  //   item.remove();
-  // };
 
   disposeNode = (parentObject) => {
     parentObject.traverse(function (node) {
@@ -1050,25 +1000,23 @@ class Builder extends Component {
   }
 
   emptyScene() {
-    console.log("this.scene.children before", this.scene.children);
-    console.log("renderer.info before", this.renderer.info)
-    console.log("renderer.info.memory before", this.renderer.info.memory)
+    //   console.log("this.scene.children before", this.scene.children);
+    //   console.log("renderer.info before", this.renderer.info)
+    //   console.log("renderer.info.memory before", this.renderer.info.memory)
 
-    // this.state.artMeshes.forEach(item => {
-    //   item.frameDisplayObject.destroyViewingPosition();
-    // })
     const node = this.scene;
     for (var i = node.children.length - 1; i >= 0; i--) {
       var child = node.children[i];
-    
-    if (sceneHelperObjects.indexOf(child.name) === -1) {
-      this.disposeNode(child);
-      this.scene.remove(child);}
+
+      if (sceneHelperObjects.indexOf(child.name) === -1) {
+        this.disposeNode(child);
+        this.scene.remove(child);
+      }
 
     }
-    console.log("this.scene after", this.scene.children);
-    console.log("renderer.info after", this.renderer.info)
-    console.log("renderer.info.memory after", this.renderer.info.memory)
+    // console.log("this.scene after", this.scene.children);
+    // console.log("renderer.info after", this.renderer.info)
+    // console.log("renderer.info.memory after", this.renderer.info.memory)
 
     return;
   }
@@ -1093,7 +1041,6 @@ class Builder extends Component {
     }
 
     this.setState({ wallEntities: wallEntities, wallMeshes: wallEntities.map(item => item.getMesh()) }, this.initialWallBuild);
-    console.log("setWalls floorplan wallEntities", wallEntities);
   }
 
   setEditWalls(walls) {
@@ -1107,7 +1054,6 @@ class Builder extends Component {
       wallEntities.push(newWall);
     });
     this.setState({ wallEntities: wallEntities, wallMeshes: wallEntities.map(item => item.getMesh()) }, () => this.initialWallBuild(this.fadeInArt));
-    console.log("setEditWalls wallEntities", wallEntities);
   }
 
   setFloor(item) {
@@ -1256,7 +1202,7 @@ class Builder extends Component {
   }
 
   getVaultFloorInstance = (props) => {
-    console.log("getVaultFloorInstance", props)
+    // console.log("getVaultFloorInstance", props)
     return <VaultFloor {...props}
       selectedTile={this.state.selectedTile}
     />
@@ -1366,7 +1312,7 @@ class Builder extends Component {
 
   animate() {
     // if (this.flaneurControls) {
-    this.flaneurControls.update(this.clock.getDelta());
+      this.flaneurControls.update(this.clock.getDelta());
     // }
 
     this.renderer.render(this.scene, this.camera);
@@ -1374,7 +1320,9 @@ class Builder extends Component {
     this.stats && this.stats.update();
   }
   render() {
-    const { galleryId, floorplan,exportData, userId} = this.state;
+    const { galleryId, floorplan, exportData, userId } = this.state;
+    // <MainCanvas refer={mount => (this.mount = mount)} />
+
     return (
       <ErrorBoundary>
         {(this.props.firebase.currentUID) &&
@@ -1387,10 +1335,10 @@ class Builder extends Component {
             plannerGallery={this.state.plannerGallery}
             galleryId={galleryId}
             floorplan={floorplan}
-            floorplanSelectedHandler={(data) => this.floorplanSelectedHandler(data)} 
-            exportData={exportData} 
+            floorplanSelectedHandler={(data) => this.floorplanSelectedHandler(data)}
+            exportData={exportData}
             userId={userId} />)}
-        <MainCanvas refer={mount => (this.mount = mount)} />
+        <div id="boardCanvas" ref={mount => this.mount = mount} />
         {this.state.draggableVaultElementActive && (
           <Draggable
             itemDragover={this.dragOverHandler}
@@ -1430,16 +1378,14 @@ class Builder extends Component {
   }
 }
 
-
-
 const DraggableVaultElement = React.forwardRef((props, ref) => (
   <div className="draggable-vault-element">
     <img src={props.imgSrc} style={{ width: "140px" }} ref={ref} alt="" />
   </div>
 ));
 
-const MainCanvas = props => {
-  return <div id="boardCanvas" ref={mount => props.refer(mount)} />;
-};
+// const MainCanvas = props => {
+//   return <div id="boardCanvas" ref={mount => props.refer(mount)} />;
+// };
 
-export default withAuthentication(withFirebase(Builder));
+export default withFirebase(Builder)

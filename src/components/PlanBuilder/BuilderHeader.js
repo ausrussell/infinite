@@ -16,7 +16,6 @@ const { confirm } = Modal;
 
 const { TextArea } = Input;
 const { Meta } = Card;
-// const { Panel } = Collapse;
 
 class DetailsDropdown extends Component {
     state = {
@@ -24,10 +23,9 @@ class DetailsDropdown extends Component {
     };
 
     componentDidUpdate(oldProps, oldState) {
-        console.log("DetailsDropdown componentDidUpdate oldProps  this.props", oldProps, this.props);
-        console.log("oldState, this.state", oldState, this.state)
+        // console.log("oldState, this.state", oldState, this.state)
         if (this.props.detailsOpen !== oldProps.detailsOpen) {
-            console.log("set to show");
+            //console.log("set to show");
             this.setState({ visible: this.props.detailsOpen })
         }
     }
@@ -72,7 +70,7 @@ class DetailsDropdown extends Component {
 }
 
 const MapModal = ({ setCenter, locationSet }) => {
-    // console.log("MapModal", setCenter)
+    // //console.log("MapModal", setCenter)
     const [visible, setVisible] = useState();
     const [latLng, setLatLng] = useState(setCenter || null);
     useEffect(() => {
@@ -101,7 +99,7 @@ const MapModal = ({ setCenter, locationSet }) => {
                 zIndex: 1200,
             })
         } else {
-            console.log("onOK latLng, setCenter", latLng, setCenter)
+            //console.log("onOK latLng, setCenter", latLng, setCenter)
             locationSet(latLng)
             hideModal()
         }
@@ -146,27 +144,20 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
 
 
     useEffect(() => {
-        console.log("BuilderHeader useEffect")
+        // console.log("BuilderHeader useEffect")
         const updateFields = () => {
-            // if (plannerGallery && id !== "") {
-            //     let returnVal = firebase.pushAsset("users/" + firebase.currentUID + "/galleryDesc/")
-            //     returnVal.then(() => {
-            //         setId(returnVal.key)
-            //     })
-            // } else {
-            console.log("galleryDesc, exportData", galleryDesc, exportData)
+            //console.log("galleryDesc, exportData", galleryDesc, exportData)
             form.resetFields();
             setCurrentGalleryDesc(galleryDesc);
             setCurrentExportData(exportData);
             setTitle(galleryDesc.title);
             setId(galleryId);
             setCuratorsUID(userId)
-            console.log("updating id to", id)
-            console.log("after galleryDesc, exportData", galleryDesc, exportData)
+            //console.log("after galleryDesc, exportData", galleryDesc, exportData)
 
             setLocation(galleryDesc.location);
             // publicChange(galleryDesc.public);
-            console.log("setLocation to ", galleryDesc.location)
+            //console.log("setLocation to ", galleryDesc.location)
             setNameEncoded(galleryDesc.nameEncoded)
             setVisitable(galleryDesc.public && galleryDesc.location);
             if (galleryDesc.galleryImg) {
@@ -181,7 +172,7 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
             form.setFieldsValue(
                 galleryDesc
                 , [galleryDesc]);
-            console.log("useEffect Values", form.getFieldsValue())
+            //console.log("useEffect Values", form.getFieldsValue())
 
         }
         // }
@@ -195,17 +186,13 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
 
     const checkForChanges = (data, callback) => {
         const values = form.getFieldsValue();
-        console.log("Values", values)
-        debugger;
+        //console.log("Values", values)
         const { desc, galleryData } = processValues(values)
         const galleryDataToTest = galleryData;
         if (galleryDataToTest.art) delete galleryDataToTest.art;
-
         const dataIsChanged = (currentExportData && JSON.stringify(galleryDataToTest) !== JSON.stringify(currentExportData));
-
-        console.log("data isEqual", isEqual(galleryDataToTest, currentExportData));
-        console.log("dataIsChanged, currentExportData, galleryData", dataIsChanged, currentExportData, galleryData);
-        console.log("currentGalleryDesc, desc", currentGalleryDesc, desc);
+        //console.log("dataIsChanged, currentExportData, galleryData", dataIsChanged, currentExportData, galleryData);
+        //console.log("currentGalleryDesc, desc", currentGalleryDesc, desc);
 
         let desctest = desc;
         let currentGalleryDescTest = currentGalleryDesc;
@@ -218,7 +205,7 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
 if (currentGalleryDescTest.art) delete currentGalleryDescTest.art;
         const descIsChanged = (desc && !isEqual(currentGalleryDescTest, desctest));
 
-        console.log("descIsChanged, currentGalleryDesc, desctest", descIsChanged, currentGalleryDescTest, desctest);
+        //console.log("descIsChanged, currentGalleryDesc, desctest", descIsChanged, currentGalleryDescTest, desctest);
         if (dataIsChanged || descIsChanged) {
             Modal.confirm({
                 title: 'Do you want to save changes to this gallery?',
@@ -227,7 +214,7 @@ if (currentGalleryDescTest.art) delete currentGalleryDescTest.art;
                 cancelType: 'danger',
                 cancelText: 'Discard changes',
                 onOk() {
-                    console.log('OK');
+                    //console.log('OK');
                     form.validateFields().then(values => {
                         saveProcessedValues(desc, galleryData);
                         callback(data)
@@ -285,8 +272,8 @@ if (currentGalleryDescTest.art) delete currentGalleryDescTest.art;
     }
 
     const saveProcessedValues = async (desc, galleryData) => {
-        console.log("curators",firebase.currentUID)
-        console.log("curatorsUID save",curatorsUID)
+        //console.log("curators",firebase.currentUID)
+        //console.log("curatorsUID save",curatorsUID)
         if (galleryData.art) desc.art = galleryData.art; //puts art keys in description and data
 
         const uidToSaveTo = (firebase.isCurator && curatorsUID) ? curatorsUID :firebase.currentUID;
@@ -330,7 +317,7 @@ if (currentGalleryDescTest.art) delete currentGalleryDescTest.art;
     }
 
     const onFinishFailed = () => {
-        console.log("onFinishFailed");
+        //console.log("onFinishFailed");
         setDetailsOpen(true);
     }
 
@@ -344,7 +331,7 @@ if (currentGalleryDescTest.art) delete currentGalleryDescTest.art;
     }
 
     const floorplanCallback = data => {
-        console.log("floorplanCallback", data)
+        //console.log("floorplanCallback", data)
         if (galleryId) {
             checkForChanges(data, () => { floorplanSelectedHandler(data) });
         } else {
@@ -370,7 +357,7 @@ if (currentGalleryDescTest.art) delete currentGalleryDescTest.art;
                 doDelete()
             },
             onCancel() {
-                console.log('Cancel');
+                //console.log('Cancel');
             },
         });
     }
@@ -398,7 +385,7 @@ if (currentGalleryDescTest.art) delete currentGalleryDescTest.art;
     }
 
     const publicChange = ({ target }) => {
-        console.log("publicChange", target.checked, location)
+        //console.log("publicChange", target.checked, location)
         setLocationAlert(target.checked && !location)
         setVisitable(target.checked && location && nameEncoded);
     }

@@ -22,7 +22,7 @@ class VaultFloor extends Component {
     // selectedTile: null
   };
   constructor(props) {
-    console.log("VaultFloor props", props);
+    //console.log("VaultFloor props", props);
     super(props);
     this.tileCallback = props.tileCallback;
     this.refPath = props.refPath;
@@ -37,7 +37,7 @@ class VaultFloor extends Component {
   }
 
 componentDidUpdate(oldProps){
-  console.log("old and new", oldProps, this.props,)
+  //console.log("old and new", oldProps, this.props,)
 }
 
   componentWillUnmount() {
@@ -76,7 +76,7 @@ componentDidUpdate(oldProps){
   }
 
   getTilesCallback = (data) => {
-    console.log("getTilesCallback this.needToAddMaster", this.needToAddMaster)
+    //console.log("getTilesCallback this.needToAddMaster", this.needToAddMaster)
     this.list = [];
     this.setInitialList();
     const listObj = {};
@@ -96,13 +96,13 @@ componentDidUpdate(oldProps){
   };
 
   clearSelected = () => {
-    console.log("clearSelected");
+    //console.log("clearSelected");
     this.tileCallback(null);
   }
 
   tileClickHandler = (item, e) => {
     e && e.stopPropagation();
-    console.log("tileClickHandler")
+    //console.log("tileClickHandler")
     this.tileCallback(item);
   };
 
@@ -150,8 +150,8 @@ componentDidUpdate(oldProps){
     Object.assign(specificTileStyle, this.coverStyle)
     const { selectable } = this.props;
     const isSelected = this.props.selectedTile && tileInfo.key === this.props.selectedTile.key;
-    console.log("check if selected ", tileInfo.key, this.props.selectedTile)
-    if (isSelected) console.log("isSelected", tileInfo.key, this.props.selectedTile);
+    //console.log("check if selected ", tileInfo.key, this.props.selectedTile)
+    // if (isSelected) console.log("isSelected", tileInfo.key, this.props.selectedTile);
     tileInfo.tileClicker = isSelected ? () => this.clearSelected() : (e) => this.tileClickHandler(tileData, e);
     const coverListener = (this.props.draggable) ? () => this.tileClickHandler(tileData) : null;
     tileInfo.cover = (<div style={specificTileStyle} onMouseDown={coverListener}>
@@ -166,7 +166,7 @@ componentDidUpdate(oldProps){
   }
 
   editTile = (tileData) => {
-    console.log("edit tile", tileData);
+    //console.log("edit tile", tileData);
     tileData.type = "art";//needs updating if other types
     Modal.info({
       content: <AssetEditor item={tileData} firebaseModal={this.props.firebase} />,
@@ -187,7 +187,7 @@ componentDidUpdate(oldProps){
       icon: <ExclamationCircleOutlined />,
       onOk: () => this.doDelete(tileData),
       onCancel() {
-        console.log('Cancel delete');
+        // console.log('Cancel delete');
       }
     }
     confirm(config);
