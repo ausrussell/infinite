@@ -108,7 +108,7 @@ class GalleryEditDropdown extends Component {
 
   listItem(key, value) {
     return <Option key={key} label={value.title || "Untitled"}>
-      {value.title || "Untitled"}
+      {this.props.firebase.isCurator ? value.userDisplayName + ": " + value.title  :value.title || "Untitled"}
     </Option>
   }
 

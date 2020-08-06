@@ -67,6 +67,7 @@ class Builder extends Component {
     this.removeListeners();
     this.gui && this.gui.gui.destroy();
     this.stats && document.body.removeChild(this.stats.dom);
+    this.destroyScene();
   }
 
   componentDidUpdate(props) {
@@ -999,26 +1000,24 @@ class Builder extends Component {
     });
   }
 
-  emptyScene() {
-    //   console.log("this.scene.children before", this.scene.children);
-    //   console.log("renderer.info before", this.renderer.info)
-    //   console.log("renderer.info.memory before", this.renderer.info.memory)
-
+  emptyScene(destroyAll) {
     const node = this.scene;
     for (var i = node.children.length - 1; i >= 0; i--) {
       var child = node.children[i];
 
-      if (sceneHelperObjects.indexOf(child.name) === -1) {
+      if (destroyAll || sceneHelperObjects.indexOf(child.name) === -1) {
         this.disposeNode(child);
         this.scene.remove(child);
       }
-
     }
-    // console.log("this.scene after", this.scene.children);
-    // console.log("renderer.info after", this.renderer.info)
-    // console.log("renderer.info.memory after", this.renderer.info.memory)
-
     return;
+  }
+
+  destroyScene(){
+    this.emptyScene(true);
+    this.scene.dispose();
+    this.renderer.forceContextLoss()
+    this.renderer.dispose();
   }
 
 

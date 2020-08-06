@@ -61,12 +61,17 @@ export class CurrentLocation extends Component {
       this.loadMap();
     }
     if (this.props.selected && !isEqual(prevProps.selected, this.props.selected)) {
-      // console.log("componentDidUpdate panTo");
+      console.log("componentDidUpdate panTo new selected");
       this.panTo()
     }
     if (!isEqual(prevState.currentLocation, this.state.currentLocation)) {
       // console.log("componentDidUpdate recenterMap")
       this.recenterMap();
+    }
+    if (this.props.activeMarker && !isEqual(prevProps.activeMarker, this.props.activeMarker)) {
+      console.log("componentDidUpdate new activeMarker");
+      debugger;
+      // this.props.google.maps.event.trigger(this.props.activeMarker[0], 'click');
     }
 
   }

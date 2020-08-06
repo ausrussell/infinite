@@ -9,7 +9,7 @@ import { withFirebase } from "../Firebase";
 import LandingLoading from "./LandingLoading"
 import { useSpring, animated } from 'react-spring'
 
-
+const loadingAniDelay = 0;//3000
 
 
 const Landing = (props) => {
@@ -22,6 +22,8 @@ const Landing = (props) => {
 
   const [selected, setSelected] = useState([]);
   const [markerSelected, setMarkerSelected] = useState([]);
+  const [openThis, setOpenThis] = useState();
+
   const [images, setImages] = useState([])
   const [springProps, setSpringProps] = useSpring(() => ({ opacity: 1 }))
   const listCallback = useCallback(
@@ -34,7 +36,9 @@ const Landing = (props) => {
 
   const selectCallback = (item) => {
     console.log("selectCallback", item)
-    setSelected(item);
+    markerCallback(item)
+    // setSelected(item);
+    setOpenThis(item);
   }
 
 
@@ -51,7 +55,7 @@ const Landing = (props) => {
   const artLoadedCallback = (artObj, finished) => {
     setImages([...images, artObj]);
     if (finished) {
-      setSpringProps({ config: { duration: 1500 }, delay: 3000, onRest: () => setLoading(false), opacity: 0 });
+      setSpringProps({ config: { duration: 1500 }, delay: loadingAniDelay, onRest: () => setLoading(false), opacity: 0 });
       props.firebase.setLandingLoaded(true)
     }
   }
@@ -76,7 +80,7 @@ const Landing = (props) => {
         <Col flex="0 1 420px" className="gallery-list-column" >
           <GalleryList listCallback={listCallback} selectCallback={selectCallback} markerSelected={markerSelected} artLoadedCallback={artLoadedCallback} firebase={props.firebase} />
         </Col>
-        <Col flex="auto"><GoogleApiWrapper listLength={list.length} list={list} selected={selected} markerCallback={markerCallback} /></Col>
+        <Col flex="auto"><GoogleApiWrapper listLength={list.length} list={list}  selected={selected} openThis={openThis} markerCallback={markerCallback} /></Col>
       </Row>
     </div>)
 }

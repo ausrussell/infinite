@@ -12,11 +12,8 @@ const defaultCameraSpeed = 1;
 class FlaneurControls {
   constructor(object, builder) {
     this.object = object;
-    console.log("this.object", this.object);
     this.builder = builder;
-    console.log("this.builder", this.builder);
     this.mode = this.builder.flaneurMode;
-    console.log("flaneurMode", this.mode);
     this.domElement = this.builder.mount;
 
     this.enabled = true;
@@ -136,10 +133,9 @@ class FlaneurControls {
     this.collidableObjects = [this.clickFloorPlane, ...this.builder.state.wallMeshes];
     if (this.mode === "Gallery" && this.builder.state.artMeshes) {
       this.collidableObjects.push(...this.builder.state.artMeshes);
-      // console.log("collidableObjects", collidableObjects)
     }
     if (this.footstepsHoverMesh) this.collidableObjects.push(this.footstepsHoverMesh);
-    console.log("setUpCollidableObjects", this.collidableObjects)
+    // console.log("setUpCollidableObjects", this.collidableObjects)
 
   }
 
@@ -648,7 +644,7 @@ class FlaneurControls {
   moveToArt() {
     this.selectedArt = this.artOver.frameDisplayObject;
     this.selectedArt.data.art && this.builder.getArtDetail(this.selectedArt.data.art.key)
-    console.log("move to this.artOver", this.artOver, this.selectedArt);
+    // console.log("move to this.artOver", this.artOver, this.selectedArt);
     const destinationVector = new THREE.Vector3(0, 1, 0);
     destinationVector.copy(this.selectedArt.viewingPosition.getWorldPosition());
     var quaternion = new THREE.Quaternion();
@@ -703,7 +699,7 @@ class FlaneurControls {
     this.currentDestination = null;
     this.onArt = true;
     this.onArtHandler();
-    console.log("doneMoveToArt this.onArt", this.onArt);
+    // console.log("doneMoveToArt this.onArt", this.onArt);
   };
 
   onArtHandler() {

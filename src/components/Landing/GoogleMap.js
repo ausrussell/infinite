@@ -17,7 +17,9 @@ export class MapContainerBase extends Component {
   state = {
     showingInfoWindow: false,  //Hides or the shows the infoWindow
     activeMarker: {},          //Shows the active marker upon click
-    selectedPlace: {}          //Shows the infoWindow to the selected place upon a marker
+    selectedPlace: {},
+    markers: [],
+    openThis: null       //Shows the infoWindow to the selected place upon a marker
   };
 
   constructor(props) {
@@ -26,65 +28,17 @@ export class MapContainerBase extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    console.log("this.props.list",this.props)
-    if (this.props.selected !== prevProps.selected) {
-      console.log("this.props.selected", this.props.selected)
+    if (this.props.openThis !== prevProps.openThis) {
+      const openThis = this.state.markers.filter(item => item.props.id === this.props.openThis.id);
+      this.setInfoState(this.props.openThis, this.markerRefs[this.props.openThis.id].marker)
     }
 
     if (this.props.list !== prevProps.list) {
-      console.log("this.props.list", this.props.list)
-    }
-  }
-  onMarkerClick = (props, marker, e) => {
-    console.log("onMarkerClick", props, marker, e)
-    Object.assign(props)
-    this.setState({
-      selectedPlace: props,
-      activeMarker: marker,
-      showingInfoWindow: true
-    })
-    this.props.markerCallback(props)
-  };
-  onClickHandler = (action, item) => {
-    console.log("e", action, item)
-    if (action === "Visit") {
-      this.props.history.push("/Gallery/" + item.item.nameEncoded);
-    }
-
-  }
-
-  onMarkerDragEnd = (hoverKey, childProps, mouse) => {
-    // console.log("onMarkerDragEnd", hoverKey, childProps, mouse)
-    const { latLng } = mouse;
-    console.log("onMarkerDragEnd", latLng)
-    this.props.latLngCallBack({ lat: latLng.lat(), lng: latLng.lng() });
-  }
-
-  renderInfoWindow = (routeProps) => {
-    console.log("renderInfoWindow", this.state.selectedPlace)
-    if (this.state.selectedPlace) {
-      return (<div>
-        <h4>{this.state.selectedPlace.name}</h4>
-        <span onClick={() => this.onClickHandler("Visit",this.state.selectedPlace)} className="map-info-window-link"><ArrowRightOutlined key="list-vertical-star-o" style={{ marginRight: 8 }} />Visit</span>
-      </div>
-      )
-    }
-  }
-
-  render() {
-    const centerSet = (this.props.setCenter && this.props.setCenter.lat);
-    // console.log("this.props.setCenter ={!centerSet}", this.props.setCenter)
-
-    return (<CurrentLocation
-      centerAroundCurrentLocation={!centerSet}
-      google={this.props.google}
-      props
-      selected={this.props.setCenter || this.props.selected}
-      modal={this.props.modal}
-      latLngCallBack={this.props.latLngCallBack}
-    >
-      {!this.props.modal && this.props.list.map((item, index) => {
-        return (
+      //     console.log("this.props.list", this.props.list)
+      const markers = [];
+      this.markerRefs = {}
+      this.props.list.forEach((item, index) => {
+        markers.push(
           <Marker
             position={item.location}
             name={item.title}
@@ -93,20 +47,75 @@ export class MapContainerBase extends Component {
             icon={{ url: (item.galleryImg) ? item.galleryImg.url : defaultIconURL, scaledSize: { width: 32, height: 32 } }}
             id={item.id}
             item={item}
+            ref={ref => this.markerRefs[item.id] = ref}
           />
         )
       })
-      }
+      this.setState({markers:markers})
+    }
+  }
 
+  setInfoState = (props, marker) => {
+    this.setState({
+      selectedPlace: props,
+      activeMarker: marker,
+      showingInfoWindow: true
+    })
+  }
+  
+  onMarkerClick = (props, marker) => {
+    this.setInfoState(props, marker)
+    this.props.markerCallback(props)
+  };
+  onClickHandler = (action, item) => {
+    console.log("e", action, item)
+    if (action === "Visit") {
+      this.props.history.push("/Gallery/" + item.item.nameEncoded);
+    }
+  }
 
+  onMarkerDragEnd = (hoverKey, childProps, mouse) => {
+    const { latLng } = mouse;
+    console.log("onMarkerDragEnd", latLng)
+    this.props.latLngCallBack({ lat: latLng.lat(), lng: latLng.lng() });
+  }
+
+  renderInfoWindow = () => {
+    console.log("renderInfoWindow,selectedPlace, this.state.activeMarker", this.state.selectedPlace, this.state.activeMarker);
+    // return <div>hi</div>;
+    if (this.state.selectedPlace && (this.state.selectedPlace.name || this.state.selectedPlace.title)) {
+      return (<div>
+        <h4>{this.state.selectedPlace.name || this.state.selectedPlace.title}</h4>
+        <span onClick={() => this.onClickHandler("Visit", this.state.selectedPlace || this.state.selectedPlace.title)} className="map-info-window-link"><ArrowRightOutlined key="list-vertical-star-o" style={{ marginRight: 8 }} />Visit</span>
+      </div>
+      )
+    }
+  }
+
+  onClose() {
+    console.log("onClose marker")
+  }
+
+  render() {
+    const centerSet = (this.props.setCenter && this.props.setCenter.lat);
+
+    return (<CurrentLocation
+      centerAroundCurrentLocation={!centerSet}
+      google={this.props.google}
+      props
+      selected={this.props.setCenter || this.props.selected}
+      modal={this.props.modal}
+      latLngCallBack={this.props.latLngCallBack}
+      activeMarker={this.state.openThis}
+    >
+      {!this.props.modal && this.state.markers }
       <InfoWindowEx
         marker={this.state.activeMarker}
         visible={this.state.showingInfoWindow}
         onClose={this.onClose}
       >
         <div className="map-info-window">
-          {this.renderInfoWindow()}
-
+          {this.state.showingInfoWindow && this.renderInfoWindow()}
         </div>
       </InfoWindowEx>
     </CurrentLocation >
@@ -124,6 +133,8 @@ class InfoWindowEx extends Component {
   }
 
   componentDidUpdate(prevProps) {
+    // debugger;
+    console.log("InfoWindowEx componentDidUpdate",this.props)
     if (this.props.children !== prevProps.children) {
       ReactDOM.render(
         React.Children.only(this.props.children),
@@ -134,7 +145,7 @@ class InfoWindowEx extends Component {
   }
 
   render() {
-    return <InfoWindow ref={this.infoWindowRef} {...this.props} />;
+    return <InfoWindow ref={this.infoWindowRef} {...this.props} />
   }
 }
 

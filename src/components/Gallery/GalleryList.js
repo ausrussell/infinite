@@ -76,7 +76,7 @@ const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected, h
         setSpringProps({ scroll: itemSelected.current.offsetTop });
         resetItemSelected(itemSelected)
         // selectedListItem.new && selectedListItem.new.current.classList.remove("gallery-list-item--selected");
-        // setSelectedListItem({ new: itemSelected })
+        // setSelectedListItem({ new: itemSelected });
       }
     }
     doSelect();
@@ -93,13 +93,9 @@ const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected, h
   const onClickHandler = (action, item, ref) => {
     console.log("e", action, item, ref)
     if (action === "Locate") {
-      // resetMarkerSelected(getItemFromId(item.id))
-      // debugger;
       selectedListItem.new && console.log("selectedListItem.new && selectedListItem.new.current", selectedListItem.new, selectedListItem.new.current)
-      selectedListItem.new && selectedListItem.new.current.classList.remove("gallery-list-item--selected");
-
-      setSelectedListItem({ new: ref })
-
+      // selectedListItem.new && selectedListItem.new.current.classList.remove("gallery-list-item--selected");
+      // setSelectedListItem({ new: ref })
       selectCallback(item);
     }
 
@@ -177,7 +173,6 @@ const GalleryListItem = React.forwardRef((props, ref) => {
     >
       <List.Item.Meta
         title={item.title}
-
         description={<div>{item.userDisplayName && <p>Built by: {item.userDisplayName}</p>}
           <Paragraph ellipsis={{ rows: 5, expandable: true }}>{item.description}</Paragraph>
         </div>}
