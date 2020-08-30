@@ -45,6 +45,10 @@
 box-shadow: 1px -5px 10px -2px rgba(0,0,0,0.75);
 }
 
+button.ant-btn.ant-btn-primary {
+border-color: #718792;
+}
+
 
 
 

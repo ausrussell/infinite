@@ -408,13 +408,21 @@ class FlaneurControls {
     } else {
       this.autoSpeedFactor = 0.0;
     }
-
-    // if (this.detectPlayerCollision()) return;
     let actualMoveSpeed = delta * this.movementSpeed;
+
+    if (this.detectPlayerCollision()) {
+      // return;
+
+      this.moveForward = false;
+      this.moveRight = true;
+      this.collideCoast = true;
+      actualMoveSpeed *= .1;
+    }
 
     if (this.moveForward || (this.autoForward && !this.moveBackward)) {
       this.object.translateZ(-(actualMoveSpeed + this.autoSpeedFactor));
     }
+
     if (this.moveBackward) {
       this.object.translateZ(actualMoveSpeed);
     }
@@ -448,6 +456,11 @@ class FlaneurControls {
       this.checkForFloorHover();
       this.checkForArtHover();
       this.onArt && this.offArtHandler()
+    }
+
+    if (this.collideCoast) {
+      this.moveRight = false;
+      this.collideCoast = false;
     }
   }
 
@@ -651,14 +664,13 @@ class FlaneurControls {
     let r;
     r = (this.selectedArt.wall.pos === 0) ? Math.PI / 2 : 0;
     if (this.selectedArt.side === "back" && this.selectedArt.wall.pos === 0) r = -Math.PI / 2;
-    if (this.selectedArt.side === "back" && this.selectedArt.wall.pos === 1) r = 1;
+    if (this.selectedArt.side === "back" && this.selectedArt.wall.pos === 1) r = Math.PI;
 
     quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), r);
     this.currentDestination = destinationVector;
     this.currentDestination.cameraQuaternion = quaternion;
     // const opp = (this.selectedArt.ratio <= 1) ? this.selectedArt.artMesh.geometry.parameters.height / 2 : this.selectedArt.artMesh.parameters.width / 2;
     const opp = (this.selectedArt.ratio <= 1) ? this.selectedArt.imageHeight / 2 : this.selectedArt.imageWidth / 2;
-
     const adj = 25;
     this.currentDestination.fov = Math.atan(opp / adj) * 180 / Math.PI * 2;
     this.moveFrom = this.object.position;
@@ -744,8 +756,8 @@ class FlaneurControls {
 
   checkForFloorHover() {
     const intersect = this.checkForIntersecting();
-    if (intersect.clickFloorPlane|| intersect.footstepsHover) {//this.footstepsHoverMesh && 
-      intersect.clickFloorPlane && this.positionFootstepsHover(intersect.clickFloorPlane );
+    if (intersect.clickFloorPlane || intersect.footstepsHover) {//this.footstepsHoverMesh && 
+      intersect.clickFloorPlane && this.positionFootstepsHover(intersect.clickFloorPlane);
     } else {
       // console.log("checkForFloorHover interesect",intersect)
       this.footstepsHoverMesh.translateY(-1);//hide under floor

@@ -14,12 +14,13 @@ const galleryPlaceholder = 'https://firebasestorage.googleapis.com/v0/b/infinite
 
 const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected, history, artLoadedCallback }) => {
   const [galleriesList, setGalleriesList] = useState([]);
-  const [selectedListItem, setSelectedListItem] = useState({ old: null, new: null });
+  const [selectedListItem, setSelectedListItem] = useState({ new: null });
+  const [oldSelectedListItem, setOldSelectedListItem] = useState();
   const galleriesRefs = useRef([])
   const [springProps, setSpringProps, stopSpringProps] = useSpring(() => ({ scroll: 1 }))
   const { getList, getAssetOnce } = firebase;
   const [loadedCounter, setLoadedCounter] = useState(0)
-  useEffect(() => {
+  useEffect(() => {//malfunctions after editing a gallery
     const fillList = async (data) => {
       const list = [];
       if (data) {
@@ -62,40 +63,36 @@ const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected, h
       getList(options);
     }
     dbCall();
-  }, [getList, listCallback]);
+  }, [getList, getAssetOnce, listCallback]);
+
+  selectedListItem.new && selectedListItem.new.current && setSpringProps({ scroll: selectedListItem.new.current.offsetTop });
 
   useEffect(() => {
-    const resetItemSelected = itemSelected => {
-      selectedListItem.new && selectedListItem.new.current.classList.remove("gallery-list-item--selected");
-      setSelectedListItem({ new: itemSelected })
-    }
     const doSelect = () => {
+      console.log("galleriesRefs.current,galleriesRefs",galleriesRefs.current,galleriesRefs)
       const markerSelected2 = galleriesRefs.current.filter(item => item.current.id === markerSelected);
       if (markerSelected2.length) {
         const itemSelected = markerSelected2[0];
-        setSpringProps({ scroll: itemSelected.current.offsetTop });
-        resetItemSelected(itemSelected)
-        // selectedListItem.new && selectedListItem.new.current.classList.remove("gallery-list-item--selected");
-        // setSelectedListItem({ new: itemSelected });
+        setSelectedListItem({ new: itemSelected });
       }
     }
     doSelect();
-  }, [markerSelected, setSpringProps]);
-
-
+    
+  }, [markerSelected]);
 
   useEffect(() => {
+    if (oldSelectedListItem) {
+      oldSelectedListItem.current.classList.remove("gallery-list-item--selected")
+    }
     if (selectedListItem.new) {
       selectedListItem.new.current.classList.add("gallery-list-item--selected");
     }
-  }, [selectedListItem.new]);
+    setOldSelectedListItem(selectedListItem.new)
+  }, [oldSelectedListItem, selectedListItem.new]);
 
   const onClickHandler = (action, item, ref) => {
     console.log("e", action, item, ref)
     if (action === "Locate") {
-      selectedListItem.new && console.log("selectedListItem.new && selectedListItem.new.current", selectedListItem.new, selectedListItem.new.current)
-      // selectedListItem.new && selectedListItem.new.current.classList.remove("gallery-list-item--selected");
-      // setSelectedListItem({ new: ref })
       selectCallback(item);
     }
 
@@ -103,8 +100,8 @@ const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected, h
       const { history, nameEncoded } = item
       history.push({ pathname: "/Gallery/" + nameEncoded })
     }
-
   }
+
   const onContainerClickHandler = (e, item, ref) => {
     const { nameEncoded } = item;
     if (e.target.classList[0] === "ant-list-item-meta-title") history.push({ pathname: "/Gallery/" + nameEncoded })
@@ -156,8 +153,8 @@ const GalleryListItem = React.forwardRef((props, ref) => {
           <img src={artToShow}
             onLoad={(e) => {
               artLoadedListCallback(e.target);
-            }} 
-            alt={item.title}/>
+            }}
+            alt={item.title} />
         </div>
       }
       actions={[

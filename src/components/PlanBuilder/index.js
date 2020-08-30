@@ -213,7 +213,7 @@ class Builder extends Component {
           artHolder = intersectedData[key].parent;
         }
       }
-      console.log("this.state.selectedTile && artHolder", this.state.selectedTile, artHolder)
+      // console.log("this.state.selectedTile && artHolder", this.state.selectedTile, artHolder)
       if (this.state.selectedTile && artHolder && this.state.selectedTile.type === "frame") {
         console.log("selectedTile", this.state.selectedTile);
         artHolder.removeTexture();
@@ -425,7 +425,13 @@ class Builder extends Component {
     console.log("intialState", this.getInitialState())
     const newState = Object.assign(this.getInitialState(), { floorplan: data, floor: new Floor({ builder: this }) })
     console.log("newState", newState)
+    let returnVal = this.props.firebase.pushAsset("users/" + this.props.firebase.currentUID + "/galleryDesc/")
+    returnVal.then(snapshot => {
+      newState.galleryId = snapshot.key;
+      // this.setState({ galleryId: snapshot.key });
     this.setState(newState, () => this.rebuildFromFloorplan());
+
+    })
   }
 
 
@@ -437,10 +443,7 @@ class Builder extends Component {
     this.addGeneralLight();
     this.initialCameraAnimation();
     this.setSceneMeshes();
-    let returnVal = this.props.firebase.pushAsset("users/" + this.props.firebase.currentUID + "/galleryDesc/")
-    returnVal.then(snapshot => {
-      this.setState({ galleryId: snapshot.key });
-    })
+
   };
 
   getExport() {
@@ -1088,9 +1091,10 @@ class Builder extends Component {
     // let collidableObjects = this.state.wallEntities.map(item => item.getMesh()); //used for raycaster THIS SEEMS TOO SLOW
     var intersects = ray.intersectObjects(this.state.wallMeshes);
     for (var i = 0; i < intersects.length; i++) {
+      // console.log("intersects[i]",i, intersects[i])
       // Check if there's a collision
       if (intersects[i].distance < distance) {
-        console.log("collide");
+        console.log("collide", intersects[i].distance, distance, );
         return true;
       }
     }
@@ -1304,10 +1308,7 @@ class Builder extends Component {
         light.undisplayHelper();
       });
     });
-
   }
-
-
 
   animate() {
     // if (this.flaneurControls) {

@@ -184,7 +184,48 @@ background: rgba(1,255,200,.3);
 background-color: #4527a0;
 color: #fff;
 }
+.header-tile-title {
+  text-align: center;
+font-size: 20px;
+width: 100%;
+}
+                
 
+
+.header-tile-outer-holder {
+  background-color: #CFD8DC;
+  padding-left: 1em;
+  padding-right: .1em;
+
+}
+
+.header-tile-holder {
+  max-height: 275px;
+  overflow:auto;
+  background-color: #718792;
+  margin-bottom: 1em;
+  padding:10px;
+}
+.header-tile.master:hover, .header-tile.user:hover {
+background-color: #4527a0;
+
+}
+.header-tile.master, .header-tile.user {
+padding: 0px;
+
+  background-color: #fff;
+  /* color: #666; */
+  padding-bottom: 5px;
+  width: 165px;
+  text-align: center;
+  }
+
+.header-button-col {
+  background-color: #CFD8DC;
+  text-align: center;
+  margin-bottom: 1em;
+  /* width: 200px; */
+}
 
 .floorplan-new-button {
   border-top: 1px solid #b0bec5;

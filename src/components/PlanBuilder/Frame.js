@@ -106,7 +106,7 @@ class Frame {
     this.frameMesh = mesh;
     this.frameMesh.name = "frameMesh";
     this.setFramePosition();
-    console.log("setFrameMesh", this.frameData);
+    // console.log("setFrameMesh", this.frameData);
 
     return mesh;
   }
@@ -190,10 +190,6 @@ class Frame {
   removeArtFrame() {
     this.frameMesh.material.transparent = true;
     this.frameMesh.material.opacity = 0;
-    console.log(
-      "Frame removeArtFrame this.activeArtMesh.parent.holderClass.wall",
-      this.artMesh.parent.holderClass.wall
-    );
   }
 
   setArtMesh(artMesh) {
@@ -374,8 +370,6 @@ class Frame {
       timing: "circ",
       draw: progress => this.fadingIn(progress)
     });
-    console.log("set final Opacity ", this.fmaterial.opacity);
-
     this.finalOpacity = (this.fmaterial.opacity > 0) ? this.fmaterial.opacity : 1;
     fadeAni.animate(performance.now());
   }
@@ -383,12 +377,9 @@ class Frame {
     progress += 0.01;
     this.show(progress);
     if (this.frameMesh) this.fmaterial.opacity = this.finalOpacity * progress;
-    // this.fmaterial.opacity = .5;
-    // console.log("this.finalOpacity * progress",this.finalOpacity * progress,this.finalOpacity ,progress)
   };
 
   addFrameFromData(item) {
-    //console.log("addFrameFromData", item);
     const { groupPosition, art, frame } = item;
     this.setGroup(groupPosition);
     this.setArt(art);

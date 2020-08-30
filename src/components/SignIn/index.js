@@ -13,14 +13,15 @@ import { Row, Col, Card, Input, Button } from "antd";
 const SignInPage = () => (
   <Row style={{ marginTop: 32 }}>
     <Col span={12} offset={6} className="center-standard-form">
+
       <Card title="Sign In">
-        <Card type="inner" title="Name and Email">
-          <SignInForm />
-          <SignUpLink />
+      <SignUpLink />
+
+        <Card type="inner" title="Log in">
+        <SignInForm />
+
         </Card>
-        <Card type="inner" title="Forgot?">
-          <PasswordForgetLink />
-        </Card>
+        <PasswordForgetLink />
       </Card>
     </Col>
   </Row>
@@ -75,7 +76,7 @@ class SignInFormBase extends Component {
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">
-            Sign In
+            Log In
           </Button>
         </Form.Item>
       </Form>

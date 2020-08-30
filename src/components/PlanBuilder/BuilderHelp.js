@@ -48,10 +48,9 @@ export const BuilderHelp = {
                         <p>Clicking on a material for the floor or surrounds makes an immediate change.</p>
                         <Divider orientation="left">Lights</Divider>
                         <p>Every time you drag an image onto a wall a spotlight is added to illuminate it. You can move, remove, or add spotlights and change their intensity and color. When on the lighting floor the spotlights will have a cone which you can use as a handle to move around - this might be necessary if you've moved an artwork.</p>
-                        <Divider orientation="left">Movement</Divider>
                     </Col>
                 </Row>
-                <Divider orientation="left">Adding art</Divider>
+                <Divider orientation="left">Movement</Divider>
 
                     <Row>
                     <Col span={10} offset={7} style={colStyle}><Title level={2}>Arrow keys</Title></Col>

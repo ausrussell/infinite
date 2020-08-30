@@ -93,8 +93,8 @@ class Firebase {
   getList = ({ refPath, callback, orderField }) => {
     // const ref = this.database.ref(refPath);
     const ref = app.database().ref(refPath);
-    ref.orderByChild(orderField).once("value", callback);
-    // return ref;
+    ref.orderByChild(orderField).on("value", callback);
+    return ref;
   }
 
   getAsset = ({ refPath, callback, once }) => {
@@ -239,7 +239,7 @@ class Firebase {
   getGalleryByName = async (name, callback) => {
     console.log("getGalleryByName", name);
     const galleryRef = this.database.ref("publicGalleries");
-    const selected = galleryRef.orderByChild("title").equalTo(name.replace("_", " "));
+    const selected = galleryRef.orderByChild("nameEncoded").equalTo(name);
     selected.once("child_added", snapshot => {
       console.log("getGalleryByName then ", snapshot.val())
       const returnedValues = snapshot.val();
@@ -249,7 +249,10 @@ class Firebase {
         console.log("getGalleryByName snapshot data", snapshot.val());
         this.detachRefListener(selected);
         this.detachRefListener(ref);
-
+        const refParts = returnedValues.dataPath.split("/")
+        const owner = refParts[1];
+        console.log("owner",owner)
+        returnedValues.owner = owner
         callback(Object.assign(returnedValues, snapshot.val()))
       });
     })

@@ -114,9 +114,13 @@ const SignUpForm = compose(
 )(SignUpFormBase);
 
 const SignUpLink = () => (
-  <p>
-    Don't have an account? <Link to={ROUTES.SIGN_UP}>Sign Up</Link>
-  </p>
+  <div>
+    <h3>Don't have an account yet?</h3><Link to={ROUTES.SIGN_UP}>
+        <p><Button type="primary">
+          Sign Up
+        </Button></p>
+        </Link>
+  </div>
 );
 
 export default SignUpPage;

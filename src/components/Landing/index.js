@@ -13,19 +13,15 @@ const loadingAniDelay = 0;//3000
 
 
 const Landing = (props) => {
-  console.log("Landing props", props, "props.firebase.landingLoaded", props.firebase.landingLoaded)
   const [onPage,setOnPage] = useState(props.location.pathname==="/");
-
   const [list, setList] = useState([]);
-  // const [loadingList, setLoadingList] = useState(true)
   const [loading, setLoading] = useState(true);
-
   const [selected, setSelected] = useState([]);
   const [markerSelected, setMarkerSelected] = useState([]);
   const [openThis, setOpenThis] = useState();
-
   const [images, setImages] = useState([])
   const [springProps, setSpringProps] = useSpring(() => ({ opacity: 1 }))
+
   const listCallback = useCallback(
     (galleriesList) => {
       console.log("listCallback", galleriesList)
@@ -37,10 +33,8 @@ const Landing = (props) => {
   const selectCallback = (item) => {
     console.log("selectCallback", item)
     markerCallback(item)
-    // setSelected(item);
     setOpenThis(item);
   }
-
 
   useEffect(()=> {
     setOnPage(props.location.pathname==="/")
@@ -59,14 +53,7 @@ const Landing = (props) => {
       props.firebase.setLandingLoaded(true)
     }
   }
-  //   <Row >
-  //   <Col  flex="0 1 420px" className="gallery-list-column" >
-  //     <GalleryList listCallback={listCallback} selectCallback={selectCallback} markerSelected={markerSelected} firebase={props.firebase} />
-  //   </Col>
-  //   <Col flex="auto"><GoogleApiWrapper listLength={list.length} list={list} selected={selected} markerCallback={markerCallback} /></Col>
-  // </Row>
 
-  // && !props.firebase.landingLoaded
   return (
     <div style={{display:(onPage)?null:"none"}}>
       <PageTitle help={HangarHelp} />

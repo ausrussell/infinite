@@ -26,7 +26,8 @@ class GalleryBase extends Component {
     artMeshes: [],
     onArt: null,
     guiAdded: false,
-    stats: false
+    stats: false,
+    owner:null
   };
   constructor(props) {
     super(props);
@@ -108,6 +109,7 @@ class GalleryBase extends Component {
     console.log("renderer.info before", this.renderer.info)
     console.log("renderer.info.memory before", this.renderer.info.memory)
     window.cancelAnimationFrame(this.animateCall);
+    if (!this.sceneLoader) return;
     this.animateCall = undefined;
 
     this.state.artMeshes.forEach(item => {
@@ -220,6 +222,7 @@ class GalleryBase extends Component {
   }
   processGallery = (data) => {
     console.log("processGallery", data);
+    this.setState({owner : data.owner});
     if (this.galleryData) this.emptyScene();
     // this.galleryData = data;
     this.setState({ galleryData: data }, this.setScene);
@@ -278,12 +281,13 @@ class GalleryBase extends Component {
     setTimeout(() => this.flaneurControls.setFocus(), 500);//to overcome ant d difficult refocussing
   }
 
-  getArtDetail(key) {
+  getArtDetail = (key) => {
     const options = {
-      refPath: "users/" + this.props.firebase.currentUID + "/art/" + key,
+      refPath: "users/" + this.state.owner + "/art/" + key,
       once: true,
       callback: this.setArtDetails
     }
+
     console.log("getArtDetail", options)
     this.props.firebase.getAsset(options);
   }

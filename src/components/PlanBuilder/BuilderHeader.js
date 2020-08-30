@@ -17,6 +17,9 @@ const { confirm } = Modal;
 const { TextArea } = Input;
 const { Meta } = Card;
 
+const galleryPlaceholder = 'https://firebasestorage.googleapis.com/v0/b/infinite-a474a.appspot.com/o/images%2Fhanger_placeholder.png?alt=media&token=4f847f15-48d6-43d9-92df-80eea32394f5';
+
+
 class DetailsDropdown extends Component {
     state = {
         visible: true
@@ -146,7 +149,7 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
     useEffect(() => {
         // console.log("BuilderHeader useEffect")
         const updateFields = () => {
-            //console.log("galleryDesc, exportData", galleryDesc, exportData)
+            console.log("updateFields galleryDesc, exportData, galleryId, id", galleryDesc, exportData, galleryId, id)
             form.resetFields();
             setCurrentGalleryDesc(galleryDesc);
             setCurrentExportData(exportData);
@@ -165,8 +168,8 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
                 setImgTitle(galleryDesc.galleryImg.title);
                 setGalleryImg(galleryDesc.galleryImg)
             } else {
-                setImgUrl("");
-                setImgTitle("");
+                setImgUrl(galleryPlaceholder);
+                setImgTitle("Featured Gallery Image");
                 setGalleryImg({})
             }
             form.setFieldsValue(
@@ -189,7 +192,7 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
         //console.log("Values", values)
         const { desc, galleryData } = processValues(values)
         const galleryDataToTest = galleryData;
-        if (galleryDataToTest.art) delete galleryDataToTest.art;
+        if (galleryDataToTest.art) delete galleryDataToTest.art;//??
         const dataIsChanged = (currentExportData && JSON.stringify(galleryDataToTest) !== JSON.stringify(currentExportData));
         //console.log("dataIsChanged, currentExportData, galleryData", dataIsChanged, currentExportData, galleryData);
         //console.log("currentGalleryDesc, desc", currentGalleryDesc, desc);
@@ -202,7 +205,7 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
         desctest = removeEmptyObjects(desctest);//?? 
         currentGalleryDescTest = removeEmptyObjects(currentGalleryDescTest);//?? 
         // if (desctest.art) delete desctest.art; //don;t test for art because mightn't have been added in initial galleries
-if (currentGalleryDescTest.art) delete currentGalleryDescTest.art;
+        if (currentGalleryDescTest.art) delete currentGalleryDescTest.art;
         const descIsChanged = (desc && !isEqual(currentGalleryDescTest, desctest));
 
         //console.log("descIsChanged, currentGalleryDesc, desctest", descIsChanged, currentGalleryDescTest, desctest);
@@ -260,9 +263,10 @@ if (currentGalleryDescTest.art) delete currentGalleryDescTest.art;
         values.location = location;
 
         // console.log("firebase.currentUser", firebase.currentUser, firebase.currentUser.displayName);
-        if  (!firebase.isCurator || firebase.currentUser.displayName === "curator") values.userDisplayName = firebase.currentUser.displayName;
+        if (!firebase.isCurator || firebase.currentUser.displayName === "curator") values.userDisplayName = firebase.currentUser.displayName;
         Object.keys(values).forEach(key => { values[key] = values[key] || null });
-        if (values.title) values.nameEncoded = encodeURIComponent(values.title.replace(" ", "_"));
+        values.title = values.title.trim();
+        if (values.title) values.nameEncoded = encodeURIComponent(values.title.replace(/\s/g, "_"));
         const galleryData = saveGallery();
         const data = {
             desc: values,
@@ -276,7 +280,7 @@ if (currentGalleryDescTest.art) delete currentGalleryDescTest.art;
         //console.log("curatorsUID save",curatorsUID)
         if (galleryData.art) desc.art = galleryData.art; //puts art keys in description and data
 
-        const uidToSaveTo = (firebase.isCurator && curatorsUID) ? curatorsUID :firebase.currentUID;
+        const uidToSaveTo = (firebase.isCurator && curatorsUID) ? curatorsUID : firebase.currentUID;
         const dataPath = "users/" + uidToSaveTo + "/galleryData/" + id;
         const dataSave = firebase.updateAsset(dataPath, galleryData);
         await dataSave;
@@ -302,7 +306,7 @@ if (currentGalleryDescTest.art) delete currentGalleryDescTest.art;
             return;
         }
         saveProcessedValues(desc, galleryData);
-        const uidToSaveTo = (firebase.isCurator && curatorsUID) ? curatorsUID :firebase.currentUID;
+        const uidToSaveTo = (firebase.isCurator && curatorsUID) ? curatorsUID : firebase.currentUID;
         const options = {
             refPath: "users/" + uidToSaveTo + "/galleryData/" + id,
             callback: (savedData) => {
@@ -362,7 +366,7 @@ if (currentGalleryDescTest.art) delete currentGalleryDescTest.art;
         });
     }
     const doDelete = async () => {
-        const uidToSaveTo = (firebase.isCurator && curatorsUID) ? curatorsUID :firebase.currentUID;
+        const uidToSaveTo = (firebase.isCurator && curatorsUID) ? curatorsUID : firebase.currentUID;
         const dataPath = "users/" + uidToSaveTo + "/galleryData/" + id;
 
         const dataRemove = firebase.removeRef(dataPath);
@@ -390,99 +394,108 @@ if (currentGalleryDescTest.art) delete currentGalleryDescTest.art;
         setVisitable(target.checked && location && nameEncoded);
     }
 
+    const closeGallery = () => {
+        onEditDropdownChangeHandler({ id: null });
+    }
+
 
     return (
         <div className="page-header-area">
-            <PageTitle title={title ? 'Building gallery: ' + title : "Builder"} help={BuilderHelp} />
-            <Row gutter={16}>
-                <Col span={12}>
-                    <Form
-                        name="gallery-editor"
-                        form={form}
-                        onFinish={onFinish}
-                        onFinishFailed={onFinishFailed}
-                    >
-                        <Row>
-                            <Col span={12}>
-                                {id && <DetailsDropdown detailsOpen={detailsOpen} setCenter={location} >
-                                    <Row gutter={8}>
-                                        <Col span={16}>
-                                            <Form.Item
-                                                label="Name"
-                                                name="title"
-                                                rules={[{ required: true }]}
-                                            >
-                                                <Input placeholder="Title" />
-                                            </Form.Item>
-                                            <Form.Item
-                                                name="public"
-                                                valuePropName="checked"
-                                            >
-                                                <Checkbox checked={true} onChange={publicChange}>Public</Checkbox>
-                                            </Form.Item>
+            <PageTitle title={title ? 'Building gallery: ' + title : "Build a gallery"} help={BuilderHelp} />
+            <Form
+                name="gallery-editor"
+                form={form}
+                onFinish={onFinish}
+                onFinishFailed={onFinishFailed}
+            >
+                {id &&
+                    <Row gutter={[16, 16]}>
+                        <Col span={12}>
+                            <DetailsDropdown detailsOpen={detailsOpen} setCenter={location} >
+                                <Row gutter={8}>
+                                    <Col span={16}>
+                                        <Form.Item
+                                            label="Name"
+                                            name="title"
+                                            rules={[{ required: true }]}
+                                        >
+                                            <Input placeholder="Title" />
+                                        </Form.Item>
+                                        <Form.Item
+                                            name="public"
+                                            valuePropName="checked"
+                                        >
+                                            <Checkbox checked={true} onChange={publicChange}>Public</Checkbox>
+                                        </Form.Item>
 
 
-                                            <Form.Item>
-                                                <MapModal locationSet={setLocationCallback} setCenter={location} />
-                                                {!location && <p>Location not set</p>}
-                                                {locationAlert && <Alert message="You need to set a location for public galleries" type="warning" showIcon closable />}
-                                            </Form.Item>
-                                            <Form.Item
-                                                label="Gallery description"
-                                                name="description"
-                                            >
-                                                <TextArea rows={4} />
-                                            </Form.Item>
-                                            <p>Building on floorplan: <span style={{ color: "#333" }}>{(floorplan) && floorplan.title}</span></p>
-                                            {visitable && <div><p>Public url: {getPublicUrl()}</p>
-                                                <VisitButton disabled={!(id && visitable)} pathname={"/Gallery/" + nameEncoded || galleryDesc.nameEncoded} /></div>}
-                                        </Col>
-                                        <Col span={8}>
-                                            {imgUrl && (<Card style={{ margin: 'auto', marginBottom: 16, width: 200 }}
-                                                title="Gallery featured image"
-                                                cover={<img alt="featured" src={imgUrl} />}
-                                            >
-                                                <Meta description={imgTitle} />
-                                            </Card>)}
+                                        <Form.Item>
+                                            <MapModal locationSet={setLocationCallback} setCenter={location} />
+                                            {!location && <p>Location not set</p>}
+                                            {locationAlert && <Alert message="You need to set a location for public galleries" type="warning" showIcon closable />}
+                                        </Form.Item>
+                                        <Form.Item
+                                            label="Gallery description"
+                                            name="description"
+                                        >
+                                            <TextArea rows={4} />
+                                        </Form.Item>
+                                        <p>Building on floorplan: <span style={{ color: "#333" }}>{(floorplan) && floorplan.title}</span></p>
+                                        {visitable && <div><p>Public url: {getPublicUrl()}</p>
+                                            <VisitButton disabled={!(id && visitable)} pathname={"/Gallery/" + nameEncoded || galleryDesc.nameEncoded} /></div>}
+                                    </Col>
+                                    <Col span={8} style={{textAlign:"center",padding:10}}>
+                                        {imgUrl && (<Card style={{ margin: 'auto', marginBottom: 16, width: 200 }}
+                                            title="Gallery featured image"
+                                            cover={<img alt="featured" src={imgUrl} />}
+                                        >
+                                            <Meta description={imgTitle} />
+                                        </Card>)}
 
-                                            <Button style={{ margin: 'auto' }} onClick={selectArt} loading={selectingArt} >{selectingArt ? "Cancel" : "Select Image"}</Button>
-                                            {selectingArt ? <div>Select a work from Vault</div> : <div>Click button then click art in vault</div>}
-                                        </Col>
-                                    </Row>
-                                </DetailsDropdown>}
-                            </Col>
-                            <Col span={6}>
-                                <Form.Item>
-                                    {id && <Button type="primary" htmlType="submit">
-                                        Save
-                                            </Button>}
-                                </Form.Item>
-                            </Col>
-                            <Col span={6}>
-                                <Form.Item>
-                                    {id && <Button onClick={deleteGallery}>
-                                        Delete
-                                            </Button>}
-                                </Form.Item>
-                            </Col>
-                        </Row>
-                    </Form>
+                                        <Button style={{ margin: 'auto' }} onClick={selectArt} loading={selectingArt} >{selectingArt ? "Cancel" : "Select Featured Image"}</Button>
+                                        {selectingArt ? <div>Select a work from Vault</div> : <div>Click button then click art in vault</div>}
+                                    </Col>
+                                </Row>
+                            </DetailsDropdown>
+                        </Col>
 
+                        <Col span={12} style={{ textAlign: 'right' }}>
+                            {title && 
+                                <Button onClick={deleteGallery} style={{ margin: '0 8px' }}>
+                                    Delete
+                                </Button>
+                            }
+
+
+<Button onClick={closeGallery} style={{ margin: '0 8px' }}>
+                                    Close
+                                </Button>
+                                <Button type="primary" htmlType="submit">
+                                    Save
+                                </Button>
+                        </Col>
+                    </Row>}
+            </Form>
+            {!id && <Row gutter={16}>
+                <Col flex="1">
+                    <FloorplanDropdown
+                        floorplanCallback={floorplanCallback}
+                        galleryDesc={currentGalleryDesc}
+                        id={id}
+                        floorplan={floorplan}
+
+                    />
                 </Col>
-                <Col span={6}><GalleryEditDropdown
-                    callback={editCallback}
-                    galleryDesc={currentGalleryDesc}
-                    id={id}
-                /></Col>
-                <Col span={6}><FloorplanDropdown
-                    floorplanCallback={floorplanCallback}
-                    galleryDesc={currentGalleryDesc}
-                    id={id}
-                    floorplan={floorplan}
-                />
-                </Col>
+                <Col className="header-button-col" flex="200px">
+                    <GalleryEditDropdown
+                        callback={editCallback}
+                        galleryDesc={currentGalleryDesc}
+                        id={id}
 
-            </Row>
+                    /></Col>
+
+            </Row>}
+
 
         </div>
 
