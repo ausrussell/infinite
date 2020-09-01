@@ -16,6 +16,7 @@ import Planner from "../Planner";
 import Gallery from "../Gallery";
 import Builder from "../PlanBuilder";
 import StudioPage from "../Studio";
+import AccountManagement from "../AccountManagement";
 
 import * as ROUTES from "../../constants/routes";
 import { withAuthentication } from "../Session";
@@ -25,7 +26,7 @@ const logoSrc = "https://firebasestorage.googleapis.com/v0/b/infinite-a474a.apps
 const AppAuth = () => {
   return (
     <Layout>
-      <img src={logoSrc} style={{display:"none"}} alt="" />
+      <img src={logoSrc} style={{ display: "none" }} alt="" />
       <Router>
         <Navigation />
         <Route path={ROUTES.LANDING} component={LandingKept} />
@@ -40,6 +41,8 @@ const AppAuth = () => {
 
         <Route path={ROUTES.BUILDER} component={Builder} />
         <Route path={ROUTES.STUDIO} component={StudioPage} />
+        <Route path={ROUTES.ACCOUNT_MANAGEMENT} component={AccountManagement} />
+
       </Router>
     </Layout>
   );

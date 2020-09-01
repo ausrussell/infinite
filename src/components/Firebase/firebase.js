@@ -366,7 +366,9 @@ class Firebase {
   setLandingLoaded = () => {
     this.landingLoaded = true;
   }
-
+  verifyPasswordResetCode = (actionCode) => this.auth.verifyPasswordResetCode(actionCode)
+  
+  confirmPasswordReset = (actionCode, newPassword) => this.auth.confirmPasswordReset(actionCode, newPassword)
 
 }
 

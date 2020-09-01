@@ -10,3 +10,4 @@ export const PLANNER = "/planner";
 export const GALLERY = "/gallery";
 export const BUILDER = "/builder";
 export const STUDIO = "/studio";
+export const ACCOUNT_MANAGEMENT = "/account_management";
