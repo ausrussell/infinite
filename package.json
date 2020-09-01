@@ -17,7 +17,7 @@
     "fs-extra": "^9.0.0",
     "google-maps-react": "^2.0.2",
     "http2": "^3.3.7",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "orbit-controls-es6": "^2.0.1",
     "qs": "^6.9.4",
     "rc-tween-one": "^2.6.8",
