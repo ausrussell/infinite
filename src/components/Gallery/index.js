@@ -18,7 +18,7 @@ import { compose } from 'recompose';
 // import MapControls from "orbit-controls-es6";
 // import { OrbitControls, MapControls } from "three/examples/jsm/controls/OrbitControls"
 import { MapControls } from "./orbit";
-import {DragControls} from "./drag";
+import { DragControls } from "./drag";
 
 
 
@@ -263,12 +263,10 @@ class GalleryBase extends Component {
       makeInstance(geometry, 0x8844aa, -2),
       makeInstance(geometry, 0xaa8844, 2),
       makeInstance(geometry, 0xaaf844, 1),
-
     ];
 
     function render(time) {
       time *= 0.001;  // convert time to seconds
-
       cubes.forEach((cube, ndx) => {
         const speed = 1 + ndx * .1;
         const rot = time * speed;
@@ -289,37 +287,45 @@ class GalleryBase extends Component {
   setupFlaneurControls() {
     // this.setUpFlyControls();
     // debugger;
-    if (isMobile) {
-      // this.mapControls =  (this.state.galleryData.title === "501A") ? new OrbitControls(this.camera, this.renderer.domElement): new MapControls(this.camera, this.renderer.domElement);
-      // debugger;
-      this.mapControls = new MapControls(this.camera, this.renderer.domElement);//new
-      this.mapControls.enableZoom = false;
-      this.mapControls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
-      this.mapControls.dampingFactor = 0.05;
-	this.mapControls.minPolarAngle = Math.PI *.25;//0;//1;//0; // radians
-
-      this.mapControls.maxPolarAngle = Math.PI *.75;
-      this.mapControls.zoomSpeed = 1;
-      this.mapControls.minDistance = -500;
-      this.mapControls.maxDistance = 500;
-      this.mapControls.enableKeys = false;
-    } else {
-
-    }
-
     this.flaneurControls = new FlaneurControls(this.camera, this);
+
+    if (isMobile) {
+    // this.mapControls =  (this.state.galleryData.title === "501A") ? new OrbitControls(this.camera, this.renderer.domElement): new MapControls(this.camera, this.renderer.domElement);
+    // debugger;
+    this.mapControls = new MapControls(this.camera, this.renderer.domElement);//new
+    this.mapControls.enableZoom = false;
+    this.mapControls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+    this.mapControls.dampingFactor = 0.05;
+    this.mapControls.minPolarAngle = Math.PI * .25;//0;//1;//0; // radians
+
+    this.mapControls.maxPolarAngle = Math.PI * .75;
+    this.mapControls.zoomSpeed = 1;
+    this.mapControls.minDistance = -500;
+    this.mapControls.maxDistance = 500;
+    this.mapControls.enableKeys = false;
 
     this.setupDragControls();
 
+    } 
+
+
+
   }
 
-  setupDragControls(){
-    this.dragControls = new DragControls(this.state.artMeshes, this.camera, this.renderer.domElement)
+  setupDragControls() {
+    this.dragControls = new DragControls(this.state.artMeshes, this.camera, this.renderer.domElement);
+    this.touchCounter = 0;
     this.dragControls.addEventListener("dragstart", (e) => {
-      console.log("touched e", e.object)
-      // debugger;
-
-      this.flaneurControls.moveToArt(e.object)
+      console.log("touched e", e.object);
+      this.touchCounter++;
+      if (this.touchCounter > 1) this.flaneurControls.moveToArt(e.object)
+      setTimeout(() => {
+        this.touchCounter = 0
+      }, 1000)
+    })
+    this.mapControls.addEventListener("moveLeaveArt", (e) => {
+      console.log("moveLeaveArt", e)
+      this.flaneurControls.offArtHandler()
     })
   }
 

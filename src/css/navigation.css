@@ -32,6 +32,7 @@
   z-index: 1;
   bottom:0;
   width: 100%;
+  padding: 0 2vw;
 }
 .art-details-card {
 
@@ -41,6 +42,36 @@
   -webkit-box-shadow: 1px -5px 10px -2px rgba(0,0,0,0.75);
 -moz-box-shadow: 1px -5px 10px -2px rgba(0,0,0,0.75);
 box-shadow: 1px -5px 10px -2px rgba(0,0,0,0.75);
+margin: 0 auto;
+max-width: 700px;
+}
+
+.art-details-title {
+  padding-right: 50px;
+  position: relative;
+}
+
+.art-details-down-button {
+  background-color: #fff;
+  position: absolute; 
+  right: 0;
+   bottom:0;
+   padding: 5px 15px;
+   cursor: pointer;
+}
+
+.art-details-card-open-holder {
+  /* padding:15px 25px; */
+max-width: 700px;
+margin: auto;
+position: relative;
+  padding: 10px 2vw;
+
+}
+
+.art-details-card-open-holder .art-details-down-button {
+  box-shadow: 1px -5px 10px -2px rgba(0,0,0,0.75);
+
 }
 
 button.ant-btn.ant-btn-primary {

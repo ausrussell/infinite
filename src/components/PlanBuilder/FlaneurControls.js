@@ -251,11 +251,13 @@ class FlaneurControls {
   };
 
   onKeyDown = event => {
+    console.log("onKeyDown",event.keyCode)
+
+
     if (!this.moveToArtAni.stop) {
       this.moveToArtAni.end();
       if (this.object.fov !== this.defaultFov) { this.restoreDefaultFov() }
     }
-    console.log("onKeyDown",event.keyCode)
     switch (event.keyCode) {
       case 38: /*up*/
       case 87:
@@ -481,7 +483,7 @@ class FlaneurControls {
       !this.moveToDestinationAni.stop && this.doneMoveToDestination();
       this.checkForFloorHover();
       this.checkForArtHover();
-      this.onArt && this.offArtHandler()
+      this.onArt && this.offArtHandler();
     }
 
     if (this.collideCoast) {
@@ -536,7 +538,11 @@ class FlaneurControls {
     this.domElement.removeEventListener("mouseup", this.onMouseUp, false);
 
     // window.e
-    this.domElement.removeEventListener("keydown", this.onKeyDown, false);
+
+    if (this.mode === "Gallery") {window.removeEventListener("keydown", this.onKeyDown, false);}else {
+      this.domElement.removeEventListener("keydown", this.onKeyDown, false);
+    }
+    // this.domElement.removeEventListener("keydown", this.onKeyDown, false);
     window.removeEventListener("keyup", this.onKeyUp, false);
     // this.builder.scene.remove()
   }
@@ -548,7 +554,10 @@ class FlaneurControls {
     this.domElement.addEventListener("mouseup", this.onMouseUp, false);
 
     // window
-    this.domElement.addEventListener("keydown", this.onKeyDown, false);
+    // this.domElement.addEventListener("keydown", this.onKeyDown, false);
+    if (this.mode === "Gallery") {window.addEventListener("keydown", this.onKeyDown, false);}else {
+      this.domElement.addEventListener("keydown", this.onKeyDown, false);
+    }
     window.addEventListener("keyup", this.onKeyUp, false);
 
     //mobile

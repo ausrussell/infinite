@@ -237,9 +237,9 @@ var OrbitControls = function (object, domElement) {
 			// move target to panned location
 
 			if (scope.enableDamping === true) {
-
 				scope.target.addScaledVector(panOffset, scope.dampingFactor);
-
+				// if (panOffset.x > 0) debugger;
+				// if (Object.keys(panOffset).reduce((sum,key)=>sum+parseFloat(panOffset[key]||0),0) !== 0)  console.log("panOffset",panOffset)
 			} else {
 
 				scope.target.add(panOffset);
@@ -251,8 +251,11 @@ var OrbitControls = function (object, domElement) {
 			// rotate offset back to "camera-up-vector-is-up" space
 			// offset.applyQuaternion( quatInverse );
 
-			// console.log("position target", position, scope.target)
+			// console.log("position", position)
+			const positionBefore = parseInt(position.x + position.z);
 			position.copy(scope.target).add(offset);
+			if (positionBefore !== parseInt(position.x + position.z)) scope.dispatchEvent({type: "moveLeaveArt"});
+
 			//my addition
 
 			targetPosition.setFromSphericalCoords(1, spherical2.phi, spherical2.theta).add(scope.object.position);
@@ -390,31 +393,10 @@ var OrbitControls = function (object, domElement) {
 
 	function rotateLeft(angle) {
 		sphericalDelta2.theta -= angle;
-		// debugger;
-		// const cur = scope.object.quaternion;
-		// // console.log("cur",cur)
-		// // const rot = this.cameraRotation(dir);
-		// // rot = this.cameraRotationQuarternion.setFromAxisAngle(new Vector3(0, 1, 0), degreesToRadians(-this.cameraRotationSpeed));
-		// const rot = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -angle);
-		// scope.object.quaternion.multiplyQuaternions(rot, cur);
-		// console.log("cur after",cur);
-		// console.log("sphericalDelta.theta angle",sphericalDelta.theta, angle)
-		// this.setOrientation();
 	}
 
 	function rotateUp(angle) {
 		sphericalDelta2.phi -= angle;
-
-		// const cur = scope.object.quaternion;
-		// console.log("rotateUp",angle)
-		// // const rot = this.cameraRotation(dir);
-		// // rot = this.cameraRotationQuarternion.setFromAxisAngle(new Vector3(0, 1, 0), degreesToRadians(-this.cameraRotationSpeed));
-		// const rot = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -angle);
-		// scope.object.quaternion.multiplyQuaternions(rot, cur);
-		// console.log("cur after",cur)
-		// sphericalDelta.phi -= angle;
-		// setOrientation();
-
 	}
 
 	var panLeft = function () {
@@ -804,7 +786,7 @@ var OrbitControls = function (object, domElement) {
 		dollyIn(dollyDelta.y);
 
 		dollyStart.copy(dollyEnd);
-
+   
 	}
 
 	function handleTouchMoveDollyPan(event) {

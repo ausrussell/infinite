@@ -55,11 +55,15 @@ export const GalleryHelp = (props) => {
             (<>
                 {isMobile ? <div>
                     <Row>
-                        <Col span={20} offset={2} style={colStyleTall}><h3>One finger to move</h3></Col>
+                        <Col span={20} offset={2} style={colStyleTall}><div style={itemBox}><div style={frameHoverStyle} /><span>Double tap on a work</span></div></Col>
                     </Row>
                     <Row>
-                        <Col span={20} offset={2} style={colStyleTall}><h3>Two fingers to rotate</h3></Col>
+                        <Col span={20} offset={2}><h3>One finger to move</h3></Col>
                     </Row>
+                    <Row>
+                        <Col span={20} offset={2}><h3>Two fingers to rotate</h3></Col>
+                    </Row>
+
 
                 </div>
                     :
