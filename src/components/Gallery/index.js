@@ -18,6 +18,7 @@ import { compose } from 'recompose';
 // import MapControls from "orbit-controls-es6";
 // import { OrbitControls, MapControls } from "three/examples/jsm/controls/OrbitControls"
 import { MapControls } from "./orbit";
+import {DragControls} from "./drag";
 
 
 
@@ -303,10 +304,24 @@ class GalleryBase extends Component {
       this.mapControls.maxDistance = 500;
       this.mapControls.enableKeys = false;
     } else {
-      this.flaneurControls = new FlaneurControls(this.camera, this);
+
     }
+
+    this.flaneurControls = new FlaneurControls(this.camera, this);
+
+    this.setupDragControls();
+
   }
 
+  setupDragControls(){
+    this.dragControls = new DragControls(this.state.artMeshes, this.camera, this.renderer.domElement)
+    this.dragControls.addEventListener("dragstart", (e) => {
+      console.log("touched e", e.object)
+      // debugger;
+
+      this.flaneurControls.moveToArt(e.object)
+    })
+  }
 
   rayIntersect(ray, distance) {
     //used by flaneur controls

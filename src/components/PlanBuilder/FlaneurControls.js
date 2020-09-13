@@ -508,7 +508,7 @@ class FlaneurControls {
         break;
       default: break;
     }
-    console.log("rot",rot)
+    // console.log("rot",rot)
     return rot
   }
 
@@ -552,7 +552,7 @@ class FlaneurControls {
     window.addEventListener("keyup", this.onKeyUp, false);
 
     //mobile
-    this.domElement.addEventListener('touchstart', this.onTouchStart, false );
+    // this.domElement.addEventListener('touchstart', this.onTouchStart, false );
 
     // this.domElement.addEventListener('touchend', this.onTouchEnd, false );
 
@@ -688,8 +688,8 @@ class FlaneurControls {
     this.moveToDestinationAni.begin();
   }
 
-  moveToArt() {
-    this.selectedArt = this.artOver.frameDisplayObject;
+  moveToArt(artMesh) {
+    this.selectedArt = (artMesh) ? artMesh.frameDisplayObject : this.artOver.frameDisplayObject;
     this.selectedArt.data.art && this.builder.getArtDetail(this.selectedArt.data.art.key)
     // console.log("move to this.artOver", this.artOver, this.selectedArt);
     const destinationVector = new THREE.Vector3(0, 1, 0);

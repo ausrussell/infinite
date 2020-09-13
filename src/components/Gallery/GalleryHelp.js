@@ -58,7 +58,7 @@ export const GalleryHelp = (props) => {
                         <Col span={20} offset={2} style={colStyleTall}><h3>One finger to move</h3></Col>
                     </Row>
                     <Row>
-                        <Col span={20} offset={2} style={colStyleTall}><h3>Two fingers to rotate and move in or out</h3></Col>
+                        <Col span={20} offset={2} style={colStyleTall}><h3>Two fingers to rotate</h3></Col>
                     </Row>
 
                 </div>

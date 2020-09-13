@@ -168,7 +168,7 @@ class Frame {
   }
 
   artLeaveHandler = () => {
-    this.artHoverAni.end();
+    this.artHoverAni && this.artHoverAni.end();//no hover on mobile
     this.fHoverMaterial.opacity = 0;
   }
 
