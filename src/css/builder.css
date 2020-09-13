@@ -238,7 +238,7 @@ text-align: center;
     margin-top:16px;
   }
 
-  .help-modal-button{ width: 32px; margin-left: auto; } 
+  .help-modal-button{ width: 32px; position: absolute; right: 0; top: 4px;} 
   
   .landing-loading-canvas {
     height: 100%;

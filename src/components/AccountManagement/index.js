@@ -51,7 +51,7 @@ class AccountManagementBase extends Component {
 
     }
 
-    handleResetPassword(actionCode, continueUrl, lang) {
+    handleResetPassword(actionCode) {
         this.props.firebase.verifyPasswordResetCode(actionCode)
             .then((email) => {
                 this.setState({ checking: false, codeVerified: true, accountEmail: email });

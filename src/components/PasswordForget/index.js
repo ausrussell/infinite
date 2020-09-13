@@ -61,7 +61,7 @@ class PasswordForgetFormBase extends Component {
   };
 
   render() {
-    const { email, error, submitting, success } = this.state;
+    const { error, submitting, success } = this.state;
 
     // Only show error after a field is touched.
     return (

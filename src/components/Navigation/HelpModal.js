@@ -25,7 +25,9 @@ const HelpModal = (props) => {
         }
     }
 
-    return (<div>
+    return (
+
+        <div className="help-modal-button">
         <Modal
             title={props.content.title}
             bodyStyle={size}
@@ -38,15 +40,13 @@ const HelpModal = (props) => {
             maskClosable
         >{props.content.content}
         </Modal>
-        <div className="help-modal-button">
-
             <TweenOne
                 animation={animation} >
                 <Button shape="circle" type="primary" onClick={() => setVisible(!visible)} icon={<QuestionOutlined height={32} twoToneColor="#836fa9" />} />
             </TweenOne>
         </div>
 
-    </div>)
+    )
 }
 
 export default HelpModal;

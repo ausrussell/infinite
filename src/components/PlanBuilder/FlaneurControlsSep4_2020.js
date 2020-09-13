@@ -84,6 +84,15 @@ class FlaneurControls {
     this.movingToArt = false;
     this.cameraRotationSpeed = 1;
 
+    //touch
+    this.panStart = new THREE.Vector2();
+    this.panEnd = new THREE.Vector2();
+    this.panDelta = new THREE.Vector2();
+  
+    this.dollyStart = new THREE.Vector2();
+    this.dollyEnd = new THREE.Vector2();
+    this.dollyDelta = new THREE.Vector2();
+
   }
 
 
@@ -200,27 +209,71 @@ class FlaneurControls {
   };
 
   onTouchStart = event => {
-    console.log("onDocumentTouchStart",event);
-    if ( event.touches.length === 1 ) {
+
+    switch (event.touches.length) {
+
+      case 1:
+        this.panStart.set(event.touches[0].pageX, event.touches[0].pageY);
+        break;
+
+      case 2:
+        // this.handleTouchStartDolly(event);
+
+        // this.handleTouchStartRotate(event);
+        break;
+      default:
+        break;
+    }
+
+    console.log("onDocumentTouchStart", event);
+    if (event.touches.length === 1) {
       event.preventDefault();
-      this.mouse.x = event.touches[ 0 ].pageX -  window.innerWidth / 2;
-      this.mouse.y = event.touches[ 0 ].pageY - window.innerHeight / 2;
+      this.mouse.x = event.touches[0].pageX - window.innerWidth / 2;
+      this.mouse.y = event.touches[0].pageY - window.innerHeight / 2;
     };
-    console.log("this.mouse",this.mouse);
+    console.log("this.mouse", this.mouse);
     this.moveLeft = true;
-    this.domElement.addEventListener('touchend', this.onTouchEnd, false );
+    this.domElement.addEventListener('touchend', this.onTouchEnd, false);
 
   }
 
   onTouchEnd = () => {
     this.moveLeft = false;
-    this.domElement.removeEventListener('touchend', this.onTouchEnd );
+    this.domElement.removeEventListener('touchend', this.onTouchEnd);
 
   }
 
-  onDocumentTouchMove = () => {
+  onTouchMove = () => {
 
   }
+
+  handleTouchStartDolly( event ) {
+
+		var dx = event.touches[ 0 ].pageX - event.touches[ 1 ].pageX;
+		var dy = event.touches[ 0 ].pageY - event.touches[ 1 ].pageY;
+
+		var distance = Math.sqrt( dx * dx + dy * dy );
+
+		this.dollyStart.set( 0, distance );
+
+  }
+  
+  handleTouchMoveDolly( event ) {
+
+		var dx = event.touches[ 0 ].pageX - event.touches[ 1 ].pageX;
+		var dy = event.touches[ 0 ].pageY - event.touches[ 1 ].pageY;
+
+		var distance = Math.sqrt( dx * dx + dy * dy );
+
+		this.dollyEnd.set( 0, distance );
+
+		dollyDelta.set( 0, Math.pow( this.dollyEnd.y / dollyStart.y, scope.zoomSpeed ) );
+
+		dollyOut( this.dollyDelta.y );
+
+		dollyStart.copy( this.dollyEnd );
+
+	}
 
   onMouseUp = event => {
     event.preventDefault();
@@ -255,7 +308,7 @@ class FlaneurControls {
       this.moveToArtAni.end();
       if (this.object.fov !== this.defaultFov) { this.restoreDefaultFov() }
     }
-    console.log("onKeyDown",event.keyCode)
+    console.log("onKeyDown", event.keyCode)
     switch (event.keyCode) {
       case 38: /*up*/
       case 87:
@@ -508,7 +561,6 @@ class FlaneurControls {
         break;
       default: break;
     }
-    console.log("rot",rot)
     return rot
   }
 
@@ -552,11 +604,11 @@ class FlaneurControls {
     window.addEventListener("keyup", this.onKeyUp, false);
 
     //mobile
-    this.domElement.addEventListener('touchstart', this.onTouchStart, false );
+    this.domElement.addEventListener('touchstart', this.onTouchStart, false);
 
     // this.domElement.addEventListener('touchend', this.onTouchEnd, false );
 
-    // this.domElement.addEventListener('touchmove', this.onTouchMove, false );
+    this.domElement.addEventListener('touchmove', this.onTouchMove, false );
   }
 
   bind = (scope, fn) => {

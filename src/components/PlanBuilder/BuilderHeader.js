@@ -11,6 +11,10 @@ import { BuilderHelp } from './BuilderHelp'
 import FloorplanDropdown from '../Planner/FloorplanDropdown';
 import { isEqual, isNil } from 'lodash';
 import _ from 'lodash';
+import * as ROUTES from "../../constants/routes";
+import { compose } from 'recompose';
+import { withRouter } from "react-router-dom";
+
 
 const { confirm } = Modal;
 
@@ -121,12 +125,11 @@ const MapModal = ({ setCenter, locationSet }) => {
             zIndex={1100}
         >
             <GoogleApiWrapper modal={true} latLngCallBack={draggedCallback} setCenter={setCenter} />
-
         </Modal>
     </div>)
 }
 
-const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeHandler, saveGallery, selectingArt, setSelectingArt, floorplan, floorplanSelectedHandler, exportData, userId }) => {
+const BuilderHeader = ({ history, firebase, galleryDesc, galleryId, onEditDropdownChangeHandler, saveGallery, selectingArt, setSelectingArt, floorplan, floorplanSelectedHandler, exportData, userId }) => {
     // console.log("BuilderHeader props", props)
     const [title, setTitle] = useState(galleryDesc.title || "");
     const [id, setId] = useState("");
@@ -184,6 +187,7 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
     }, [galleryDesc, galleryId, userId, id, form, galleryDesc.galleryImg, exportData]);
 
     const selectArt = () => {
+        debugger;
         setSelectingArt()
     }
 
@@ -394,10 +398,9 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
         setVisitable(target.checked && location && nameEncoded);
     }
 
-    const closeGallery = () => {
-        onEditDropdownChangeHandler({ id: null });
-    }
+    const closeGallery = () => onEditDropdownChangeHandler({ id: null });
 
+    const buildFloorplan = () => history.push(ROUTES.PLANNER);
 
     return (
         <div className="page-header-area">
@@ -428,7 +431,6 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
                                             <Checkbox checked={true} onChange={publicChange}>Public</Checkbox>
                                         </Form.Item>
 
-
                                         <Form.Item>
                                             <MapModal locationSet={setLocationCallback} setCenter={location} />
                                             {!location && <p>Location not set</p>}
@@ -444,7 +446,8 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
                                         {visitable && <div><p>Public url: {getPublicUrl()}</p>
                                             <VisitButton disabled={!(id && visitable)} pathname={"/Gallery/" + nameEncoded || galleryDesc.nameEncoded} /></div>}
                                     </Col>
-                                    <Col span={8} style={{textAlign:"center",padding:10}}>
+                                    <Col span={8} style={{ textAlign: "center", padding: 10 }}>
+                                        <div  onClick={selectArt}>
                                         {imgUrl && (<Card style={{ margin: 'auto', marginBottom: 16, width: 200 }}
                                             title="Gallery featured image"
                                             cover={<img alt="featured" src={imgUrl} />}
@@ -452,26 +455,25 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
                                             <Meta description={imgTitle} />
                                         </Card>)}
 
-                                        <Button style={{ margin: 'auto' }} onClick={selectArt} loading={selectingArt} >{selectingArt ? "Cancel" : "Select Featured Image"}</Button>
+                                        <Button style={{ margin: 'auto' }} loading={selectingArt} >{selectingArt ? "Cancel" : "Select Featured Image"}</Button>
                                         {selectingArt ? <div>Select a work from Vault</div> : <div>Click button then click art in vault</div>}
+                                        </div>
                                     </Col>
                                 </Row>
                             </DetailsDropdown>
                         </Col>
 
                         <Col span={12} style={{ textAlign: 'right' }}>
-                            {title && 
+                            {title &&
                                 <Button onClick={deleteGallery} style={{ margin: '0 8px' }}>
                                     Delete
                                 </Button>
                             }
-
-
-<Button onClick={closeGallery} style={{ margin: '0 8px' }}>
-                                    Close
+                            <Button onClick={closeGallery} style={{ margin: '0 8px' }}>
+                                Close
                                 </Button>
-                                <Button type="primary" htmlType="submit">
-                                    Save
+                            <Button type="primary" htmlType="submit">
+                                Save
                                 </Button>
                         </Col>
                     </Row>}
@@ -483,16 +485,23 @@ const BuilderHeader = ({ firebase, galleryDesc, galleryId, onEditDropdownChangeH
                         galleryDesc={currentGalleryDesc}
                         id={id}
                         floorplan={floorplan}
-
                     />
                 </Col>
                 <Col className="header-button-col" flex="200px">
-                    <GalleryEditDropdown
-                        callback={editCallback}
-                        galleryDesc={currentGalleryDesc}
-                        id={id}
+                <div className="header-tile-title">or...</div>
+                    <div style={{ marginTop: 30 }}>
+                        <Button onClick={buildFloorplan}>Create a Floorplan</Button>
+                    </div>
+                    <div style={{ marginTop: 30 }}>
+                        <GalleryEditDropdown
+                            callback={editCallback}
+                            galleryDesc={currentGalleryDesc}
+                            id={id}
+                        />
+                    </div>
 
-                    /></Col>
+
+                </Col>
 
             </Row>}
 
@@ -517,5 +526,8 @@ const VisitButton = ({ disabled, pathname }) => {
         />
     )
 }
-
-export default withFirebase(BuilderHeader);
+export default compose(
+    withRouter,
+    withFirebase
+)(BuilderHeader)
+// export default withFirebase(BuilderHeader);

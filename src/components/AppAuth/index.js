@@ -24,12 +24,15 @@ import { Layout } from "antd";
 const logoSrc = "https://firebasestorage.googleapis.com/v0/b/infinite-a474a.appspot.com/o/images%2Flogo-letters-tagline.png?alt=media&token=cb1c760d-1f11-4f4e-b978-5179f4769ffa";
 
 const AppAuth = () => {
+  // <Route path={ROUTES.LANDING} component={LandingKept} />
+
   return (
     <Layout>
       <img src={logoSrc} style={{ display: "none" }} alt="" />
       <Router>
         <Navigation />
         <Route path={ROUTES.LANDING} component={LandingKept} />
+
         <Route path={`${ROUTES.GALLERY}/:galleryName`} component={Gallery} />
         <Route path={ROUTES.SIGN_UP} component={SignUpPage} />
         <Route path={ROUTES.SIGN_IN} component={SignInPage} />

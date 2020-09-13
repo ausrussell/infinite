@@ -3,7 +3,6 @@ import { Row, Col } from 'antd';
 
 
 
-const logoSrc = "https://firebasestorage.googleapis.com/v0/b/infinite-a474a.appspot.com/o/images%2Flogo-letters-tagline.png?alt=media&token=cb1c760d-1f11-4f4e-b978-5179f4769ffa";
 const radius = 22;
 const duration = 9000;
 const numberOfShards = 50;
@@ -16,6 +15,8 @@ const LandingLoading = ({ images }) => {
     const [shafts, setShafts] = useState([])
     const [dimensions, setDimensions] = useState();
     const [perspective, setPerspective] = useState({});
+    const logoSrc = (window.innerWidth > 600) ? "https://firebasestorage.googleapis.com/v0/b/infinite-a474a.appspot.com/o/images%2Flogo-letters-tagline.png?alt=media&token=cb1c760d-1f11-4f4e-b978-5179f4769ffa"
+     : "https://firebasestorage.googleapis.com/v0/b/infinite-a474a.appspot.com/o/images%2Fletter-logo.png?alt=media&token=6a52450f-cf9d-4666-a949-bff4bb62537e";
 
     useEffect(() => {
         const doSet = () => {

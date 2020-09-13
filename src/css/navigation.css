@@ -32,8 +32,6 @@
   z-index: 1;
   bottom:0;
   width: 100%;
-
-
 }
 .art-details-card {
 
@@ -49,6 +47,12 @@ button.ant-btn.ant-btn-primary {
 border-color: #718792;
 }
 
-
+.page-title-2 {
+  color: rgb(255, 255, 255);
+/* float: left;
+width: calc(100% - 50px); */
+padding: 0 50px;
+/* font-size: 5vw; */
+}
 
 

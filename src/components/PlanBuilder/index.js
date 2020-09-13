@@ -340,7 +340,9 @@ class Builder extends Component {
   }
 
   selectingArtHandler = () => {
-    this.setState({ selectingArt: !this.state.selectingArt })
+    console.log("setting selectingArt to ", !this.state.selectingArt)
+
+    this.setState({ selectingArt: !this.state.selectingArt });
   }
 
   selectedArt(item) {

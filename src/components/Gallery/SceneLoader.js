@@ -20,6 +20,8 @@ class SceneLoader {
     this.builder = builder;
   }
   renderData() {
+    // debugger;
+    // this.addBox();
     this.renderFloor();
     this.renderWalls();
     this.renderGeneralLight();
@@ -73,6 +75,17 @@ class SceneLoader {
 
   }
 
+  addBox() {
+    const geometry = new THREE.BoxGeometry(10, 10, 10);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0xffffff
+      // wireframe: true
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    this.scene.add(mesh);
+    mesh.position.set(0, 0, 0);
+  }
+
   renderGeneralLight() {
     const { generalLight } = this.sceneData;
     const options = generalLight;
@@ -85,15 +98,20 @@ class SceneLoader {
   renderLights() {
     this.wallLights = [];
     const { lights } = this.sceneData;
-    const wallLights = lights;
-    console.log("renderLights", wallLights);
-    if (!wallLights) return;
-    wallLights.forEach(light => {
-      const options = light;
+    // const wallLights = lights;
+    console.log("renderLights", lights);
+    if (!lights) return;
+    // wallLights.forEach(light => {
+      let i;
+      let length = (lights.length > 10)? 10 : lights.length;
+      console.log("lights",length, lights)
+      for (i=0 ; i < length; i++) {
+        // debugger;
+      const options = lights[i];
       options.builder = this;
-
       this.wallLights.push(WallLightDisplay(options));
-    });
+    };
+    console.log("this.wallLights",this.wallLights)
   }
 
   renderSurrounds() {

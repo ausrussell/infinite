@@ -199,8 +199,7 @@ componentDidUpdate(oldProps){
     const { key, tileData, title, tileUrl, cover, headStyle, tileClicker, isSelected, reactElement } = tileInfo;
     const actions = (this.props.actions && !reactElement) ? [
       <Tooltip title="Edit"><EditOutlined key="edit" onClick={() => this.editTile(tileData)} /></Tooltip>,
-      <Tooltip title="Delete"><DeleteOutlined key="delete" onClick={() => this.deleteTile(tileData)} /></Tooltip>,
-
+      <Tooltip title="Delete"><DeleteOutlined key="delete" onClick={() => this.deleteTile(tileData)} /></Tooltip>
     ] : null;
     return (draggable && !reactElement) ? (
       <Tile
