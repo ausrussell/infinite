@@ -33,10 +33,10 @@ var DragControls = function ( _objects, _camera, _domElement ) {
 
 	function activate() {
 
-		_domElement.addEventListener( 'mousemove', onDocumentMouseMove, false );
-		_domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
-		_domElement.addEventListener( 'mouseup', onDocumentMouseCancel, false );
-		_domElement.addEventListener( 'mouseleave', onDocumentMouseCancel, false );
+		// _domElement.addEventListener( 'mousemove', onDocumentMouseMove, false );
+		// _domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
+		// _domElement.addEventListener( 'mouseup', onDocumentMouseCancel, false );
+		// _domElement.addEventListener( 'mouseleave', onDocumentMouseCancel, false );
 		// _domElement.addEventListener( 'touchmove', onDocumentTouchMove, false );
 		_domElement.addEventListener( 'touchstart', onDocumentTouchStart, false );
 		// _domElement.addEventListener( 'touchend', onDocumentTouchEnd, false );
