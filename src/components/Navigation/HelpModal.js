@@ -42,7 +42,7 @@ const HelpModal = (props) => {
         </Modal>
             <TweenOne
                 animation={animation} >
-                <Button shape="circle" type="primary" onClick={() => setVisible(!visible)} icon={<QuestionOutlined height={32} twoToneColor="#836fa9" />} />
+                <Button shape="circle" type="primary" onClick={() => setVisible(!visible)} icon={<QuestionOutlined twoToneColor="#836fa9" />} />
             </TweenOne>
         </div>
 
