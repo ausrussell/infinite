@@ -160,8 +160,9 @@ this.name = "TransformControls"
 	this.attach = function (object) {
 		this.object = object;
 		this.visible = true;
+		// debugger;
 		this.object.ratio =
-			object.geometry.parameters.width / object.geometry.parameters.height;
+		(object.geometry.parameters) ? object.geometry.parameters.width / object.geometry.parameters.height : 1;//for buffer geometry eg 3d
 		return this;
 	};
 

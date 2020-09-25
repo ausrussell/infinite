@@ -4,13 +4,19 @@ import * as THREE from "three";
 
 
 // import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import OrbitControls from 'orbit-controls-es6';
+// import OrbitControls from 'orbit-controls-es6';
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { Button } from "antd";
 import ThreeAssetPreviewControls from './ThreeAssetPreviewControls';
 import Frame from '../PlanBuilder/Frame';
 import Floor from '../PlanBuilder/Floor';
 import WallObject from '../PlanBuilder/WallObject';
 import Surroundings from '../PlanBuilder/Surroundings';
+import Sculpture from '../PlanBuilder/Sculpture';
+
+import { emptyScene } from "../../Helpers/TextureAdder"
+
+
 const wallWidth = 20;
 
 
@@ -20,8 +26,9 @@ class ThreeAssetPreview extends Component {
         assetRef: null,
         selectedItem: null,
         voxelsX: 10,
-        voxelsY:13,
-        wallWidth: 20
+        voxelsY: 13,
+        wallWidth: 20,
+        animations: null
     }
 
     constructor(props) {
@@ -30,6 +37,9 @@ class ThreeAssetPreview extends Component {
         this.type = props.type;
         this.gridWidth = 16 * wallWidth;
         this.gridDepth = 12 * wallWidth;
+        this.preview = true;
+    this.clock = new THREE.Clock();
+
         this.typeMap = {
             frame: {
                 add: this.addFrame,
@@ -52,6 +62,12 @@ class ThreeAssetPreview extends Component {
                 obj: null,
                 cameraPos: [0, 0, 110]
 
+            },
+            "3d object": {
+                add: this.addSculpture,
+                obj: "gltfScene",
+                cameraPos: [0, 0, 80]
+
             }
         }
     }
@@ -73,7 +89,10 @@ class ThreeAssetPreview extends Component {
     componentWillUnmount() {
         // window.removeEventListener('resize', this.handleWindowResize);
         window.cancelAnimationFrame(this.requestID);
-        // this.controls.dispose();
+        this.controls.dispose();
+        emptyScene(this.scene);
+        this.renderer.forceContextLoss()
+        this.renderer.dispose();
     }
 
     handleTileSelected() {
@@ -82,11 +101,7 @@ class ThreeAssetPreview extends Component {
         this.resetFrame();
         this.frameObject.setDataToMaterial(this.props.item);
         if (this.props.item.roughness) this.frameObject.setDataToMaterial({ roughness: this.props.item.roughness });
-        // debugger;
         this.setState({ assetRef: this.props.firebase.getAssetRef(this.type, this.props.item.key) })
-
-        // this.frameObject.fmaterial.needsUpdate = true;
-
     }
 
     sceneSetup = () => {
@@ -101,15 +116,12 @@ class ThreeAssetPreview extends Component {
         );
         this.camera.position.set(...this.typeMap[this.type].cameraPos);
 
-        // if (this.type === "frame"){
-        // } else {
-        // this.camera.position.set(0,60,260);}
         this.renderer = new THREE.WebGLRenderer({
             antialias: true
         });
         this.renderer.setSize(width, height);
         this.el.appendChild(this.renderer.domElement); // mount using React ref};
-        new OrbitControls(this.camera, this.renderer.domElement);
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     }
     addFrame = () => {
         this.frameObject = new Frame();
@@ -148,10 +160,30 @@ class ThreeAssetPreview extends Component {
         this.frameObject = new Surroundings(this);
     }
 
+    addSculpture = () => {
+        console.log("addSculpture");
+        this.frameObject = new Sculpture(this);
+    }
+    sculptureCallback = gltf => {
+        // this.scene.add(this.frameObject.gltfScene);
+        console.log("sculptureCallback added", this.frameObject);
+        if (this.frameObject.clips.length > 0) {
+            const animations = {
+                mixer: this.frameObject.mixer,
+                clips: this.frameObject.clips
+            }
+            this.setState({ animations });
+            this.frameObject.playAnimation(this.props.item.animation)
+        }
+    }
+
+
+
     resetFrame() {
-            this.scene.background = null;
-            this.scene.remove(this.frameObject[this.typeMap[this.type]["obj"]]);
-            this.typeMap[this.type]["add"]();
+        this.scene.background = null;
+        this.scene.remove(this.frameObject[this.typeMap[this.type]["obj"]]);
+        this.addCustomSceneObjects()
+        this.typeMap[this.type]["add"]();
     }
 
     addCustomSceneObjects = () => {
@@ -180,11 +212,16 @@ class ThreeAssetPreview extends Component {
     }
     startAnimationLoop = () => {
         this.renderer.render(this.scene, this.camera);
+        if (this.frameObject && this.frameObject.clips) {
+            this.frameObject.mixer.update(this.clock.getDelta());
+        }
+
+        
         this.requestID = window.requestAnimationFrame(this.startAnimationLoop);
     };
 
     createNewHandler = () => {
-        this.setState({ assetRef: this.props.firebase.getNewAssetRef(this.type) })
+        this.setState({ assetRef: this.props.firebase.getNewAssetRef(this.type) }, () => { debugger; })
     }
 
     finishedCallback = () => {
@@ -196,12 +233,12 @@ class ThreeAssetPreview extends Component {
 
 
     render() {
-        const { assetRef, selectedItem } = this.state;
+        const { assetRef, selectedItem, animations } = this.state;
         return (<div>
             <div style={{ height: 400, marginBottom: 16 }} ref={ref => (this.el = ref)} />
             {(this.frameObject && (selectedItem || assetRef)) ?
                 (<ThreeAssetPreviewControls frameObject={this.frameObject} finishedCallback={this.finishedCallback}
-                    type={this.type} assetRef={assetRef} selectedItem={selectedItem} firebase={this.props.firebase} meshRatio={this.meshRatio} help={this.props.help} />)
+                    type={this.type} assetRef={assetRef} selectedItem={selectedItem} firebase={this.props.firebase} meshRatio={this.meshRatio} help={this.props.help} animations={animations} />)
                 :
                 (<div>Select from Vault below to edit a {this.type} or...
                     <div> <Button onClick={this.createNewHandler}>Create New {this.type.toUpperCase()}</Button></div>

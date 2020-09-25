@@ -169,6 +169,8 @@ class FlaneurControls {
   }
 
   onMouseDown = event => {
+    if (!this.enabled) return;
+
     if (this.domElement !== document) {
       this.domElement.focus();
     }
@@ -200,21 +202,21 @@ class FlaneurControls {
   };
 
   onTouchStart = event => {
-    console.log("onDocumentTouchStart",event);
-    if ( event.touches.length === 1 ) {
+    console.log("onDocumentTouchStart", event);
+    if (event.touches.length === 1) {
       event.preventDefault();
-      this.mouse.x = event.touches[ 0 ].pageX -  window.innerWidth / 2;
-      this.mouse.y = event.touches[ 0 ].pageY - window.innerHeight / 2;
+      this.mouse.x = event.touches[0].pageX - window.innerWidth / 2;
+      this.mouse.y = event.touches[0].pageY - window.innerHeight / 2;
     };
-    console.log("this.mouse",this.mouse);
+    console.log("this.mouse", this.mouse);
     this.moveLeft = true;
-    this.domElement.addEventListener('touchend', this.onTouchEnd, false );
+    this.domElement.addEventListener('touchend', this.onTouchEnd, false);
 
   }
 
   onTouchEnd = () => {
     this.moveLeft = false;
-    this.domElement.removeEventListener('touchend', this.onTouchEnd );
+    this.domElement.removeEventListener('touchend', this.onTouchEnd);
 
   }
 
@@ -223,6 +225,7 @@ class FlaneurControls {
   }
 
   onMouseUp = event => {
+    if (!this.enabled) return;
     event.preventDefault();
     event.stopPropagation();
 
@@ -245,13 +248,24 @@ class FlaneurControls {
 
   onMouseMove = event => {
     this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    this.mouse.y = -((event.clientY - (window.innerHeight - this.domElement.offsetHeight)) / this.domElement.offsetHeight) * 2 + 1;
+    // this.mouse.y = -((event.clientY - (window.innerHeight - this.domElement.offsetHeight)) / this.domElement.offsetHeight) * 2 + 1;
+    // console.log("event",event)
+        // this.mouse.y = -((event.clientY - (window.innerHeight - this.domElement.offsetHeight)) / this.domElement.offsetHeight) * 2 + 1;
+        this.mouse.y = -(event.offsetY/ this.domElement.offsetHeight) * 2 + 1;
+
+    
+    // console.log("event.clientY",event.clientY,"window.innerHeight",window.innerHeight,"this.domElement.offsetHeight",this.domElement.offsetHeight)
+    // console.log("this.mouse.y",this.mouse.y)
+    if (this.enabled){
     this.checkForFloorHover();
+
+    this.checkForSculptureHover();}
+
     if (this.mode === "Gallery") this.checkForArtHover();
   };
 
   onKeyDown = event => {
-    console.log("onKeyDown",event.keyCode)
+    console.log("onKeyDown", event.keyCode)
 
 
     if (!this.moveToArtAni.stop) {
@@ -361,6 +375,13 @@ class FlaneurControls {
         break;
     }
   };
+
+  disable(){
+    this.enabled = false;
+  }
+  enable(){
+    this.enabled = true;
+  }
   //
   lookAt(x, y, z) {
     if (x.isVector3) {
@@ -539,7 +560,7 @@ class FlaneurControls {
 
     // window.e
 
-    if (this.mode === "Gallery") {window.removeEventListener("keydown", this.onKeyDown, false);}else {
+    if (this.mode === "Gallery") { window.removeEventListener("keydown", this.onKeyDown, false); } else {
       this.domElement.removeEventListener("keydown", this.onKeyDown, false);
     }
     // this.domElement.removeEventListener("keydown", this.onKeyDown, false);
@@ -554,8 +575,9 @@ class FlaneurControls {
     this.domElement.addEventListener("mouseup", this.onMouseUp, false);
 
     // window
-    // this.domElement.addEventListener("keydown", this.onKeyDown, false);
-    if (this.mode === "Gallery") {window.addEventListener("keydown", this.onKeyDown, false);}else {
+    this.domElement.addEventListener("keydown", this.onKeyDown, false);
+    if (this.mode === "Gallery") {
+       window.addEventListener("keydown", this.onKeyDown, false); } else {
       this.domElement.addEventListener("keydown", this.onKeyDown, false);
     }
     window.addEventListener("keyup", this.onKeyUp, false);
@@ -780,6 +802,7 @@ class FlaneurControls {
     if (!intersected0) {
       return intersect;
     }
+    // console.log("flaneur intersected0",intersected0)
     switch (intersected0.object.name) {
       case "footHover":
         intersect.footstepsHover = intersectedAll[0];
@@ -791,6 +814,10 @@ class FlaneurControls {
       case "artMesh":
         intersect.artMesh = intersectedAll[0];
         break;
+      // case "3d object":
+      //   debugger;
+      //   intersect["3d object"] = intersectedAll[0];
+      //   break;
       default:
         break;
     }
@@ -814,6 +841,14 @@ class FlaneurControls {
     } else {
       this.artOver && this.leaveArtHandler()
     }
+  }
+
+  checkForSculptureHover() {
+    const intersect = this.checkForIntersecting();
+    if (intersect["3d object"]) {
+      console.log("over sculpture")
+      // this.overArtHandler(intersect["3d object"]);
+    };
   }
 
   overArtHandler(artMesh) {

@@ -27,9 +27,17 @@ import ErrorBoundary from "../ErrorBoundary";
 
 import { TransformControls } from "./TransformControls_Apr19";
 
+// import { TransformControls } from "three"
+
+import { TransformControls as TransformOrig } from "three/examples/jsm/controls/TransformControls";
 import Draggable from "./Draggable";
 
 import BuilderHeader from "./BuilderHeader";
+
+import Sculpture from "./Sculpture";
+
+import { DragControls } from "../Gallery/drag";
+
 
 
 const degreesToRadians = degrees => {
@@ -54,6 +62,7 @@ class Builder extends Component {
     this.transformDirectionVector = new THREE.Vector3();
     this.transformDirectionRay = new THREE.Raycaster();
     this.lights = [];
+    this.flaneurMode = "Builder"
   }
   componentDidMount() {
     // this.setupStats();
@@ -99,6 +108,8 @@ class Builder extends Component {
     galleryTitle: "",
     galleryDesc: {},
     lights: [],
+    sculptures: [],
+    sculptureAnimations: [],
     selectedSpotlight: null,
     generalLight: null,
     plannerGallery: false,
@@ -170,13 +181,14 @@ class Builder extends Component {
     );
     window.addEventListener("resize", this.onWindowResize, false);
     this.setupFlaneurControls();
-    console.log("setupListeners this.scene",this.scene.children)
+    console.log("setupListeners this.scene", this.scene.children)
   }
 
   removeListeners() {
     this.mount.removeEventListener("mousemove", this.onMouseMove);
     this.mount.removeEventListener("mousedown", this.onMouseDown);
     window.removeEventListener("resize", this.onWindowResize);
+    window.removeEventListener("mousedown",this.transforming3dMouseDown)
   }
 
   onWindowResize = () => {
@@ -192,6 +204,8 @@ class Builder extends Component {
   onMouseMove(e) {
     this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
     this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    if (!this.transformControls.enabled ) return;
+
     this.currentHover = this.checkForIntersecting();
     // console.log("onMouseMove this.currentHover",this.currentHover)
     if (this.currentHover.artMesh && !this.activeArtMesh) {
@@ -288,7 +302,6 @@ class Builder extends Component {
       if (this.currentWallOver || this.holderOver.defaultArtMesh) {
         this.currentWallOver.addImageFile(addImageData);
       } else {
-        debugger;
         this.holderOver.artMesh.parent.holderClass.addArt(addImageData);//file, uploadTask
       }
     } //else it's straight in vault
@@ -336,7 +349,31 @@ class Builder extends Component {
   }
 
   surroundingsTileCallback(item) {
+
     this.state.surroundings.surroundingsTileCallback(item);
+  }
+
+  sculptureTileCallback(item) {
+    const new3d = new Sculpture(this);
+    new3d.addItemToBuilder(item);
+    const sculptures = this.state.sculptures;
+    sculptures.push(new3d);
+
+    this.setState({ sculptures: sculptures });
+  }
+
+
+  sculptureCallback(sculpture) {
+    this.dragControls.addObject(sculpture.gltfScene);
+    if (sculpture.clips.length > 0) {
+      sculpture.playAnimation(true);
+      const currentAnimations = this.state.sculptureAnimations;
+      currentAnimations.push(sculpture)
+      this.setState({ sculptureAnimations: currentAnimations })
+    }
+    // this.dragControls.objects = sculptures;
+    console.log("this.dragControls.objects", this.dragControls.getObjects())
+    console.log("this scene", this.scene.children)
   }
 
   selectingArtHandler = () => {
@@ -393,6 +430,32 @@ class Builder extends Component {
     }
   }
 
+  lightConeHelperSelected(helper) {
+    console.log("selected Spotlight", this.state.selectedSpotlight);
+    this.state.selectedSpotlight &&
+      this.state.selectedSpotlight.controllerClass.deselectSpotlight();
+    this.transformingMesh = helper;
+    helper.controllerClass.selectHandler();
+    this.dragging = true;
+    this.setState({ selectedSpotlight: helper });
+    this.transformControlsForMesh().attach(helper);
+    // window.addEventListener("mousedown", this.lightHelperMousedownHandler);
+  }
+  lightHelperMousedownHandler = () => {
+    console.log("lightHelperMousedownHandler");
+    this.detachTransformControls();
+  };
+
+  transformControlsForMesh = () => {
+    const meshName = this.transformingMesh.name;
+    if (meshName === "LightConeHelper") {
+      this.transformControls.showZ = true;
+      this.transformControls.showX = true;
+      this.transformControls.showY = true;
+    }
+    return this.transformControls;
+  };
+
   onEditDropdownChangeHandler = ({ galleryDesc, galleryData, id, userId }) => {
     console.log("galleryDesc, galleryData, id ", galleryDesc, galleryData, id)
     this.emptyScene();
@@ -410,12 +473,13 @@ class Builder extends Component {
 
   rebuildGallery(galleryData) {
     console.log("rebuildGallery galleryData, this.state", galleryData, this.state)
-    const { walls, floor, lights, generalLight, surrounds } = galleryData;
+    const { walls, floor, lights, generalLight, surrounds, sculptures } = galleryData;
     this.setEditFloor(floor);
     this.setEditWalls(walls);
     surrounds && this.state.surroundings.surroundingsTileCallback(surrounds)
     generalLight && this.setEditGeneralLight(generalLight);
     this.setEditWallLights(lights);
+    sculptures && this.setEdit3d(sculptures);
     this.initialCameraAnimation();
     this.setSceneMeshes();
   }
@@ -431,7 +495,7 @@ class Builder extends Component {
     returnVal.then(snapshot => {
       newState.galleryId = snapshot.key;
       // this.setState({ galleryId: snapshot.key });
-    this.setState(newState, () => this.rebuildFromFloorplan());
+      this.setState(newState, () => this.rebuildFromFloorplan());
 
     })
   }
@@ -475,41 +539,37 @@ class Builder extends Component {
   setEditWallLights(wallLights) {
     if (!wallLights) return;
     const lights = [];
-    wallLights.forEach(light => {
-      const options = light;
+
+    // wallLights.forEach(light => {
+    let i;
+
+    const lightsLimit = (wallLights.length<10)?wallLights.length:10;
+    for (i=0; i< lightsLimit; i++){
+      // const options = light;
+      console.log("setEditWallLights",i, wallLights, wallLights[i])
+      const options = wallLights[i];
+
       options.builder = this;
       const newWallLight = new WallLight(options);
       lights.push(newWallLight);
-    });
+    }
+    // );
     this.setState({ lights: lights });
     // console.log("wallLights", wallLights);
   }
 
-  lightConeHelperSelected(helper) {
-    console.log("selected Spotlight", this.state.selectedSpotlight);
-    this.state.selectedSpotlight &&
-      this.state.selectedSpotlight.controllerClass.deselectSpotlight();
-    this.transformingMesh = helper;
-    helper.controllerClass.selectHandler();
-    this.dragging = true;
-    this.setState({ selectedSpotlight: helper });
-    this.transformControlsForMesh().attach(helper);
-    // window.addEventListener("mousedown", this.lightHelperMousedownHandler);
-  }
-  lightHelperMousedownHandler = () => {
-    console.log("lightHelperMousedownHandler");
-    this.detachTransformControls();
-  };
+  setEdit3d(sculptures) {
+    const s = [];
+    sculptures.forEach(sculpture => {
+      const sobj = new Sculpture(this);
+      sobj.setDataToMaterial(sculpture)
+      s.push(sobj)
+      console.log("new sculpture", sobj)
 
-  transformControlsForMesh = () => {
-    const meshName = this.transformingMesh.name;
-    if (meshName === "LightConeHelper") {
-      this.transformControls.showZ = true;
-      this.transformControls.showX = true;
-      this.transformControls.showY = true;
-    }
-    return this.transformControls;
-  };
+    })
+    this.setState({ sculptures: s })
+  }
+
   setEditFloor(item) {
     this.setFloor(item);
   }
@@ -522,12 +582,6 @@ class Builder extends Component {
     this.setState({ selectedTile: null })
   }
 
-  removeWalls() {//nup
-    // if (this.state.wallEntities.length > 0)
-    //   this.state.wallEntities.forEach(item => {
-    //     item.removeGroup();
-    //   });
-  }
   //**** SAVE  */
   saveGallery = () => {
     const galleryData = {};
@@ -546,6 +600,13 @@ class Builder extends Component {
     this.state.lights.forEach(item => {
       galleryData.lights.push(item.getExport());
     });
+
+    galleryData.sculptures = [];
+    this.state.sculptures.forEach(item => {
+      galleryData.sculptures.push(item.getExport());
+    });
+
+    console.log("sculptures", galleryData.sculptures)
 
     if (this.state.generalLight) galleryData.generalLight = this.state.generalLight.getExport();
     if (this.state.surroundings) galleryData.surrounds = this.state.surroundings.getExport();
@@ -658,10 +719,10 @@ class Builder extends Component {
       this
     );
 
+
     this.transformControls2.setMode("scale");
     this.scene.add(this.transformControls);
     this.scene.add(this.transformControls2);
-
     this.transformControls.addEventListener("mouseUp", event => {
       this.transformMouseUpHandler(event);
     });
@@ -675,6 +736,89 @@ class Builder extends Component {
     this.transformControls2.addEventListener("objectChange", event => {
       this.transformObjectChangeHandler(event);
     });
+
+    this.add3dControls()
+  }
+
+  add3dControls() {
+
+    this.transformOrig = new TransformOrig(
+      this.camera,
+      this.mount
+    );
+    this.transformOrig.name = "TransformControls"
+    this.scene.add(this.transformOrig);
+    this.transformOrig.addEventListener("mouseDown ",
+      this.transformOrigMouseDownHandler
+    );
+
+    this.transformOrig.addEventListener("mouseUp ", event => {
+      this.transformOrigMouseUpHandler(event);
+    });
+
+    this.dragControls = new DragControls([], this.camera, this.mount);
+    this.dragControls.transformGroup = true;
+    this.dragControls.addEventListener("hoveron", ({ type, object }) => {
+      console.log("hover on sculpture object", object);
+      console.log("transforming", object.parent.parent.parent.parent)
+      console.log("object.position", object.parent.parent.parent.parent.position);
+      object.traverseAncestors(item => {
+        console.log("traverseAncestors", item);
+        if (item.name === "OSG_Scene") {
+          this.attach3dTransform(item);
+          this.transformOrig.attach(item);
+          this.flaneurControls.disable();
+          this.transformControls.enabled = false;
+          this.transformControls2.enabled = false;
+          // this.transformOrig.addEventListener("change",
+          //   // (data) => console.log("changed", data)
+          // );
+        }
+      })
+
+
+    })
+    this.dragControls.addEventListener("hoveroff", ({ type, object }) => {
+      console.log("hover off sculpture object", object);
+      // console.log("object.position", object.position, object.parent.parent.parent.position)
+      // this.transformOrig.detach(object);
+
+    })
+  };
+
+  attach3dTransform(item){
+    this.transformOrig.attach(item);
+    this.flaneurControls.disable();
+    this.transformControls.enabled = false;
+    this.transformControls2.enabled = false;
+    this.transforming3d = true;
+    window.addEventListener("mousedown",this.transforming3dMouseDown)
+  }
+
+  transforming3dMouseDown = e => {
+    const recursiveIntersects = this.raycaster.intersectObjects(this.scene.children, true);
+    console.log("transforming3dMouseDown recursiveIntersects",recursiveIntersects)
+    let offControls = false;
+    if (recursiveIntersects[0].object.type === "TransformControlsPlane"){offControls = true}
+    offControls && this.detach3dTransform();
+    // this.detach3dTransform();
+  }
+
+  detach3dTransform(){
+    this.transformOrig.detach();
+    this.flaneurControls.enable();
+    this.transformControls.enabled = true;
+    this.transformControls2.enabled = true;
+    this.transforming3d = false;
+    window.removeEventListener("mousedown",this.transforming3dMouseDown)
+  }
+
+  transformOrigMouseDownHandler = (e, f) => {
+    console.log("transformOrigMouseDownHandler", e, f)
+  }
+
+  transformOrigMouseUpHandler = (e, f, g) => {
+    console.log("transformOrigMouseUpHandler e", e, f);
   }
 
   getTransformDirectionVector(transformingObject) {
@@ -769,16 +913,26 @@ class Builder extends Component {
     this.raycaster = new THREE.Raycaster();
   }
 
+  transformControlsFor3d(mesh) {
+    this.transformControls.showZ = true;
+    this.transformControls.showX = true;
+    this.transformControls.showY = true;
+    this.transformControls.attach(mesh);
+
+  }
+
   checkForIntersecting() {
     this.raycaster.setFromCamera(this.mouse, this.camera);
     const intersects = this.rayIntersectObject(this.raycaster, 1000);
-    if (!intersects) {
+
+    const recursiveIntersects = this.raycaster.intersectObjects(this.scene.children, true);
+    if (!intersects || !recursiveIntersects) {
       return false;
     }
     let intersectedData = {};
     let intersect0 = intersects.object;
+  
     if (intersect0.name === "artMesh" || intersect0.name === "defaultArtMesh") {
-      console.log("intersect artMesh || defaultArtMesh")
       this.hoverOverObject = intersect0;
       intersectedData[intersect0.name] = intersect0;
     }
@@ -817,7 +971,7 @@ class Builder extends Component {
 
   //scene setup and animation
   setUpScene() {
-// debugger;
+    // debugger;
     const width = this.mount.clientWidth;
     const height = this.mount.parentElement.clientHeight - 48;// height wasn't getting set after new landing animation
     this.setState({ width: width, height: height });
@@ -1006,19 +1160,23 @@ class Builder extends Component {
   }
 
   emptyScene(destroyAll) {
+    // return;
+    console.log("scene before", this.scene.children);
+    this.transformOrig && this.transformOrig.detach();
     const node = this.scene;
     for (var i = node.children.length - 1; i >= 0; i--) {
       var child = node.children[i];
-
+      console.log("emptyScene child.name", child.name)
       if (destroyAll || sceneHelperObjects.indexOf(child.name) === -1) {
         this.disposeNode(child);
         this.scene.remove(child);
       }
     }
+    console.log("scene after", this.scene.children)
     return;
   }
 
-  destroyScene(){
+  destroyScene() {
     this.emptyScene(true);
     this.scene.dispose();
     this.renderer.forceContextLoss()
@@ -1096,7 +1254,7 @@ class Builder extends Component {
       // console.log("intersects[i]",i, intersects[i])
       // Check if there's a collision
       if (intersects[i].distance < distance) {
-        console.log("collide", intersects[i].distance, distance, );
+        console.log("collide", intersects[i].distance, distance,);
         return true;
       }
     }
@@ -1223,7 +1381,10 @@ class Builder extends Component {
   }
 
 
-
+  sculptureTransformControls = (e) => {
+    console.log("sculptureTransformControls", e.target.id);
+    this.transformOrig.setMode(e.target.id);
+  }
   getElevatorFloors() {
     const floors = {
       0: {
@@ -1281,6 +1442,15 @@ class Builder extends Component {
         addMaster: true,
         restoreDefault: this.restoreDefaultSurrounds.bind(this)
 
+      },
+
+      6: {
+        name: "3d",
+        floorComponent: VaultFloor,
+        refPath: "users/" + this.props.firebase.currentUID + "/3d object",
+        level: 6,
+        tileCallback: this.sculptureTileCallback.bind(this),
+        sculptureTransformClickHandler: this.sculptureTransformControls.bind(this)
       }
     };
     return floors;
@@ -1312,13 +1482,19 @@ class Builder extends Component {
     });
   }
 
-  animate() {
-    // if (this.flaneurControls) {
-      this.flaneurControls.update(this.clock.getDelta());
-    // }
-
+  animate = () => {
     this.renderer.render(this.scene, this.camera);
-    requestAnimationFrame(() => this.animate());
+    const delta = this.clock.getDelta()
+    // if (this.flaneurControls) {
+    this.flaneurControls.update(delta);
+    // }
+    if (this.state.sculptureAnimations.length > 0) {
+      this.state.sculptureAnimations.forEach(item => {
+        item.mixer.update(delta);
+      })
+    }
+
+    requestAnimationFrame(this.animate);
     this.stats && this.stats.update();
   }
   render() {

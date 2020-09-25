@@ -2,9 +2,15 @@ import React, { useState, useEffect } from "react";
 
 import { CompactPicker } from "react-color";
 
-import { Input, Checkbox, Upload, Button, Form, Slider, Select, Row, Col, Divider } from "antd";
+import { Input, Checkbox, Upload, Button, Form, Slider, Select, Row, Col, Divider, DatePicker } from "antd";
 import { InboxOutlined } from '@ant-design/icons';
+import moment from 'moment';
+
+
 import HelpModal from '../Navigation/HelpModal'
+const { TextArea } = Input;
+
+const yearFormat = 'YYYY';
 
 const { Option } = Select;
 
@@ -33,6 +39,9 @@ const ThreeAssetPreviewControls = props => {
     const [densityMax, setDensityMax] = useState(2);
     const [bumpScaleDisabled, setBumpScaleDisabled] = useState(true);
     const [normalScaleDisabled, setNormalScaleDisabled] = useState(true);
+
+    const [animations, setAnimations] = useState(null);
+
     const [form] = Form.useForm();
 
     const assetRef = props.assetRef || props.selectedItem.ref;
@@ -52,10 +61,17 @@ const ThreeAssetPreviewControls = props => {
             setDensityDisabled(!selectedItem.map);
             setNormalScaleDisabled(!selectedItem.normalMap)
             setBumpScaleDisabled(!selectedItem.bumpMap)
+            setAnimations(props.animations)
+
         }
         console.log("useEffect", props)
         selectedItem && updateTitle(props)
     }, [props]);
+
+    // useEffect(() => {
+    //     setAnimations(props.animations);
+    //     onAnimationChange();
+    // },[props.animations])
 
 
     const updateColor = (colorInput) => {
@@ -81,7 +97,7 @@ const ThreeAssetPreviewControls = props => {
         // console.log("type",type)
         console.log("form::", textureType)
         // debugger;
-        file.assetName = (props.type === "surrounds") ? file.name : textureType;
+        file.assetName = (props.type === "surrounds" || props.type === "3d object") ? file.name : textureType;
         const uploadTask = fileUpload(file);
         const next = snapshot => {
             const progress = snapshot.bytesTransferred / snapshot.totalBytes;
@@ -91,31 +107,69 @@ const ThreeAssetPreviewControls = props => {
             uploadTask.then((snapshot) => {
                 snapshot.ref.getDownloadURL().then(url => {
                     const pathAr = snapshot.ref.location.path.split("/");
-                    const type = pathAr.pop()
-                    if (props.type === "surrounds") {
-                        onSuccess("Ok");
-                        const uploadTitle = file.name.replace(".zip", "")
-                        form.setFieldsValue({ title: uploadTitle })
-                        // debugger;
-                    } else {
-                        const dbPath = pathAr.join("/");
-                        const options = { [type]: url };
-                        props.firebase.updateAsset(dbPath, options)
-                            .then(() => {
-                                console.log("db saved uploaded", dbPath, options);
-                                setPreviewTexture(textureType, url)
-                                onSuccess("Ok");
-                            })
-                        switch (textureType) {
-                            case "map": setDensityDisabled(false);
-                                break;
-                            case "normalMap": setNormalScaleDisabled(false);
-                                break;
-                            case "bumpMap": setBumpScaleDisabled(false);
-                                break;
-                            default: break;
-                        }
+                    const type = pathAr.pop();
+                    switch (props.type) {
+                        case "surrounds":
+                            onSuccess("Ok");
+                            const uploadTitle = file.name.replace(".zip", "")
+                            form.setFieldsValue({ title: uploadTitle });
+                            break;
+                        case "3d object":
+                            // onSuccess("Ok");
+                            form.setFieldsValue({ title: file.name });
+                            const dbPath3 = pathAr.join("/");
+                            const options3 = { title: file.name,
+                            url: url };
+                            props.firebase.updateAsset(dbPath3, options3)
+                                .then(() => {
+                                    console.log("db saved uploaded 3d object", dbPath3, options3);
+                                    // setPreviewTexture(textureType, url)
+                                    onSuccess("Ok");
+                                })
+                            break;
+                        default:
+                            const dbPath = pathAr.join("/");
+                            const options = { [type]: url };
+                            props.firebase.updateAsset(dbPath, options)
+                                .then(() => {
+                                    console.log("db saved uploaded", dbPath, options);
+                                    setPreviewTexture(textureType, url)
+                                    onSuccess("Ok");
+                                })
+                            switch (textureType) {
+                                case "map": setDensityDisabled(false);
+                                    break;
+                                case "normalMap": setNormalScaleDisabled(false);
+                                    break;
+                                case "bumpMap": setBumpScaleDisabled(false);
+                                    break;
+                                default: break;
+                            }
                     }
+                    // if (props.type === "surrounds") {
+                    //     onSuccess("Ok");
+                    //     const uploadTitle = file.name.replace(".zip", "")
+                    //     form.setFieldsValue({ title: uploadTitle })
+                    //     // debugger;
+                    // } else {
+                    //     const dbPath = pathAr.join("/");
+                    //     const options = { [type]: url };
+                    //     props.firebase.updateAsset(dbPath, options)
+                    //         .then(() => {
+                    //             console.log("db saved uploaded", dbPath, options);
+                    //             setPreviewTexture(textureType, url)
+                    //             onSuccess("Ok");
+                    //         })
+                    //     switch (textureType) {
+                    //         case "map": setDensityDisabled(false);
+                    //             break;
+                    //         case "normalMap": setNormalScaleDisabled(false);
+                    //             break;
+                    //         case "bumpMap": setBumpScaleDisabled(false);
+                    //             break;
+                    //         default: break;
+                    //     }
+                    // }
                 })
             })
         }
@@ -185,10 +239,15 @@ const ThreeAssetPreviewControls = props => {
         setDensityMax(value)
     }
 
+    const onAnimationChange = (e) => {
+        console.log("onAnimationChange", form.getFieldValue("animation"))
+        // if (e)
+        props.frameObject.playAnimation(form.getFieldValue("animation"))
+    }
+
     const marks = {
         0: '0',
         [densityMax]: `${densityMax}`,
-
     };
 
     const roughnessHandler = (value) => {
@@ -219,7 +278,6 @@ const ThreeAssetPreviewControls = props => {
             values.density = values.density ? [values.density, values.density * props.meshRatio] : null;
         }
         Object.keys(values).forEach(key => { values[key] = values[key] || null });
-        values.updateTime = new Date();
         const dbSave = props.firebase.updateAsset(path(), values);//obeying rules for path in cloud functions
         dbSave.then(() => {
             console.log("onFinish saved", path, values);
@@ -227,8 +285,7 @@ const ThreeAssetPreviewControls = props => {
         props.finishedCallback();
     };
 
-
-    return type === "surrounds" ? (
+    const defaultForm = (
         <Form
             {...layout}
             // name="uploadForm"
@@ -248,145 +305,235 @@ const ThreeAssetPreviewControls = props => {
                     </Form.Item>
                 </Col>
                 <Col span={(props.help) ? 5 : 8}>
-                        <Form.Item name="shareable" valuePropName="checked">
-                            <Checkbox>Allow others to borrow this</Checkbox>
-                        </Form.Item>
-                    </Col>
-                    <Col span={3}>
-                    {props.help && <HelpModal content={props.help}/>}
-                    </Col>
+                    <Form.Item name="shareable" valuePropName="checked">
+                        <Checkbox>Allow others to borrow this</Checkbox>
+                    </Form.Item>
+                </Col>
+                <Col span={3}>
+                    {props.help && <HelpModal content={props.help} />}
+                </Col>
             </Row>
-            <Form.Item name="dragger-texture" valuePropName="files" getValueFromEvent={normFile}>
-                <Upload.Dragger name="files" customRequest={customRequest} >
-                    <p className="ant-upload-drag-icon">
-                        <InboxOutlined />
-                    </p>
-                    <p className="ant-upload-text">Click or drag file to this area to upload</p>
-                </Upload.Dragger>
-            </Form.Item>
+            <Row>
+                <Col flex="0 1 370px">
+                    <Form.Item
+                        label="Color"
+                        name="color"
+                    >
+                        <CompactPicker color={color} onChangeComplete={updateColor} />
+
+                    </Form.Item>
+                </Col>
+                <Col flex="1 1 310px">
+                    <Form.Item label="Roughness" name="roughness" >
+                        <Slider onChange={roughnessHandler} min={0} max={1} step={0.05} />
+                    </Form.Item>
+                    <Form.Item label="Metalness" name="metalness" >
+                        <Slider onChange={metalnessHandler} min={0} max={1} step={0.05} />
+                    </Form.Item>
+                    <Form.Item label="Opacity" name="opacity" >
+                        <Slider onChange={opacityHandler} min={0} max={1} step={0.05} />
+                    </Form.Item>
+                </Col>
+
+            </Row>
+
+            <Divider orientation="left" style={{ color: '#333', fontWeight: 'normal' }}>
+                Optional image upload for texture
+        </Divider>
+            <Row gutter={16}>
+                <Col span={8} >
+                    <Form.Item
+                        name="texture-type"
+                        label="Texture type"
+                    >
+                        <Select defaultValue="map" onChange={setTextureType}>
+                            <Option value="map">Texture map</Option>
+                            <Option value="normalMap">Normal</Option>
+                            <Option value="bumpMap">Bump Map</Option>
+                            <Option value="roughnessMap">Roughness Map</Option>
+                        </Select>
+                    </Form.Item>
+                    <Form.Item name="dragger-texture" valuePropName="files" getValueFromEvent={normFile}>
+                        <Upload.Dragger name="files" customRequest={customRequest} >
+                            <p className="ant-upload-drag-icon">
+                                <InboxOutlined />
+                            </p>
+                            <p className="ant-upload-text">Click or drag file to this area to upload</p>
+                        </Upload.Dragger>
+                    </Form.Item>
+                </Col>
+                <Col span={16} >
+                    <Form.Item label="Texture density" name="density" >
+                        <Slider marks={marks} onChange={densityHandler} disabled={densityDisabled} min={0} max={densityMax} step={0.05} />
+
+                    </Form.Item>
+                    <Form.Item label="Texture density max" name="densityMax" >
+                        <Slider onChange={densityLimitHandler} disabled={densityDisabled} min={0.1} max={20} step={0.05} />
+                    </Form.Item>
+                    <Form.Item label="Bump Scale" name="bumpScale">
+                        <Slider onChange={bumpScaleHandler} disabled={bumpScaleDisabled} min={0} max={1} step={0.05} />
+                    </Form.Item>
+                    <Form.Item label="Normal Scale" name="normalScale">
+                        <Slider onChange={normalScaleHandler} disabled={normalScaleDisabled} min={0} max={1} step={0.05} />
+                    </Form.Item>
+                </Col>
+            </Row>
+            {(!densityDisabled || !bumpScaleDisabled || !normalScaleDisabled) &&
+                (<Form.Item>
+                    <Button htmlType="button" onClick={removeTextureHandler}>
+                        Remove texture
+                </Button>
+                </Form.Item>)}
             <Form.Item>
                 <Button htmlType="button" onClick={deleteHandler}>
                     Delete this item
-            </Button>
+        </Button>
             </Form.Item>
             <Form.Item {...tailLayout}>
                 <Button type="primary" htmlType="submit">
                     Save
-            </Button>
+        </Button>
             </Form.Item>
-        </Form>
-    ) : (
-            <Form
-                {...layout}
-                // name="uploadForm"
-                name="frame-editor"
-                form={form}
-                onFinish={onFinish}
-            >
-                <Row gutter={16}>
-                    <Col span={16} >
-                        <Form.Item
-                            label="Asset Title"
-                            name="title"
-                            valuePropName="value"
-                            rules={[{ required: true }]}
-                        >
-                            <Input placeholder="Title" />
-                        </Form.Item>
-                    </Col>
-                    <Col span={(props.help) ? 5 : 8}>
-                        <Form.Item name="shareable" valuePropName="checked">
-                            <Checkbox>Allow others to borrow this</Checkbox>
-                        </Form.Item>
-                    </Col>
-                    <Col span={3}>
-                    {props.help && <HelpModal content={props.help}/>}
-                    </Col>
-                </Row>
-                <Row>
-                    <Col flex="0 1 370px">
-                        <Form.Item
-                            label="Color"
-                            name="color"
+        </Form>)
 
-                        >
+        const surroundsForm = <Form
+        {...layout}
+        // name="uploadForm"
+        name="frame-editor"
+        form={form}
+        onFinish={onFinish}
+    >
+        <Row gutter={16}>
+            <Col span={16} >
+                <Form.Item
+                    label="Asset Title"
+                    name="title"
+                    valuePropName="value"
+                    rules={[{ required: true }]}
+                >
+                    <Input placeholder="Title" />
+                </Form.Item>
+            </Col>
+            <Col span={(props.help) ? 5 : 8}>
+                <Form.Item name="shareable" valuePropName="checked">
+                    <Checkbox>Allow others to borrow this</Checkbox>
+                </Form.Item>
+            </Col>
+            <Col span={3}>
+                {props.help && <HelpModal content={props.help} />}
+            </Col>
+        </Row>
+        <Form.Item name="dragger-texture" valuePropName="files" getValueFromEvent={normFile}>
+            <Upload.Dragger name="files" customRequest={customRequest} >
+                <p className="ant-upload-drag-icon">
+                    <InboxOutlined />
+                </p>
+                <p className="ant-upload-text">Click or drag file to this area to upload</p>
+            </Upload.Dragger>
+        </Form.Item>
 
-                            <CompactPicker color={color} onChangeComplete={updateColor} />
+        
 
-                        </Form.Item>
-                    </Col>
-                    <Col flex="1 1 310px">
-                        <Form.Item label="Roughness" name="roughness" >
-                            <Slider onChange={roughnessHandler} min={0} max={1} step={0.05} />
-                        </Form.Item>
-                        <Form.Item label="Metalness" name="metalness" >
-                            <Slider onChange={metalnessHandler} min={0} max={1} step={0.05} />
-                        </Form.Item>
-                        <Form.Item label="Opacity" name="opacity" >
-                            <Slider onChange={opacityHandler} min={0} max={1} step={0.05} />
-                        </Form.Item>
-                    </Col>
 
-                </Row>
+        <Form.Item>
+            <Button htmlType="button" onClick={deleteHandler}>
+                Delete this item
+    </Button>
+        </Form.Item>
+        <Form.Item {...tailLayout}>
+            <Button type="primary" htmlType="submit">
+                Save
+    </Button>
+        </Form.Item>
+    </Form>
 
-                <Divider orientation="left" style={{ color: '#333', fontWeight: 'normal' }}>
-                    Optional image upload for texture
+    const sculptureForm = (
+        <Form
+            {...layout}
+            // name="uploadForm"
+            name="frame-editor"
+            form={form}
+            onFinish={onFinish}
+        >
+            <Row gutter={16}>
+                <Col span={16} >
+                    <Form.Item
+                        label="Asset Title"
+                        name="title"
+                        valuePropName="value"
+                        rules={[{ required: true }]}
+                    >
+                        <Input placeholder="Title" />
+                    </Form.Item>
+                </Col>
+                <Col span={(props.help) ? 5 : 8}>
+                    <Form.Item name="shareable" valuePropName="checked">
+                        <Checkbox>Allow others to borrow this</Checkbox>
+                    </Form.Item>
+                </Col>
+                <Col span={(props.help) ? 3 : 0}>
+                    {props.help && <HelpModal content={props.help} />}
+                </Col>
+            </Row>
+
+
+            <Divider orientation="left" style={{ color: '#333', fontWeight: 'normal' }}>
+                Upload a .glb file
             </Divider>
-                <Row gutter={16}>
-                    <Col span={8} >
-                        <Form.Item
-                            name="texture-type"
-                            label="Texture type"
-                        >
-                            <Select defaultValue="map" onChange={setTextureType}>
-                                <Option value="map">Texture map</Option>
-                                <Option value="normalMap">Normal</Option>
-                                <Option value="bumpMap">Bump Map</Option>
-                                <Option value="roughnessMap">Roughness Map</Option>
-                            </Select>
-                        </Form.Item>
-                        <Form.Item name="dragger-texture" valuePropName="files" getValueFromEvent={normFile}>
-                            <Upload.Dragger name="files" customRequest={customRequest} >
-                                <p className="ant-upload-drag-icon">
-                                    <InboxOutlined />
-                                </p>
-                                <p className="ant-upload-text">Click or drag file to this area to upload</p>
-                            </Upload.Dragger>
-                        </Form.Item>
-                    </Col>
-                    <Col span={16} >
-                        <Form.Item label="Texture density" name="density" >
-                            <Slider marks={marks} onChange={densityHandler} disabled={densityDisabled} min={0} max={densityMax} step={0.05} />
+            <Row gutter={16}>
+                <Col span={24} >
 
-                        </Form.Item>
-                        <Form.Item label="Texture density max" name="densityMax" >
-                            <Slider onChange={densityLimitHandler} disabled={densityDisabled} min={0.1} max={20} step={0.05} />
-                        </Form.Item>
-                        <Form.Item label="Bump Scale" name="bumpScale">
-                            <Slider onChange={bumpScaleHandler} disabled={bumpScaleDisabled} min={0} max={1} step={0.05} />
-                        </Form.Item>
-                        <Form.Item label="Normal Scale" name="normalScale">
-                            <Slider onChange={normalScaleHandler} disabled={normalScaleDisabled} min={0} max={1} step={0.05} />
-                        </Form.Item>
-                    </Col>
-                </Row>
-                {(!densityDisabled || !bumpScaleDisabled || !normalScaleDisabled) &&
-                    (<Form.Item>
-                        <Button htmlType="button" onClick={removeTextureHandler}>
-                            Remove texture
-                    </Button>
-                    </Form.Item>)}
-                <Form.Item>
-                    <Button htmlType="button" onClick={deleteHandler}>
-                        Delete this item
-            </Button>
-                </Form.Item>
-                <Form.Item {...tailLayout}>
-                    <Button type="primary" htmlType="submit">
-                        Save
-            </Button>
-                </Form.Item>
-            </Form>)
+                    <Form.Item name="dragger-texture" valuePropName="files" getValueFromEvent={normFile}>
+                        <Upload.Dragger name="files" customRequest={customRequest} >
+                            <p className="ant-upload-drag-icon">
+                                <InboxOutlined />
+                            </p>
+                            <p className="ant-upload-text">Click or drag file to this area to upload</p>
+                        </Upload.Dragger>
+                    </Form.Item>
+                </Col>
+            </Row>
+            {animations && animations.clips.map(item => <Form.Item name="animation" key={item.name} valuePropName="checked">
+
+<Checkbox onChange={onAnimationChange} value={item.name}>Animate {item.name}</Checkbox>
+
+</Form.Item>)} 
+            <Form.Item>
+            <Button htmlType="button" onClick={deleteHandler}>
+                Delete this item
+    </Button>
+        </Form.Item>
+            <Form.Item name="artist" label="Artist">
+                <Input type="text" />
+            </Form.Item>
+            <Form.Item name="media" label="Medium/Media">
+                <Input type="text" />
+            </Form.Item>
+            <Form.Item name="description" label="Description">
+                <TextArea rows={4} />
+            </Form.Item>
+
+            <Form.Item {...tailLayout}>
+                <Button type="primary" htmlType="submit">
+                    Save
+                </Button>
+            </Form.Item>
+        </Form>);
+                //     <Form.Item label="Year" name="year">
+                //     <DatePicker picker="year" format={yearFormat}  defaultValue={moment(props.selectedItem.year || moment().format('YYYY'), 'YYYY')} />
+                // </Form.Item>
+                // <RightsDropdown license={item.license} />
+
+
+    const typeMap = {
+        "surrounds": surroundsForm,
+        frame: defaultForm,
+        floor: defaultForm,
+        wall: defaultForm,
+        "3d object": sculptureForm
+
+    }
+    return typeMap[type];
 }
 
 

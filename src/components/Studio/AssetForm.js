@@ -1,10 +1,9 @@
 
 import React, { useState, useEffect } from "react";
-import { Checkbox, Form, Input, Button, Select, Row, Col, DatePicker } from "antd";
-import rightsMap from './RightsMap';
+import { Checkbox, Form, Input, Button, DatePicker } from "antd";
 import moment from 'moment';
+import RightsDropdown from './RightsDropdown';
 
-const { Option } = Select;
 const { TextArea } = Input;
 const layout = {
     labelCol: {
@@ -21,24 +20,6 @@ const tailLayout = {
     },
 };
 
-const RightsDropdown = ({ license = 3 }) => {
-    const handleChange = (value) => {
-        console.log("handle change", value)
-    }
-
-    return (
-        <Row>
-            <Col span={4} style={{ textAlign: "center" }}>{license && rightsMap[license].icon}</Col>
-            <Col span={20}>
-                <Form.Item name="license" label="License" >
-                    <Select defaultValue={license || 3} onChange={handleChange} style={{ maxWidth: 400 }}>
-                        {Object.keys(rightsMap).map((item, i) => (<Option key={i} value={i}>{rightsMap[item].text}</Option>))}
-                    </Select>
-                </Form.Item>
-            </Col>
-        </Row>
-    )
-}
 const yearFormat = 'YYYY';
 
 const AssetForm = (props) => {

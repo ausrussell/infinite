@@ -14,7 +14,7 @@ import {
 } from "three";
 
 var DragControls = function ( _objects, _camera, _domElement ) {
-
+console.log("DragControls", _objects)
 	var _plane = new Plane();
 	var _raycaster = new Raycaster();
 
@@ -27,19 +27,25 @@ var DragControls = function ( _objects, _camera, _domElement ) {
 
 	var _selected = null, _hovered = null;
 
-	//
-
 	var scope = this;
+
+	function setObjects(objects) {
+		_objects = objects
+	}
+
+	function addObject(object) {
+		_objects.push(object)
+	}
 
 	function activate() {
 
-		// _domElement.addEventListener( 'mousemove', onDocumentMouseMove, false );
+		_domElement.addEventListener( 'mousemove', onDocumentMouseMove, false );
 		// _domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
 		// _domElement.addEventListener( 'mouseup', onDocumentMouseCancel, false );
-		// _domElement.addEventListener( 'mouseleave', onDocumentMouseCancel, false );
-		// _domElement.addEventListener( 'touchmove', onDocumentTouchMove, false );
+		_domElement.addEventListener( 'mouseleave', onDocumentMouseCancel, false );
+		_domElement.addEventListener( 'touchmove', onDocumentTouchMove, false );
 		_domElement.addEventListener( 'touchstart', onDocumentTouchStart, false );
-		// _domElement.addEventListener( 'touchend', onDocumentTouchEnd, false );
+		_domElement.addEventListener( 'touchend', onDocumentTouchEnd, false );
 
 	}
 
@@ -68,7 +74,6 @@ var DragControls = function ( _objects, _camera, _domElement ) {
 	}
 
 	function onDocumentMouseMove( event ) {
-
 		event.preventDefault();
 
 		var rect = _domElement.getBoundingClientRect();
@@ -264,7 +269,10 @@ var DragControls = function ( _objects, _camera, _domElement ) {
 	this.deactivate = deactivate;
 	this.dispose = dispose;
 	this.getObjects = getObjects;
+	this.setObjects = setObjects;
+	this.addObject = addObject;
 
+	this.name = "DragControls"
 };
 
 DragControls.prototype = Object.create( EventDispatcher.prototype );

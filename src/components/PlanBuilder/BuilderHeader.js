@@ -272,6 +272,7 @@ const BuilderHeader = ({ history, firebase, galleryDesc, galleryId, onEditDropdo
         values.title = values.title.trim();
         if (values.title) values.nameEncoded = encodeURIComponent(values.title.replace(/\s/g, "_"));
         const galleryData = saveGallery();
+
         const data = {
             desc: values,
             galleryData: galleryData
@@ -306,6 +307,8 @@ const BuilderHeader = ({ history, firebase, galleryDesc, galleryId, onEditDropdo
 
     const onFinish = (values) => {
         const { desc, galleryData } = processValues(values);
+        console.log("desc, galleryData", desc, galleryData)
+    // return;
         if (!desc) {
             return;
         }

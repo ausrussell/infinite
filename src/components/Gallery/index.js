@@ -44,7 +44,8 @@ class GalleryBase extends Component {
     onArt: null,
     guiAdded: false,
     stats: false,
-    owner: null
+    owner: null,
+    sculptureAnimations:[]
   };
 
   constructor(props) {
@@ -290,23 +291,23 @@ class GalleryBase extends Component {
     this.flaneurControls = new FlaneurControls(this.camera, this);
 
     if (isMobile) {
-    // this.mapControls =  (this.state.galleryData.title === "501A") ? new OrbitControls(this.camera, this.renderer.domElement): new MapControls(this.camera, this.renderer.domElement);
-    // debugger;
-    this.mapControls = new MapControls(this.camera, this.renderer.domElement);//new
-    this.mapControls.enableZoom = false;
-    this.mapControls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
-    this.mapControls.dampingFactor = 0.05;
-    this.mapControls.minPolarAngle = Math.PI * .25;//0;//1;//0; // radians
+      // this.mapControls =  (this.state.galleryData.title === "501A") ? new OrbitControls(this.camera, this.renderer.domElement): new MapControls(this.camera, this.renderer.domElement);
+      // debugger;
+      this.mapControls = new MapControls(this.camera, this.renderer.domElement);//new
+      this.mapControls.enableZoom = false;
+      this.mapControls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+      this.mapControls.dampingFactor = 0.05;
+      this.mapControls.minPolarAngle = Math.PI * .25;//0;//1;//0; // radians
 
-    this.mapControls.maxPolarAngle = Math.PI * .75;
-    this.mapControls.zoomSpeed = 1;
-    this.mapControls.minDistance = -500;
-    this.mapControls.maxDistance = 500;
-    this.mapControls.enableKeys = false;
+      this.mapControls.maxPolarAngle = Math.PI * .75;
+      this.mapControls.zoomSpeed = 1;
+      this.mapControls.minDistance = -500;
+      this.mapControls.maxDistance = 500;
+      this.mapControls.enableKeys = false;
 
-    this.setupDragControls();
+      this.setupDragControls();
 
-    } 
+    }
 
 
 
@@ -433,14 +434,14 @@ class GalleryBase extends Component {
   }
 
   animate() {
-    this.flaneurControls && this.flaneurControls.update(this.clock.getDelta());
+    const delta = this.clock.getDelta()
+    this.flaneurControls && this.flaneurControls.update(delta);
     this.mapControls && this.mapControls.update();
-    this.flyControls && this.flyControls.update(this.clock.getDelta());
-
+    this.flyControls && this.flyControls.update(delta);
+    this.state.sculptureAnimations.forEach(item => item.mixer.update(delta))
     this.renderer.render(this.scene, this.camera);
     this.stats && this.stats.update();
     this.animateCall = requestAnimationFrame(() => this.animate());
-
   }
 
   render() {

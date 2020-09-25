@@ -9,10 +9,35 @@ const { confirm } = Modal;
 
 const masterID = '0XHMilIweAghhLcophtPU4Ekv7D3'
 
+const untitledStyle = {
+  color: 666,
+  fontStyle: "italic"
+}
 
 const RestoreDefaultTile = (props) => {
   return (
-    <div style={{textAlign:"center",marginTop:5}}><Button onClick={()=>props.onClick()}>Clear</Button></div>
+    <div style={{ textAlign: "center", marginTop: 5 }}><Button onClick={() => props.onClick()}>Clear</Button></div>
+  )
+}
+
+const SculptureController = (props) => {
+  console.log("SculptureController props",props)
+  const onClick = e => {
+    console.log("SculptureController",e)
+    props.onClick(e)
+  }
+  return (
+    <div className="control-item">
+    <Button id="translate" onClick={onClick}>
+      Move (z)
+    </Button>
+    <Button id="rotate" onClick={onClick}>
+      Rotate (x)
+    </Button>
+    <Button id="scale" onClick={onClick}>
+      Scale (y)
+    </Button>
+  </div>
   )
 }
 
@@ -26,6 +51,8 @@ class VaultFloor extends Component {
     super(props);
     this.tileCallback = props.tileCallback;
     this.refPath = props.refPath;
+    console.log("this.refPath", this.refPath)
+
     if (!this.refPath) debugger;
     const pathParts = this.refPath.split('/');
     this.type = pathParts[2];
@@ -36,9 +63,9 @@ class VaultFloor extends Component {
     this.tilesCall = this.props.firebase.getTiles(this.refPath, this.getTilesCallback);
   }
 
-componentDidUpdate(oldProps){
-  //console.log("old and new", oldProps, this.props,)
-}
+  componentDidUpdate(oldProps) {
+    //console.log("old and new", oldProps, this.props,)
+  }
 
   componentWillUnmount() {
     this.props.firebase.detachRefListener(this.tilesCall);
@@ -50,7 +77,7 @@ componentDidUpdate(oldProps){
 
   }
   addMasterTilesCallback = (data) => {
-    if (this.props.firebase.currentUID === masterID) {return;}
+    if (this.props.firebase.currentUID === masterID) { return; }
     const masterTiles = this.state.tilesData;
     if (data) {
       data.forEach((childSnapshot) => {
@@ -66,17 +93,22 @@ componentDidUpdate(oldProps){
       this.list.push(<UploaderTile validation="image" />)
     }
     if (this.props.restoreDefault) {
-      this.list.push(<RestoreDefaultTile onClick={() => this.props.restoreDefault()}/>)
+      this.list.push(<RestoreDefaultTile onClick={() => this.props.restoreDefault()} />)
     }
     if (this.props.selectableRestoreDefault) {
-      const restoreOptions = {title:"Clear", key:"clear"}
+      const restoreOptions = { title: "Clear", key: "clear" }
       Object.assign(restoreOptions, this.props.selectableRestoreDefault);
       this.list.push(restoreOptions);
+    }
+    if (this.props.sculptureTransformClickHandler) {
+      // const restoreOptions = { title: "Clear", key: "clear" }
+      // Object.assign(restoreOptions, this.props.selectableRestoreDefault);
+      console.log("this.props.sculptureTransformControls",)
+      this.list.push(<SculptureController onClick={this.props.sculptureTransformClickHandler} />);
     }
   }
 
   getTilesCallback = (data) => {
-    //console.log("getTilesCallback this.needToAddMaster", this.needToAddMaster)
     this.list = [];
     this.setInitialList();
     const listObj = {};
@@ -92,6 +124,7 @@ componentDidUpdate(oldProps){
     if (this.props.selectedTile && !selectedTilePresent) {
       this.clearSelected()
     }
+    // console.log("this.list",this.list)
     this.setState({ tilesData: this.list }, this.props.addMaster && this.addMasterTiles);
   };
 
@@ -135,7 +168,7 @@ componentDidUpdate(oldProps){
     const tileInfo = {};
     tileInfo.tileData = tileData;
     tileData.type = this.type;
-
+    // console.log("tileData.type",tileData,tileData.type)
     const { thumb, url, color, px, map, normalMap, bumpMap, title } = tileData;//ny for cubeboxes
     tileInfo.title = title
     tileInfo.tileUrl = thumb || url || px || map || normalMap || bumpMap;
@@ -158,10 +191,7 @@ componentDidUpdate(oldProps){
       {selectable && isSelected && (<div className="tile-selected-cancel"><div>Selected: Click above to apply</div><Button loading>Cancel</Button></div>)}
     </div>);
     tileInfo.isSelected = isSelected;
-    tileInfo.headStyle = (title) ? null : {
-      color: 666,
-      fontStyle: "italic"
-    }
+    tileInfo.headStyle = (title) ? null : untitledStyle;
     return tileInfo
   }
 

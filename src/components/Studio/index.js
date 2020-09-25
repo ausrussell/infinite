@@ -10,8 +10,6 @@ import ThreeAssetPreview from './ThreeAssetPreview';
 import PageTitle from '../Navigation/PageTitle';
 import {SurroundsHelp} from './SurroundsHelp'
 
-
-
 const { TabPane } = Tabs;
 
 const ArtEditor = (props) => {
@@ -72,6 +70,7 @@ class StudioPage extends Component {
     this.frameEditor = (<ThreeAssetPreview item={this.state.selectedItem}  type="frame"/>)
     this.floorEditor = (<ThreeAssetPreview item={this.state.selectedItem}  type="floor"/>)
     this.wallEditor = (<ThreeAssetPreview item={this.state.selectedItem}  type="wall"/> )
+    this.sculptureEditor = (<ThreeAssetPreview item={this.state.selectedItem}  type="3d object"/> )
 
 
     let floorsX = {
@@ -84,6 +83,7 @@ class StudioPage extends Component {
         tileCallback: this.artClickHandler.bind(this),
         editorComponent: this.artEditor
       },
+
       1: {
         name: "Frames",
         y: 235,
@@ -95,6 +95,7 @@ class StudioPage extends Component {
         editorComponent: this.frameEditor
 
       },
+
       2: {
         name: "Floors",
         y: 470,
@@ -118,12 +119,20 @@ class StudioPage extends Component {
 
       4: {
         name: "Surrounds",
-        y: 940,
         floorComponent: VaultFloor,
         refPath: "users/" + this.props.firebase.currentUID + "/surrounds",
         level: 4,
         tileCallback: this.surroundingsTileCallback.bind(this),
         editorComponent: this.cubeMapeditor
+      },
+
+      5: {
+        name: "3d",
+        floorComponent: VaultFloor,
+        refPath: "users/" + this.props.firebase.currentUID + "/3d object",
+        level: 5,
+        tileCallback: this.surroundingsTileCallback.bind(this),
+        editorComponent: this.sculptureEditor
       }
     };
     return floorsX;
