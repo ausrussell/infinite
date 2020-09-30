@@ -760,8 +760,8 @@ class Builder extends Component {
     this.dragControls.transformGroup = true;
     this.dragControls.addEventListener("hoveron", ({ type, object }) => {
       console.log("hover on sculpture object", object);
-      console.log("transforming", object.parent.parent.parent.parent)
-      console.log("object.position", object.parent.parent.parent.parent.position);
+      // console.log("transforming", object.parent.parent.parent.parent)
+      // console.log("object.position", object.parent.parent.parent.parent.position);
       object.traverseAncestors(item => {
         console.log("traverseAncestors", item);
         if (item.name === "OSG_Scene") {

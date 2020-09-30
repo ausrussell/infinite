@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import ReactDOM from 'react-dom';
 
 import * as THREE from "three";
 import "../../css/builder.css";
@@ -15,23 +14,16 @@ import { GalleryHelp } from './GalleryHelp'
 import { ArtDetails } from './ArtDetails'
 import { compose } from 'recompose';
 
-// import MapControls from "orbit-controls-es6";
-// import { OrbitControls, MapControls } from "three/examples/jsm/controls/OrbitControls"
 import { MapControls } from "./orbit";
 import { DragControls } from "./drag";
 
+import { Events } from "../PlanBuilder/FlaneurControls";
 
 
 import { isMobile } from 'react-device-detect';
 
 import Gui from "../Gui";
 import * as Stats from "stats-js";
-// const OrbitControl = new OrbitControls();
-// const MapControls = require('three-orbit-controls')(THREE)
-// const MapControls = require('./orbit')(THREE)
-
-
-// const {MapControls} = OrbitControls;
 
 class GalleryBase extends Component {
   state = {
@@ -45,12 +37,12 @@ class GalleryBase extends Component {
     guiAdded: false,
     stats: false,
     owner: null,
-    sculptureAnimations:[]
+    sculptures: [],
+    sculptureAnimations: []
   };
 
   constructor(props) {
     super(props);
-    // debugger;
     console.log("Gallery", props.match.params.galleryName, props);
     this.flaneurMode = "Gallery";
     this.walls = props.walls;
@@ -178,6 +170,18 @@ class GalleryBase extends Component {
     this.focusGallery()
     this.setupFlaneurControls();
     window.addEventListener("resize", this.onWindowResize, false);
+    Events.addEventListener("hoveron", this.hoverOn)
+    Events.addEventListener("hoveroff", this.hoverOff)
+
+  }
+  hoverOn = (data) => {
+    console.log("hoveron data", data)
+    data.object.scope && data.object.scope.hoverOn && data.object.scope.hoverOn();
+  }
+
+  hoverOff = (data) => {
+    console.log("hoverOff data", data)
+    data.object.scope && data.object.scope.hoverOn && data.object.scope.hoverOff();
   }
 
   onWindowResize = () => {
@@ -191,8 +195,6 @@ class GalleryBase extends Component {
 
   //scene setup and animation
   setUpScene() {
-
-
     const width = this.mount.clientWidth;
     // const height = this.mount.clientHeight;
     const height = this.mount.parentElement.clientHeight - 48;// height wasn't getting set after new landing animation
@@ -218,69 +220,6 @@ class GalleryBase extends Component {
     // this.mount.firstElementChild.focus();
   }
 
-  simpleScene() {
-
-    const canvas = this.refs.canvas;//document.querySelector('#boardCanvas');
-    // reference to the actual DOM element
-    const node = ReactDOM.findDOMNode(canvas);
-    const renderer = new THREE.WebGLRenderer({ canvas: canvas });
-    console.log("renderer", renderer, node)
-
-    const fov = 75;
-    const aspect = 2;  // the canvas default
-    const near = 0.1;
-    const far = 5;
-    const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    camera.position.z = 2;
-
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0000);
-    {
-      const color = 0xFFFFFF;
-      const intensity = 1;
-      const light = new THREE.DirectionalLight(color, intensity);
-      light.position.set(-1, 2, 4);
-      scene.add(light);
-    }
-
-    const boxWidth = 1;
-    const boxHeight = 1;
-    const boxDepth = 1;
-    const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
-
-    function makeInstance(geometry, color, x) {
-      const material = new THREE.MeshPhongMaterial({ color });
-
-      const cube = new THREE.Mesh(geometry, material);
-      scene.add(cube);
-
-      cube.position.x = x;
-
-      return cube;
-    }
-
-    const cubes = [
-      makeInstance(geometry, 0x44aa88, 0),
-      makeInstance(geometry, 0x8844aa, -2),
-      makeInstance(geometry, 0xaa8844, 2),
-      makeInstance(geometry, 0xaaf844, 1),
-    ];
-
-    function render(time) {
-      time *= 0.001;  // convert time to seconds
-      cubes.forEach((cube, ndx) => {
-        const speed = 1 + ndx * .1;
-        const rot = time * speed;
-        cube.rotation.x = rot;
-        cube.rotation.y = rot;
-      });
-
-      renderer.render(scene, camera);
-
-      requestAnimationFrame(render);
-    }
-    requestAnimationFrame(render);
-  }
 
   focusGallery = () => {
     this.mount.focus();
@@ -319,7 +258,15 @@ class GalleryBase extends Component {
     this.dragControls.addEventListener("dragstart", (e) => {
       console.log("touched e", e.object);
       this.touchCounter++;
-      if (this.touchCounter > 1) this.flaneurControls.moveToArt(e.object)
+      if (this.touchCounter > 1) {
+
+        if (e.object.name === "OSG_Scene") {
+          // this.hoveredOn3d = e.object;
+          this.flaneurControls.moveTo3d(e.object)
+        }
+       else {
+        this.flaneurControls.moveToArt(e.object)
+      }}
       setTimeout(() => {
         this.touchCounter = 0
       }, 1000)
@@ -415,9 +362,9 @@ class GalleryBase extends Component {
     setTimeout(() => this.flaneurControls && this.flaneurControls.setFocus(), 500);//to overcome ant d difficult refocussing
   }
 
-  getArtDetail = (key) => {
+  getArtDetail = (key, type) => {
     const options = {
-      refPath: "users/" + this.state.owner + "/art/" + key,
+      refPath: "users/" + this.state.owner + "/" + type + "/" + key,
       once: true,
       callback: this.setArtDetails
     }

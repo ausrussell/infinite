@@ -127,14 +127,20 @@ class SceneLoader {
 
   render3d() {
     const { sculptures } = this.sceneData;
+    if (!sculptures) return;
     this.sculptures = [];
     sculptures.forEach(sculptureOptions => {
+      console.log("sculptureOptions",sculptureOptions)
       const sculpture = new Sculpture(this);
       sculpture.setDataToMaterial(sculptureOptions)
     })
   }
   sculptureCallback(sculpture) {
     console.log("sculptureCallback", sculpture);
+    const sculptures = this.builder.state.sculptures;
+    sculptures.push(sculpture.gltfScene);
+    // this.builder.setState({sculptures}, () => console.log("this.builder.state.sculptures",this.builder.state.sculptures))
+    this.builder.flaneurControls.addCollidableObject(sculpture.gltfScene);
     if (sculpture.clips.length > 0) {
       sculpture.playAnimation(true);
       const currentAnimations = this.builder.state.sculptureAnimations;

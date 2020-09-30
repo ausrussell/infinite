@@ -31,6 +31,7 @@ const AppAuth = () => {
       <img src={logoSrc} style={{ display: "none" }} alt="" />
       <Router>
         <Navigation />
+        <Route path={ROUTES.LANDING} component={LandingKept} />
         <Route path={`${ROUTES.GALLERY}/:galleryName`} component={Gallery} />
         <Route path={ROUTES.SIGN_UP} component={SignUpPage} />
         <Route path={ROUTES.SIGN_IN} component={SignInPage} />

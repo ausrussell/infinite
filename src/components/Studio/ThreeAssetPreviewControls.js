@@ -2,15 +2,15 @@ import React, { useState, useEffect } from "react";
 
 import { CompactPicker } from "react-color";
 
-import { Input, Checkbox, Upload, Button, Form, Slider, Select, Row, Col, Divider, DatePicker } from "antd";
+import { Input, Checkbox, Upload, Button, Form, Slider, Select, Row, Col, Divider } from "antd";
 import { InboxOutlined } from '@ant-design/icons';
-import moment from 'moment';
+// import moment from 'moment';
 
 
 import HelpModal from '../Navigation/HelpModal'
 const { TextArea } = Input;
 
-const yearFormat = 'YYYY';
+// const yearFormat = 'YYYY';
 
 const { Option } = Select;
 
@@ -278,6 +278,7 @@ const ThreeAssetPreviewControls = props => {
             values.density = values.density ? [values.density, values.density * props.meshRatio] : null;
         }
         Object.keys(values).forEach(key => { values[key] = values[key] || null });
+        values.key = assetRef.key;
         const dbSave = props.firebase.updateAsset(path(), values);//obeying rules for path in cloud functions
         dbSave.then(() => {
             console.log("onFinish saved", path, values);

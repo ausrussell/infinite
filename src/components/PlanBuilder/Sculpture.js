@@ -2,6 +2,8 @@
 import * as THREE from "three";
 // import { Vector3 } from "three";
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import Animate from "../../Helpers/animate";
+
 const { Quaternion } = THREE;
 
 export default class Sculpture {
@@ -24,49 +26,43 @@ export default class Sculpture {
     }
   };
 
-  setDataToMaterial = ({ url,
-    position,
-    quaternion,
-    scale,
-    clips }) => {
-    console.log("sculpture url", url);
+  setDataToMaterial = (data) => {
+
+    const { url,
+      position,
+      quaternion,
+      scale,
+      key } = data;
+    this.key = key;
     this.url = url;
     this.loader.load(url, (gltf) => {
       this.gltf = gltf;
       this.gltfScene = gltf.scene;
 
+      this.rotationGroup = new THREE.Group();
 
-      if (position){//from database
+      if (position) {//from database
         this.gltfScene.position.set(position.x, position.y, position.z);
-        // this.gltfScene.children[0].rotation.set(0, 0,  - Math.PI / 2);
-        // this.scene.add(this.gltfScene);
-  
-        const rotation = new Quaternion(quaternion._x, quaternion._y, quaternion._z, quaternion._w)
-        this.gltfScene.setRotationFromQuaternion(rotation);
-  
-        this.gltfScene.scale.set(scale.x, scale.y, scale.z)
-
-        // var boundingBox = new THREE.Box3();
-        // var mesh = gltf.children[0];
-        // boundingBox.copy( mesh.geometry.boundingBox );
-        // mesh.updateMatrixWorld( true ); // ensure world matrix is up to date
-        // boundingBox.applyMatrix4( mesh.matrixWorld );
-
-
-
+        this.rotation = new Quaternion(quaternion._x, quaternion._y, quaternion._z, quaternion._w)
+        this.gltfScene.scale.set(scale.x, scale.y, scale.z);
+        // this.rotationGroup = new THREE.Group();
+        this.rotationGroup.add(this.gltfScene)
+        this.ratio = 1;
+        this.setHelper();
+        this.scene.add(this.rotationGroup);
+        this.setViewingPosition();
+        this.rotationGroup.setRotationFromQuaternion(this.rotation);
 
       } else {//from tile
-        // const box = new THREE.Box3().setFromObject(this.gltfScene);
-        // const center = box.getCenter(new THREE.Vector3());
-        // this.gltfScene.position.x += (gltf.scene.position.x - center.x);
-        // this.gltfScene.position.y += (gltf.scene.position.y - center.y);
-        // gltf.scene.position.z += (gltf.scene.position.z - center.z);
-
+        this.rotationGroup.add(this.gltfScene)
+        this.setHelper();
+        this.scene.add(this.rotationGroup);
       }
 
-      this.scene.add(this.gltfScene);
-this.setHelper();
+      // this.scene.add(this.rotationGroup);
 
+      this.gltfScene.scope = this;
+      // this.scene.add(this.viewingPosition);
 
 
       this.checkforAnimations();
@@ -74,12 +70,78 @@ this.setHelper();
     });
   }
 
-  setHelper(){
-    const box = new THREE.Box3().setFromObject(this.gltfScene);
-    this.helper = new THREE.Box3Helper( box, 0xffff00 );
-
-    this.scene.add(this.helper);
+  artLeaveHandler = () => {
+    console.log("artLeaveHandler in sculpture");
+    this.hoverOff();
   }
+
+
+  hoverOn() {
+    this.helper.visible = true
+  }
+
+  hoverOff() {
+    console.log("Sculpture hoverOff", this.helper)
+    this.helper.visible = false;
+  }
+
+  artHoverHandler = () => {
+    this.artHoverAni = new Animate({
+      duration: 1200,
+      timing: "circ",
+      repeat: true,
+      draw: progress => this.artHoverLoop(progress),
+      bounce: true
+    });
+    this.artHoverAni.animate();
+  }
+
+
+  artHoverLoop = progress => {
+    this.fHoverMaterial.opacity = .25 + (progress * .5);
+  }
+
+  setHelper() {
+    const box = new THREE.Box3().setFromObject(this.gltfScene);
+    this.center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize();
+    this.imageWidth = size.x;
+    this.imageHeight = size.y;
+    this.ratio = size.x / size.y;
+    this.helper = new THREE.Box3Helper(box, 0x4527a0);
+    this.helper.material.linewidth = 4;//doesn't do anything?
+    this.helper.visible = false;
+    console.log("this.helper", this.helper)
+    this.rotationGroup.add(this.helper);
+
+  }
+  setViewingPosition() {
+    const helperTargetGeometry = new THREE.ConeGeometry(5, 20, 32);
+    helperTargetGeometry.rotateX(Math.PI / 2);
+    helperTargetGeometry.rotateY(Math.PI);
+    const helperTargetMaterial = new THREE.MeshNormalMaterial({
+      color: 0xcfccee,
+      transparent: true,
+      opacity: 0
+    });
+
+    this.viewingPosition = new THREE.Mesh(
+      helperTargetGeometry,
+      helperTargetMaterial
+    );
+
+    this.viewingPosition.name = "helperTarget";
+console.log("this.helper.position.x",this.helper.position.x, this.helper.getWorldPosition());
+const helperWorldPos = this.helper.getWorldPosition()
+    this.viewingPosition.position.x = helperWorldPos.x;//(this.gltfScene.position.x - center.x);
+    this.viewingPosition.position.y = helperWorldPos.y;//+= (this.gltfScene.position.y - center.y);
+    this.viewingPosition.position.z = helperWorldPos.z + 30;// += (this.gltfScene.position.z - center.z);
+    this.rotationGroup.add(this.viewingPosition)
+    this.viewingPosition.lookAt(this.helper.position);
+    console.log("viewingPosition",this.viewingPosition)
+
+  }
+
 
   checkforAnimations() {
     this.clips = this.gltf.animations || [];
@@ -98,7 +160,7 @@ this.setHelper();
     }
     else {
       action.stop();
-    console.log("stopAnimation", action);
+      console.log("stopAnimation", action);
 
     }
     // }
@@ -116,7 +178,7 @@ this.setHelper();
 
   getExport = () => {
     console.log("this.gltfScene", this.gltfScene, this.gltfScene.position, this.gltfScene.children[0].position);
-// debugger;
+    // debugger;
     let { x, y, z } = this.gltfScene.position;
     const position = { x: x, y: y, z: z }
     const { _w, _x, _y, _z } = this.gltfScene.quaternion;
@@ -129,7 +191,8 @@ this.setHelper();
       position: position,
       quaternion: quaternion,
       scale: scale,
-      clips: this.clips ? this.clips.length : null
+      clips: this.clips ? this.clips.length : null,
+      key: this.key
     }
     console.log("exportValues", exportValues)
 

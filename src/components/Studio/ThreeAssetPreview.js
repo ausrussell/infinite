@@ -212,7 +212,7 @@ class ThreeAssetPreview extends Component {
     }
     startAnimationLoop = () => {
         this.renderer.render(this.scene, this.camera);
-        if (this.frameObject && this.frameObject.clips) {
+        if (this.frameObject && this.frameObject.clips?.length > 0) {
             this.frameObject.mixer.update(this.clock.getDelta());
         }
 
@@ -230,8 +230,6 @@ class ThreeAssetPreview extends Component {
         this.setState({ assetRef: null, selectedItem: null });
     }
 
-
-
     render() {
         const { assetRef, selectedItem, animations } = this.state;
         return (<div>
@@ -243,7 +241,6 @@ class ThreeAssetPreview extends Component {
                 (<div>Select from Vault below to edit a {this.type} or...
                     <div> <Button onClick={this.createNewHandler}>Create New {this.type.toUpperCase()}</Button></div>
                 </div>)}
-
         </div>
         )
 

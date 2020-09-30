@@ -43,7 +43,7 @@ console.log("DragControls", _objects)
 		// _domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
 		// _domElement.addEventListener( 'mouseup', onDocumentMouseCancel, false );
 		_domElement.addEventListener( 'mouseleave', onDocumentMouseCancel, false );
-		_domElement.addEventListener( 'touchmove', onDocumentTouchMove, false );
+		// _domElement.addEventListener( 'touchmove', onDocumentTouchMove, false );
 		_domElement.addEventListener( 'touchstart', onDocumentTouchStart, false );
 		_domElement.addEventListener( 'touchend', onDocumentTouchEnd, false );
 
@@ -189,19 +189,19 @@ console.log("DragControls", _objects)
 
 		_raycaster.setFromCamera( _mouse, _camera );
 
-		if ( _selected && scope.enabled ) {
+		// if ( _selected && scope.enabled ) {
 
-			if ( _raycaster.ray.intersectPlane( _plane, _intersection ) ) {
+		// 	if ( _raycaster.ray.intersectPlane( _plane, _intersection ) ) {
 
-				_selected.position.copy( _intersection.sub( _offset ).applyMatrix4( _inverseMatrix ) );
+		// 		_selected.position.copy( _intersection.sub( _offset ).applyMatrix4( _inverseMatrix ) );
 
-			}
+		// 	}
 
-			scope.dispatchEvent( { type: 'drag', object: _selected } );
+		// 	scope.dispatchEvent( { type: 'drag', object: _selected } );
 
-			return;
+		// 	return;
 
-		}
+		// }
 
 	}
 
