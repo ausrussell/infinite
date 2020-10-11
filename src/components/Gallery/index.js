@@ -9,18 +9,17 @@ import MainCanvas from "./MainCanvas";
 import ErrorBoundary from "../ErrorBoundary";
 import GeneralLight from "../PlanBuilder/GeneralLight";
 import SceneLoader from "./SceneLoader";
-import PageTitle from '../Navigation/PageTitle';
-import { GalleryHelp } from './GalleryHelp'
-import { ArtDetails } from './ArtDetails'
-import { compose } from 'recompose';
+import PageTitle from "../Navigation/PageTitle";
+import { GalleryHelp } from "./GalleryHelp";
+import { ArtDetails } from "./ArtDetails";
+import { compose } from "recompose";
 
 import { MapControls } from "./orbit";
 import { DragControls } from "./drag";
 
 import { Events } from "../PlanBuilder/FlaneurControls";
 
-
-import { isMobile } from 'react-device-detect';
+import { isMobile } from "react-device-detect";
 
 import Gui from "../Gui";
 import * as Stats from "stats-js";
@@ -38,7 +37,7 @@ class GalleryBase extends Component {
     stats: false,
     owner: null,
     sculptures: [],
-    sculptureAnimations: []
+    sculptureAnimations: [],
   };
 
   constructor(props) {
@@ -49,7 +48,7 @@ class GalleryBase extends Component {
     console.log(this.walls, this.voxelsX);
     this.clock = new THREE.Clock();
     this.frameObjects = [];
-    this.GalleryHelp = GalleryHelp({ callback: this.helpCallback })
+    this.GalleryHelp = GalleryHelp({ callback: this.helpCallback });
   }
 
   componentDidMount() {
@@ -60,14 +59,13 @@ class GalleryBase extends Component {
       this.props.match.params.galleryName,
       this.processGallery
     );
-
   }
 
   componentDidUpdate(oldProps, oldState) {
     console.log("oldState, this.state", oldState, this.state);
     if (this.props.firebase.isCurator && !this.state.guiAdded) {
       this.addGui();
-      this.setupStats()
+      this.setupStats();
     }
   }
 
@@ -88,7 +86,10 @@ class GalleryBase extends Component {
           node.geometry.dispose();
         }
         if (node.material) {
-          if (node.material instanceof THREE.MeshFaceMaterial || node.material instanceof THREE.MultiMaterial) {
+          if (
+            node.material instanceof THREE.MeshFaceMaterial ||
+            node.material instanceof THREE.MultiMaterial
+          ) {
             node.material.materials.forEach(function (mtrl, idx) {
               if (mtrl.map) mtrl.map.dispose();
               if (mtrl.lightMap) mtrl.lightMap.dispose();
@@ -97,10 +98,9 @@ class GalleryBase extends Component {
               if (mtrl.specularMap) mtrl.specularMap.dispose();
               if (mtrl.envMap) mtrl.envMap.dispose();
 
-              mtrl.dispose();    // disposes any programs associated with the material
+              mtrl.dispose(); // disposes any programs associated with the material
             });
-          }
-          else {
+          } else {
             if (node.material.map) node.material.map.dispose();
             if (node.material.lightMap) node.material.lightMap.dispose();
             if (node.material.bumpMap) node.material.bumpMap.dispose();
@@ -108,47 +108,47 @@ class GalleryBase extends Component {
             if (node.material.specularMap) node.material.specularMap.dispose();
             if (node.material.envMap) node.material.envMap.dispose();
 
-            node.material.dispose();   // disposes any programs associated with the material
+            node.material.dispose(); // disposes any programs associated with the material
           }
         }
       }
       // console.log("end of disposeNode", i++)
     });
-  }
+  };
 
   emptyScene() {
     console.log("this.scene.children before", this.scene.children);
-    console.log("renderer.info before", this.renderer.info)
-    console.log("renderer.info.memory before", this.renderer.info.memory)
+    console.log("renderer.info before", this.renderer.info);
+    console.log("renderer.info.memory before", this.renderer.info.memory);
     window.cancelAnimationFrame(this.animateCall);
     if (!this.sceneLoader) return;
     this.animateCall = undefined;
 
-    this.state.artMeshes.forEach(item => {
+    this.state.artMeshes.forEach((item) => {
       item.frameDisplayObject.destroyViewingPosition();
-    })
+    });
     this.disposeNode(this.scene);
-    this.sceneLoader.destroy();//only disposing background at the moment
+    this.sceneLoader.destroy(); //only disposing background at the moment
     const node = this.scene;
     for (var i = node.children.length - 1; i >= 0; i--) {
       var child = node.children[i];
       this.scene.remove(child);
     }
     console.log("this.scene after", this.scene.children);
-    console.log("renderer.info after", this.renderer.info)
+    console.log("renderer.info after", this.renderer.info);
     this.scene.dispose();
-    this.setState({ artMeshes: null })
-    console.log("renderer.info.memory after", this.renderer.info.memory)
-    this.renderer.forceContextLoss()
+    this.setState({ artMeshes: null });
+    console.log("renderer.info.memory after", this.renderer.info.memory);
+    this.renderer.forceContextLoss();
     this.renderer.dispose();
     return;
   }
 
   addGui() {
-    console.log("addGui")
+    console.log("addGui");
     this.setState({ guiAdded: true });
     this.gui = new Gui();
-    this.gui.gui.add(this.gui, "fov", 25, 180).onChange(e => {
+    this.gui.gui.add(this.gui, "fov", 25, 180).onChange((e) => {
       this.fov = e;
       this.flaneurControls.setFov(e);
     });
@@ -157,7 +157,7 @@ class GalleryBase extends Component {
   setupStats() {
     console.log("planbuilder setupStats");
     if (!this.state.stats) {
-      this.setState({ stats: true })
+      this.setState({ stats: true });
       this.stats = new Stats();
       this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
       document.body.appendChild(this.stats.dom);
@@ -167,50 +167,56 @@ class GalleryBase extends Component {
   }
 
   setupListeners() {
-    this.focusGallery()
+    this.focusGallery();
     this.setupFlaneurControls();
     window.addEventListener("resize", this.onWindowResize, false);
-    Events.addEventListener("hoveron", this.hoverOn)
-    Events.addEventListener("hoveroff", this.hoverOff)
-
+    Events.addEventListener("hoveron", this.hoverOn);
+    Events.addEventListener("hoveroff", this.hoverOff);
   }
   hoverOn = (data) => {
-    console.log("hoveron data", data)
-    data.object.scope && data.object.scope.hoverOn && data.object.scope.hoverOn();
-  }
+    console.log("hoveron data", data);
+    data.object.scope &&
+      data.object.scope.hoverOn &&
+      data.object.scope.hoverOn();
+  };
 
   hoverOff = (data) => {
-    console.log("hoverOff data", data)
-    data.object.scope && data.object.scope.hoverOn && data.object.scope.hoverOff();
-  }
+    console.log("hoverOff data", data);
+    data.object.scope &&
+      data.object.scope.hoverOn &&
+      data.object.scope.hoverOff();
+  };
 
   onWindowResize = () => {
     const width = this.mount.clientWidth;
     const height = this.mount.clientHeight;
-    console.log("onWindowResize", width, height)
+    console.log("onWindowResize", width, height);
     this.renderer.setSize(width, height);
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
-  }
+  };
 
   //scene setup and animation
   setUpScene() {
     const width = this.mount.clientWidth;
     // const height = this.mount.clientHeight;
-    const height = this.mount.parentElement.clientHeight - 48;// height wasn't getting set after new landing animation
+    const height = this.mount.parentElement.clientHeight - 48; // height wasn't getting set after new landing animation
     this.setState({ width: width, height: height });
-    console.log("height, width", height, width, window.innerWidth, window.innerHeight)
+    console.log(
+      "height, width",
+      height,
+      width,
+      window.innerWidth,
+      window.innerHeight
+    );
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(60, width / height, 1, 1000);
     this.renderer = new THREE.WebGLRenderer({
-      antialias: true
+      antialias: true,
     });
 
     // this.renderer.setSize(width, height);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-
-
-
 
     this.mount.appendChild(this.renderer.domElement);
     // this.addLight();
@@ -220,10 +226,9 @@ class GalleryBase extends Component {
     // this.mount.firstElementChild.focus();
   }
 
-
   focusGallery = () => {
     this.mount.focus();
-  }
+  };
   setupFlaneurControls() {
     // this.setUpFlyControls();
     // debugger;
@@ -232,49 +237,53 @@ class GalleryBase extends Component {
     if (isMobile) {
       // this.mapControls =  (this.state.galleryData.title === "501A") ? new OrbitControls(this.camera, this.renderer.domElement): new MapControls(this.camera, this.renderer.domElement);
       // debugger;
-      this.mapControls = new MapControls(this.camera, this.renderer.domElement);//new
+      this.mapControls = new MapControls(this.camera, this.renderer.domElement); //new
       this.mapControls.enableZoom = false;
       this.mapControls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
       this.mapControls.dampingFactor = 0.05;
-      this.mapControls.minPolarAngle = Math.PI * .25;//0;//1;//0; // radians
+      this.mapControls.minPolarAngle = Math.PI * 0.25; //0;//1;//0; // radians
 
-      this.mapControls.maxPolarAngle = Math.PI * .75;
+      this.mapControls.maxPolarAngle = Math.PI * 0.75;
       this.mapControls.zoomSpeed = 1;
       this.mapControls.minDistance = -500;
       this.mapControls.maxDistance = 500;
       this.mapControls.enableKeys = false;
 
       this.setupDragControls();
-
     }
-
-
-
   }
 
   setupDragControls() {
-    this.dragControls = new DragControls(this.state.artMeshes, this.camera, this.renderer.domElement);
-    this.touchCounter = 0;
+    this.dragControls = new DragControls(
+      this.state.artMeshes,
+      this.camera,
+      this.renderer.domElement
+    );
     this.dragControls.addEventListener("dragstart", (e) => {
       console.log("touched e", e.object);
-      this.touchCounter++;
-      if (this.touchCounter > 1) {
 
-        if (e.object.name === "OSG_Scene") {
-          // this.hoveredOn3d = e.object;
-          this.flaneurControls.moveTo3d(e.object)
+      const now = Date.now();
+      console.log("this.lastTap && now",this.lastTap,now)
+
+      if (this.lastTap && now - this.lastTap < 1000) {
+        console.log("do move", e.object)
+        let hoveredOn3d;
+        e.object.traverseAncestors(item => {
+          if (item.name === "OSG_Scene" && !hoveredOn3d) hoveredOn3d = item;
+        })
+        if (hoveredOn3d) {
+          this.flaneurControls.moveTo3d(hoveredOn3d);
+        } else {
+          this.flaneurControls.moveToArt(e.object);
         }
-       else {
-        this.flaneurControls.moveToArt(e.object)
-      }}
-      setTimeout(() => {
-        this.touchCounter = 0
-      }, 1000)
-    })
+      } else {
+        console.log("setting this.lastTap",this.lastTap)
+        this.lastTap = now;
+      }
+    });
     this.mapControls.addEventListener("moveLeaveArt", (e) => {
-      console.log("moveLeaveArt", e)
-      this.flaneurControls.offArtHandler()
-    })
+      this.flaneurControls.offArtHandler();
+    });
   }
 
   rayIntersect(ray, distance) {
@@ -304,21 +313,17 @@ class GalleryBase extends Component {
     console.log("processGallery", data);
     this.setState({ owner: data.owner });
     if (this.galleryData) this.emptyScene();
-    // this.galleryData = data;
     this.setState({ galleryData: data }, this.setScene);
-    // this.setScene();
     this.setupListeners();
     this.setCamera();
-    // this.animateCall = () => requestAnimationFrame(() => this.animate());
 
     this.animate();
-    this.flaneurControls && this.flaneurControls.setUpCollidableObjects();//removed for OrbitControls
-
+    this.flaneurControls && this.flaneurControls.setUpCollidableObjects(); //removed for OrbitControls
   };
 
   isWallMesh(item) {
     if (item.name === "wallGroup") {
-      return item.children.filter(child => child.name === "wallMesh");
+      return item.children.filter((child) => child.name === "wallMesh");
     }
   }
 
@@ -327,7 +332,7 @@ class GalleryBase extends Component {
     const options = {
       scene: this.scene,
       sceneData: this.state.galleryData,
-      builder: this
+      builder: this,
     };
     this.sceneLoader = new SceneLoader(options);
     this.sceneLoader.renderData();
@@ -349,7 +354,6 @@ class GalleryBase extends Component {
     this.scene.add(gridHelper);
   }
 
-
   addBox() {
     var geometry = new THREE.BoxGeometry(10, 10, 10);
     var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
@@ -357,35 +361,37 @@ class GalleryBase extends Component {
     this.scene.add(cube);
   }
 
-
   helpCallback = () => {
-    setTimeout(() => this.flaneurControls && this.flaneurControls.setFocus(), 500);//to overcome ant d difficult refocussing
-  }
+    setTimeout(
+      () => this.flaneurControls && this.flaneurControls.setFocus(),
+      500
+    ); //to overcome ant d difficult refocussing
+  };
 
   getArtDetail = (key, type) => {
     const options = {
       refPath: "users/" + this.state.owner + "/" + type + "/" + key,
       once: true,
-      callback: this.setArtDetails
-    }
+      callback: this.setArtDetails,
+    };
 
-    console.log("getArtDetail", options)
+    console.log("getArtDetail", options);
     this.props.firebase.getAsset(options);
-  }
+  };
 
-  setArtDetails = snap => {
-    const snapVal = (!snap) ? null : snap.val()
+  setArtDetails = (snap) => {
+    const snapVal = !snap ? null : snap.val();
     console.log("gotArtDetails", snapVal);
 
-    this.setState({ onArt: snapVal })
-  }
+    this.setState({ onArt: snapVal });
+  };
 
   animate() {
-    const delta = this.clock.getDelta()
+    const delta = this.clock.getDelta();
     this.flaneurControls && this.flaneurControls.update(delta);
     this.mapControls && this.mapControls.update();
     this.flyControls && this.flyControls.update(delta);
-    this.state.sculptureAnimations.forEach(item => item.mixer.update(delta))
+    this.state.sculptureAnimations.forEach((item) => item.mixer.update(delta));
     this.renderer.render(this.scene, this.camera);
     this.stats && this.stats.update();
     this.animateCall = requestAnimationFrame(() => this.animate());
@@ -395,18 +401,18 @@ class GalleryBase extends Component {
     return (
       <ErrorBoundary>
         <div className="page-header-area">
-          <PageTitle title={this.state.galleryData.title} help={this.GalleryHelp} />
+          <PageTitle
+            title={this.state.galleryData.title}
+            help={this.GalleryHelp}
+          />
         </div>
-        <MainCanvas refer={mount => (this.mount = mount)} />
+        <MainCanvas refer={(mount) => (this.mount = mount)} />
         {this.state.onArt && <ArtDetails selectedArt={this.state.onArt} />}
       </ErrorBoundary>
     );
   }
 }
 
-const Gallery = compose(
-  withAuthentication,
-  withFirebase,
-)(GalleryBase);
+const Gallery = compose(withAuthentication, withFirebase)(GalleryBase);
 
 export default Gallery;

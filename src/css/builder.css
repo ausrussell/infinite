@@ -120,6 +120,7 @@ perspective-origin: 50% 0%;
   max-width:100%;
   outline: 2px solid #fff;
   padding:5px;
+  cursor: pointer;
 }
 
 .gallery-list-item--selected .gallery-list-item-image img {

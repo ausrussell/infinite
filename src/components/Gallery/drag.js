@@ -34,6 +34,7 @@ console.log("DragControls", _objects)
 	}
 
 	function addObject(object) {
+		console.log("addObject",object)
 		_objects.push(object)
 	}
 
