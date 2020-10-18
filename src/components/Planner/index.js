@@ -189,10 +189,30 @@ class Planner extends Component {
     this.setState({ id: "" });
   }
 
+  checkWall
+
+  generateRnd = (rnd) => {
+    console.log("generateRnd",rnd);
+    let blocks = rnd * 1.5;
+    while (blocks > 0){
+      let pos = parseInt(Math.random() + .5);
+      console.log("Math.max(Math.random() * blocks, 11)",Math.min(Math.random() * blocks, 11));
+      // let length = Math.max(Math.min(Math.random() * blocks), 11)
+
+      let length = Math.min(Math.max(Math.floor(Math.random() * 11), 1), 11)
+      // let length = pos ? Math.max(Math.random() * blocks, 11) : Math.max(Math.random() * blocks, 15)
+      console.log("pos",pos)
+
+      console.log("blocks.length",blocks,length)
+
+      blocks -= length;
+    }
+  }
+
   render() {
     return (
       <div>
-        <FloorplanHeader title={this.state.title} id={this.state.id} reset={this.reset} onSaveClickWallData={this.onSaveClickWallData} />
+        <FloorplanHeader title={this.state.title} id={this.state.id} reset={this.reset} onSaveClickWallData={this.onSaveClickWallData} rnd={this.generateRnd} />
         <div className="content-column-holder">
           <div className="content-column">
             <div className="canvas-holder">
