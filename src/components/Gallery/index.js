@@ -386,12 +386,12 @@ class GalleryBase extends Component {
     this.setState({ onArt: snapVal });
   };
 
-  animate() {
+  animate = () => {
     const delta = this.clock.getDelta();
     this.flaneurControls && this.flaneurControls.update(delta);
     this.mapControls && this.mapControls.update();
     this.flyControls && this.flyControls.update(delta);
-    this.state.sculptureAnimations.forEach((item) => item.mixer.update(delta));
+    this.state.sculptureAnimations.forEach((item) => {item.mixer.update(delta)});
     this.renderer.render(this.scene, this.camera);
     this.stats && this.stats.update();
     this.animateCall = requestAnimationFrame(() => this.animate());

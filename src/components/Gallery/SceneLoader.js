@@ -141,8 +141,7 @@ class SceneLoader {
     sculptures.push(sculpture.gltfScene);
     // this.builder.setState({sculptures}, () => console.log("this.builder.state.sculptures",this.builder.state.sculptures))
     this.builder.flaneurControls.addCollidableObject(sculpture.gltfScene);
-
-    this.builder.dragControls.addObject(sculpture.gltfScene);
+    this.builder.dragControls && this.builder.dragControls.addObject(sculpture.gltfScene);//no drag controls without mobile
 
     if (sculpture.clips.length > 0) {
       sculpture.playAnimation(true);
