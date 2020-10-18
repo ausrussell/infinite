@@ -307,7 +307,7 @@ class FlaneurControls {
 
     if (this._intersections.length > 0) {
       var object = this._intersections[0].object;
-      console.log("intersected", object)
+      // console.log("intersected", object)
 
       this._plane.setFromNormalAndCoplanarPoint(this.object.getWorldDirection(this._plane.normal), this._worldPosition.setFromMatrixPosition(object.matrixWorld));
 

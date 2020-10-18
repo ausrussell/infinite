@@ -392,7 +392,7 @@ var OrbitControls = function (object, domElement) {
 	}
 
 	function rotateLeft(angle) {
-		sphericalDelta2.theta -= angle;
+		sphericalDelta2.theta += angle;
 	}
 
 	function rotateUp(angle) {
@@ -558,7 +558,6 @@ var OrbitControls = function (object, domElement) {
 
 		rotateStart.copy(rotateEnd);
 
-		// scope.update();
 		scope.update();
 
 	}

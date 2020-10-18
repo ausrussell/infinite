@@ -38,16 +38,17 @@ import Sculpture from "./Sculpture";
 
 import { DragControls } from "../Gallery/drag";
 
-
-
-const degreesToRadians = degrees => {
+const degreesToRadians = (degrees) => {
   return (degrees * Math.PI) / 180;
 };
 
-const sceneHelperObjects = ["footHover", "clickFloorPlane", "TransformControls"]
+const sceneHelperObjects = [
+  "footHover",
+  "clickFloorPlane",
+  "TransformControls",
+];
 
 class Builder extends Component {
-
   constructor(props) {
     super(props);
     this.state = this.getInitialState();
@@ -62,11 +63,11 @@ class Builder extends Component {
     this.transformDirectionVector = new THREE.Vector3();
     this.transformDirectionRay = new THREE.Raycaster();
     this.lights = [];
-    this.flaneurMode = "Builder"
+    this.flaneurMode = "Builder";
   }
   componentDidMount() {
     // this.setupStats();
-    console.log("Builder did mount")
+    console.log("Builder did mount");
     this.setUpScene();
     // this.addHelperGrid()
     this.initialFloorAnimation();
@@ -91,7 +92,7 @@ class Builder extends Component {
       this.floorplanProcessed = true;
       if (this.props.firebase.isCurator && !this.state.guiAdded) {
         this.addGui();
-        this.setupStats()
+        this.setupStats();
       }
     }
   }
@@ -124,20 +125,20 @@ class Builder extends Component {
     exportData: null,
     guiAdded: false,
     stats: false,
-    userId: null
-  })
+    userId: null,
+  });
 
   initialFloorAnimation() {
     this.state.floor.addFloorMesh({ color: "#f8f1f0" });
-    this.addGeneralLight()
+    this.addGeneralLight();
     this.initialCameraAnimation();
   }
 
   addGui() {
-    console.log("addGui")
+    console.log("addGui");
     this.setState({ guiAdded: true });
     this.gui = new Gui();
-    this.gui.gui.add(this.gui, "fov", 25, 180).onChange(e => {
+    this.gui.gui.add(this.gui, "fov", 25, 180).onChange((e) => {
       this.fov = e;
       this.flaneurControls.setFov(e);
     });
@@ -146,29 +147,28 @@ class Builder extends Component {
   setupStats() {
     console.log("planbuilder setupStats");
     if (!this.state.stats) {
-      this.setState({ stats: true })
+      this.setState({ stats: true });
       this.stats = new Stats();
       this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
       document.body.appendChild(this.stats.dom);
       this.stats.dom.style.top = "48px";
       this.stats.dom.style.position = "absolute";
-
     }
   }
 
   setUpGui() {
-    var controls = new function () {
+    var controls = new (function () {
       this.fov = 45;
-    }();
+    })();
 
-    this.props.gui.add(controls, "fov", 25, 180).onChange(e => {
+    this.props.gui.add(controls, "fov", 25, 180).onChange((e) => {
       this.fov = e;
       this.flaneurControls.setFov(e);
     });
   }
   //listeners
   setupListeners() {
-    console.log("setupListeners", this.mount)
+    console.log("setupListeners", this.mount);
     this.mount.addEventListener(
       "mousemove",
       this.onMouseMove.bind(this),
@@ -181,30 +181,30 @@ class Builder extends Component {
     );
     window.addEventListener("resize", this.onWindowResize, false);
     this.setupFlaneurControls();
-    console.log("setupListeners this.scene", this.scene.children)
+    console.log("setupListeners this.scene", this.scene.children);
   }
 
   removeListeners() {
     this.mount.removeEventListener("mousemove", this.onMouseMove);
     this.mount.removeEventListener("mousedown", this.onMouseDown);
     window.removeEventListener("resize", this.onWindowResize);
-    window.removeEventListener("mousedown",this.transforming3dMouseDown)
+    window.removeEventListener("mousedown", this.transforming3dMouseDown);
   }
 
   onWindowResize = () => {
     const width = this.mount.clientWidth;
     const height = this.mount.clientHeight;
-    console.log("onWindowResize", width, height)
+    console.log("onWindowResize", width, height);
 
     this.renderer.setSize(width, height);
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
-  }
+  };
 
   onMouseMove(e) {
     this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
     this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-    if (!this.transformControls.enabled ) return;
+    if (!this.transformControls.enabled) return;
 
     this.currentHover = this.checkForIntersecting();
     // console.log("onMouseMove this.currentHover",this.currentHover)
@@ -228,7 +228,11 @@ class Builder extends Component {
         }
       }
       // console.log("this.state.selectedTile && artHolder", this.state.selectedTile, artHolder)
-      if (this.state.selectedTile && artHolder && this.state.selectedTile.type === "frame") {
+      if (
+        this.state.selectedTile &&
+        artHolder &&
+        this.state.selectedTile.type === "frame"
+      ) {
         console.log("selectedTile", this.state.selectedTile);
         artHolder.removeTexture();
         artHolder.setFrameColor(this.state.selectedTile);
@@ -238,15 +242,19 @@ class Builder extends Component {
         // e.stopPropagation();
         this.lightConeHelperSelected(intersectedData.LightConeHelper);
       }
-      const { wallOver } = intersectedData;//for changing wall texture
-      if (this.state.selectedTile && wallOver && this.state.selectedTile.type === "wall") {
+      const { wallOver } = intersectedData; //for changing wall texture
+      if (
+        this.state.selectedTile &&
+        wallOver &&
+        this.state.selectedTile.type === "wall"
+      ) {
         wallOver.removeTexture();
         wallOver.wallTileCallback(this.state.selectedTile);
       }
     }
   }
 
-  dragOverHandler = e => {
+  dragOverHandler = (e) => {
     this.dragging = true;
     this.onMouseMove(e);
     let intersectedData = this.checkForIntersecting();
@@ -273,14 +281,14 @@ class Builder extends Component {
   fileDropHandler = (file, uploadTask) => {
     const dropData = {
       file: file,
-      uploadTask: uploadTask
+      uploadTask: uploadTask,
     };
     this.processDroppedArt(dropData);
   };
 
-  itemDropHandler = itemData => {
+  itemDropHandler = (itemData) => {
     const dropData = {
-      itemData: itemData
+      itemData: itemData,
     };
     this.processDroppedArt(dropData);
   };
@@ -297,25 +305,25 @@ class Builder extends Component {
         side: this.currentSide,
         holderOver: this.holderOver,
         draggableImageRef: this.draggableImageRef,
-        uploadTask: uploadTask
+        uploadTask: uploadTask,
       };
       if (this.currentWallOver || this.holderOver.defaultArtMesh) {
         this.currentWallOver.addImageFile(addImageData);
       } else {
-        this.holderOver.artMesh.parent.holderClass.addArt(addImageData);//file, uploadTask
+        this.holderOver.artMesh.parent.holderClass.addArt(addImageData); //file, uploadTask
       }
     } //else it's straight in vault
     this.setState({
       draggableVaultElementActive: false,
-      draggableVaultItem: null
+      draggableVaultItem: null,
     });
   }
 
   removeSpotlight(spotLight) {
-    const lights = this.state.lights
+    const lights = this.state.lights;
     const index = lights.indexOf(spotLight);
     lights.splice(index, 1);
-    this.setState({ lights: lights })
+    this.setState({ lights: lights });
   }
 
   //tileclick handlers
@@ -323,11 +331,11 @@ class Builder extends Component {
   artClickHandler(item) {
     console.log("artClickHandler", item);
     if (this.state.selectingArt) {
-      this.selectedArt(item)
+      this.selectedArt(item);
     } else {
       this.setState({
         draggableVaultElementActive: true,
-        draggableVaultItem: item
+        draggableVaultItem: item,
       });
       this.draggableImageRef = React.createRef();
       this.dragging = true;
@@ -349,7 +357,6 @@ class Builder extends Component {
   }
 
   surroundingsTileCallback(item) {
-
     this.state.surroundings.surroundingsTileCallback(item);
   }
 
@@ -362,38 +369,36 @@ class Builder extends Component {
     this.setState({ sculptures: sculptures });
   }
 
-
   sculptureCallback(sculpture) {
     this.dragControls.addObject(sculpture.gltfScene);
     if (sculpture.clips.length > 0) {
       sculpture.playAnimation(true);
       const currentAnimations = this.state.sculptureAnimations;
-      currentAnimations.push(sculpture)
-      this.setState({ sculptureAnimations: currentAnimations })
+      currentAnimations.push(sculpture);
+      this.setState({ sculptureAnimations: currentAnimations });
     }
     // this.dragControls.objects = sculptures;
-    console.log("this.dragControls.objects", this.dragControls.getObjects())
-    console.log("this scene", this.scene.children)
+    console.log("this.dragControls.objects", this.dragControls.getObjects());
+    console.log("this scene", this.scene.children);
   }
 
   selectingArtHandler = () => {
-    console.log("setting selectingArt to ", !this.state.selectingArt)
+    console.log("setting selectingArt to ", !this.state.selectingArt);
 
     this.setState({ selectingArt: !this.state.selectingArt });
-  }
+  };
 
   selectedArt(item) {
     const desc = this.state.galleryDesc;
     desc.galleryImg = item;
-    this.setState({ galleryDesc: desc })
+    this.setState({ galleryDesc: desc });
     this.selectingArtHandler();
   }
-
 
   hoverArtMesh(artMesh) {
     // console.log("hoverArtMesh", artMesh, this.dragging);
     if (!this.dragging && !this.state.selectedTile) {
-      console.log("show z", artMesh.parent.wallPos === 0)
+      console.log("show z", artMesh.parent.wallPos === 0);
       this.transformControls.showZ = artMesh.parent.wallPos === 0;
       this.transformControls.showX = artMesh.parent.wallPos === 1;
       this.transformControls.attach(artMesh);
@@ -457,26 +462,43 @@ class Builder extends Component {
   };
 
   onEditDropdownChangeHandler = ({ galleryDesc, galleryData, id, userId }) => {
-    console.log("galleryDesc, galleryData, id ", galleryDesc, galleryData, id)
+    console.log("galleryDesc, galleryData, id ", galleryDesc, galleryData, id);
     this.emptyScene();
     if (!id) {
       let initState = this.getInitialState();
       this.setState(initState);
     } else {
       const { name, floorplan } = galleryData;
-      const newState = Object.assign(this.getInitialState(), { galleryTitle: name, floorplan: floorplan, galleryDesc: galleryDesc, galleryId: id, floor: new Floor({ builder: this }), surroundings: new Surroundings(this), userId: userId })
-      this.setState(newState, () => this.rebuildGallery(galleryData))
+      const newState = Object.assign(this.getInitialState(), {
+        galleryTitle: name,
+        floorplan: floorplan,
+        galleryDesc: galleryDesc,
+        galleryId: id,
+        floor: new Floor({ builder: this }),
+        surroundings: new Surroundings(this),
+        userId: userId,
+      });
+      this.setState(newState, () => this.rebuildGallery(galleryData));
     }
-  }
-
-
+  };
 
   rebuildGallery(galleryData) {
-    console.log("rebuildGallery galleryData, this.state", galleryData, this.state)
-    const { walls, floor, lights, generalLight, surrounds, sculptures } = galleryData;
+    console.log(
+      "rebuildGallery galleryData, this.state",
+      galleryData,
+      this.state
+    );
+    const {
+      walls,
+      floor,
+      lights,
+      generalLight,
+      surrounds,
+      sculptures,
+    } = galleryData;
     this.setEditFloor(floor);
     this.setEditWalls(walls);
-    surrounds && this.state.surroundings.surroundingsTileCallback(surrounds)
+    surrounds && this.state.surroundings.surroundingsTileCallback(surrounds);
     generalLight && this.setEditGeneralLight(generalLight);
     this.setEditWallLights(lights);
     sculptures && this.setEdit3d(sculptures);
@@ -485,31 +507,33 @@ class Builder extends Component {
   }
 
   floorplanSelectedHandler = (data) => {
-    console.log("Builder floorplanSelectedHandler", data)
+    console.log("Builder floorplanSelectedHandler", data);
     this.emptyScene();
     // const floor = new Floor({ builder: this });
-    console.log("intialState", this.getInitialState())
-    const newState = Object.assign(this.getInitialState(), { floorplan: data, floor: new Floor({ builder: this }) })
-    console.log("newState", newState)
-    let returnVal = this.props.firebase.pushAsset("users/" + this.props.firebase.currentUID + "/galleryDesc/")
-    returnVal.then(snapshot => {
+    console.log("intialState", this.getInitialState());
+    const newState = Object.assign(this.getInitialState(), {
+      floorplan: data,
+      floor: new Floor({ builder: this }),
+    });
+    console.log("newState", newState);
+    let returnVal = this.props.firebase.pushAsset(
+      "users/" + this.props.firebase.currentUID + "/galleryDesc/"
+    );
+    returnVal.then((snapshot) => {
       newState.galleryId = snapshot.key;
       // this.setState({ galleryId: snapshot.key });
       this.setState(newState, () => this.rebuildFromFloorplan());
-
-    })
-  }
-
+    });
+  };
 
   rebuildFromFloorplan = (data) => {
     console.log("rebuildFromFloorplan", data);
     // this.checkForChanges();
     this.setFloor();
-    this.setWalls();//?
+    this.setWalls(); //?
     this.addGeneralLight();
     this.initialCameraAnimation();
     this.setSceneMeshes();
-
   };
 
   getExport() {
@@ -518,15 +542,17 @@ class Builder extends Component {
     galleryData.floor = this.state.floor.getExport();
     galleryData.walls = [];
 
-    this.state.wallEntities.forEach(item => {
+    this.state.wallEntities.forEach((item) => {
       galleryData.walls.push(item.getExport());
     });
     galleryData.lights = [];
-    this.state.lights.forEach(item => {
+    this.state.lights.forEach((item) => {
       galleryData.lights.push(item.getExport());
     });
-    if (this.state.generalLight) galleryData.generalLight = this.state.generalLight.getExport();
-    if (this.state.surroundings) galleryData.surrounds = this.state.surroundings.getExport();
+    if (this.state.generalLight)
+      galleryData.generalLight = this.state.generalLight.getExport();
+    if (this.state.surroundings)
+      galleryData.surrounds = this.state.surroundings.getExport();
     // console.log("setExport", galleryData)
     return galleryData;
   }
@@ -543,10 +569,10 @@ class Builder extends Component {
     // wallLights.forEach(light => {
     let i;
 
-    const lightsLimit = (wallLights.length<10)?wallLights.length:10;
-    for (i=0; i< lightsLimit; i++){
+    const lightsLimit = wallLights.length < 10 ? wallLights.length : 10;
+    for (i = 0; i < lightsLimit; i++) {
       // const options = light;
-      console.log("setEditWallLights",i, wallLights, wallLights[i])
+      console.log("setEditWallLights", i, wallLights, wallLights[i]);
       const options = wallLights[i];
 
       options.builder = this;
@@ -560,27 +586,27 @@ class Builder extends Component {
 
   setEdit3d(sculptures) {
     const s = [];
-    sculptures.forEach(sculpture => {
+    sculptures.forEach((sculpture) => {
       const sobj = new Sculpture(this);
-      sobj.setDataToMaterial(sculpture)
-      s.push(sobj)
-      console.log("new sculpture", sobj)
-
-    })
-    this.setState({ sculptures: s })
+      sobj.setDataToMaterial(sculpture);
+      s.push(sobj);
+      console.log("new sculpture", sobj);
+    });
+    this.setState({ sculptures: s });
   }
 
   setEditFloor(item) {
     this.setFloor(item);
   }
 
-  fadeInArt = index => {
+  fadeInArt = (index) => {
     this.state.wallEntities[index].fadeInArt();
   };
 
-  elevatorInnerClickHandler = () => {//to handle deselecting if clickable tile wasn't clicked
-    this.setState({ selectedTile: null })
-  }
+  elevatorInnerClickHandler = () => {
+    //to handle deselecting if clickable tile wasn't clicked
+    this.setState({ selectedTile: null });
+  };
 
   //**** SAVE  */
   saveGallery = () => {
@@ -590,26 +616,28 @@ class Builder extends Component {
     galleryData.walls = [];
     galleryData.art = [];
 
-    this.state.wallEntities.forEach(item => {
-      const wallExport = item.getExport()
+    this.state.wallEntities.forEach((item) => {
+      const wallExport = item.getExport();
       galleryData.walls.push(wallExport);
       wallExport.artKeys && galleryData.art.push(...wallExport.artKeys);
     });
 
     galleryData.lights = [];
-    this.state.lights.forEach(item => {
+    this.state.lights.forEach((item) => {
       galleryData.lights.push(item.getExport());
     });
 
     galleryData.sculptures = [];
-    this.state.sculptures.forEach(item => {
+    this.state.sculptures.forEach((item) => {
       galleryData.sculptures.push(item.getExport());
     });
 
-    console.log("sculptures", galleryData.sculptures)
+    console.log("sculptures", galleryData.sculptures);
 
-    if (this.state.generalLight) galleryData.generalLight = this.state.generalLight.getExport();
-    if (this.state.surroundings) galleryData.surrounds = this.state.surroundings.getExport();
+    if (this.state.generalLight)
+      galleryData.generalLight = this.state.generalLight.getExport();
+    if (this.state.surroundings)
+      galleryData.surrounds = this.state.surroundings.getExport();
     // if (galleryData.art.length) this.addCatalogue(galleryData.art);
     return galleryData;
   };
@@ -617,17 +645,17 @@ class Builder extends Component {
     const options = {
       refPath: "users/" + this.props.firebase.currentUID + "/art/" + key, //change this to deal with user from curator editing
       once: true,
-      callback: this.setArtDetails
-    }
-    console.log("getArtDetail", options)
+      callback: this.setArtDetails,
+    };
+    console.log("getArtDetail", options);
     this.props.firebase.getAsset(options);
   }
   addCatalogue(artKeys) {
-    artKeys.forEach(key => this.getArtDetail(key))
+    artKeys.forEach((key) => this.getArtDetail(key));
   }
-  setArtDetails = data => {
-    console.log("setArtDetails", data.val())
-  }
+  setArtDetails = (data) => {
+    console.log("setArtDetails", data.val());
+  };
 
   resetTranslatedArt() {
     this.transformOriginVector.copy(this.activeArtMesh.getWorldPosition());
@@ -635,7 +663,7 @@ class Builder extends Component {
       origin: this.transformOriginVector,
       direction: this.getTransformDirectionVector(this.activeArtMesh),
       includes: ["wallMesh"],
-      distance: 10
+      distance: 10,
     };
     let intersect0 = this.rayIntersectOptions(options);
     console.log("intersect0", intersect0);
@@ -666,7 +694,7 @@ class Builder extends Component {
   }
 
   transformMouseUpHandler(event) {
-    console.log("transformMouseUpHandler", event.mode)
+    console.log("transformMouseUpHandler", event.mode);
     if (event.mode === "translate" && this.objectChanged) {
       this.resetTranslatedArt();
     }
@@ -682,7 +710,9 @@ class Builder extends Component {
   }
 
   getWallFromIntersect(intersect) {
-    const intersectedWallIndex = this.state.wallMeshes.indexOf(intersect.object);
+    const intersectedWallIndex = this.state.wallMeshes.indexOf(
+      intersect.object
+    );
     let side = null;
     const faceIndex = intersect.faceIndex;
     switch (faceIndex) {
@@ -699,7 +729,7 @@ class Builder extends Component {
     }
     let intersectedData = {
       wallOver: this.state.wallEntities[intersectedWallIndex] || null,
-      wallSideOver: side
+      wallSideOver: side,
       // voxelClicked: voxelClicked
     };
 
@@ -719,40 +749,36 @@ class Builder extends Component {
       this
     );
 
-
     this.transformControls2.setMode("scale");
     this.scene.add(this.transformControls);
     this.scene.add(this.transformControls2);
-    this.transformControls.addEventListener("mouseUp", event => {
+    this.transformControls.addEventListener("mouseUp", (event) => {
       this.transformMouseUpHandler(event);
     });
-    this.transformControls2.addEventListener("mouseUp", event => {
+    this.transformControls2.addEventListener("mouseUp", (event) => {
       this.transformMouseUpHandler(event);
     });
 
-    this.transformControls.addEventListener("objectChange", event => {
+    this.transformControls.addEventListener("objectChange", (event) => {
       this.transformObjectChangeHandler(event);
     });
-    this.transformControls2.addEventListener("objectChange", event => {
+    this.transformControls2.addEventListener("objectChange", (event) => {
       this.transformObjectChangeHandler(event);
     });
 
-    this.add3dControls()
+    this.add3dControls();
   }
 
   add3dControls() {
-
-    this.transformOrig = new TransformOrig(
-      this.camera,
-      this.mount
-    );
-    this.transformOrig.name = "TransformControls"
+    this.transformOrig = new TransformOrig(this.camera, this.mount);
+    this.transformOrig.name = "TransformControls";
     this.scene.add(this.transformOrig);
-    this.transformOrig.addEventListener("mouseDown ",
+    this.transformOrig.addEventListener(
+      "mouseDown ",
       this.transformOrigMouseDownHandler
     );
 
-    this.transformOrig.addEventListener("mouseUp ", event => {
+    this.transformOrig.addEventListener("mouseUp ", (event) => {
       this.transformOrigMouseUpHandler(event);
     });
 
@@ -762,10 +788,12 @@ class Builder extends Component {
       console.log("hover on sculpture object", object);
       // console.log("transforming", object.parent.parent.parent.parent)
       // console.log("object.position", object.parent.parent.parent.parent.position);
-      object.traverseAncestors(item => {
-        console.log("traverseAncestors", item);
-        if (item.name === "OSG_Scene") {
+      object.traverseAncestors((item) => {
+        // console.log("traverseAncestors", item);
+        let attached = false;
+        if (item.name === "OSG_Scene" && !attached) {
           this.attach3dTransform(item);
+          attached = true;
           this.transformOrig.attach(item);
           this.flaneurControls.disable();
           this.transformControls.enabled = false;
@@ -774,52 +802,68 @@ class Builder extends Component {
           //   // (data) => console.log("changed", data)
           // );
         }
-      })
-
-
-    })
+      });
+    });
     this.dragControls.addEventListener("hoveroff", ({ type, object }) => {
       console.log("hover off sculpture object", object);
       // console.log("object.position", object.position, object.parent.parent.parent.position)
       // this.transformOrig.detach(object);
+    });
+  }
 
-    })
-  };
-
-  attach3dTransform(item){
+  attach3dTransform(item) {
     this.transformOrig.attach(item);
     this.flaneurControls.disable();
     this.transformControls.enabled = false;
     this.transformControls2.enabled = false;
     this.transforming3d = true;
-    window.addEventListener("mousedown",this.transforming3dMouseDown)
+    window.addEventListener("mousedown", this.transforming3dMouseDown);
   }
 
-  transforming3dMouseDown = e => {
-    const recursiveIntersects = this.raycaster.intersectObjects(this.scene.children, true);
-    console.log("transforming3dMouseDown recursiveIntersects",recursiveIntersects)
-    let offControls = false;
-    if (recursiveIntersects[0].object.type === "TransformControlsPlane"){offControls = true}
-    offControls && this.detach3dTransform();
+  transforming3dMouseDown = (e) => {
+    let onControls = this.isOnControls();
+
+    !onControls && this.detach3dTransform();
     // this.detach3dTransform();
+  };
+  isOnControls() {
+    const recursiveIntersects = this.raycaster.intersectObjects(
+      this.scene.children,
+      true
+    );
+    console.log(
+      "transforming3dMouseDown recursiveIntersects",
+      recursiveIntersects
+    );
+    let onControl = false;
+    recursiveIntersects.forEach((intersect) => {
+      if (!onControl) {
+        intersect.object.traverseAncestors((item) => {
+          console.log("item",item)
+          if (item.parent?.type === "TransformControlsGizmo") {
+            onControl = true;
+          }
+        });
+      }
+    });
+    return onControl;
   }
-
-  detach3dTransform(){
+  detach3dTransform() {
     this.transformOrig.detach();
     this.flaneurControls.enable();
     this.transformControls.enabled = true;
     this.transformControls2.enabled = true;
     this.transforming3d = false;
-    window.removeEventListener("mousedown",this.transforming3dMouseDown)
+    window.removeEventListener("mousedown", this.transforming3dMouseDown);
   }
 
   transformOrigMouseDownHandler = (e, f) => {
-    console.log("transformOrigMouseDownHandler", e, f)
-  }
+    console.log("transformOrigMouseDownHandler", e, f);
+  };
 
   transformOrigMouseUpHandler = (e, f, g) => {
     console.log("transformOrigMouseUpHandler e", e, f);
-  }
+  };
 
   getTransformDirectionVector(transformingObject) {
     let rotationMatrix = new THREE.Matrix4();
@@ -871,7 +915,7 @@ class Builder extends Component {
     let buffers = [0];
 
     let fourCornersAr = [];
-    buffers.forEach(buffer => {
+    buffers.forEach((buffer) => {
       fourCornersAr.push(
         topLeftCnr,
         topRightCnr,
@@ -881,7 +925,7 @@ class Builder extends Component {
     });
 
     let canMove = 0;
-    fourCornersAr.forEach(cnr => {
+    fourCornersAr.forEach((cnr) => {
       this.transformOriginVector_temp.copy(this.transformOriginVector).add(cnr);
       this.transformDirectionRay.set(
         this.transformOriginVector_temp,
@@ -918,20 +962,22 @@ class Builder extends Component {
     this.transformControls.showX = true;
     this.transformControls.showY = true;
     this.transformControls.attach(mesh);
-
   }
 
   checkForIntersecting() {
     this.raycaster.setFromCamera(this.mouse, this.camera);
     const intersects = this.rayIntersectObject(this.raycaster, 1000);
 
-    const recursiveIntersects = this.raycaster.intersectObjects(this.scene.children, true);
+    const recursiveIntersects = this.raycaster.intersectObjects(
+      this.scene.children,
+      true
+    );
     if (!intersects || !recursiveIntersects) {
       return false;
     }
     let intersectedData = {};
     let intersect0 = intersects.object;
-  
+
     if (intersect0.name === "artMesh" || intersect0.name === "defaultArtMesh") {
       this.hoverOverObject = intersect0;
       intersectedData[intersect0.name] = intersect0;
@@ -961,7 +1007,7 @@ class Builder extends Component {
     if (side) {
       intersectedData = {
         wallOver: this.state.wallEntities[intersectedWallIndex] || null,
-        wallSideOver: side
+        wallSideOver: side,
         // voxelClicked: voxelClicked
       };
     }
@@ -973,13 +1019,13 @@ class Builder extends Component {
   setUpScene() {
     // debugger;
     const width = this.mount.clientWidth;
-    const height = this.mount.parentElement.clientHeight - 48;// height wasn't getting set after new landing animation
+    const height = this.mount.parentElement.clientHeight - 48; // height wasn't getting set after new landing animation
     this.setState({ width: width, height: height });
     this.scene = new THREE.Scene();
     // this.scene.background = new THREE.Color().setHSL(0.6, 0, 1);
     this.camera = new THREE.PerspectiveCamera(45, width / height, 1, 5000);
     this.renderer = new THREE.WebGLRenderer({
-      antialias: true
+      antialias: true,
       // shadowMapEnabled: true
     });
     // this.renderer.shadowMap.enabled = true;
@@ -999,7 +1045,6 @@ class Builder extends Component {
     // this.setupFlaneurControls();
     this.setupListeners();
     this.animate();
-
   }
 
   // SKYDOME
@@ -1011,7 +1056,7 @@ class Builder extends Component {
       topColor: { value: new THREE.Color(0x0077ff) },
       bottomColor: { value: new THREE.Color(0xffffff) },
       offset: { value: 33 },
-      exponent: { value: 0.6 }
+      exponent: { value: 0.6 },
     };
     // uniforms["topColor"].value.copy(this.generalLight.color); // this was turning the sky off
     // console.log("uniforms topColor", uniforms, this.generalLight.color);
@@ -1024,7 +1069,7 @@ class Builder extends Component {
       uniforms: uniforms,
       vertexShader: vertexShader,
       fragmentShader: fragmentShader,
-      side: THREE.BackSide
+      side: THREE.BackSide,
     });
 
     var sky = new THREE.Mesh(skyGeo, skyMat);
@@ -1056,7 +1101,7 @@ class Builder extends Component {
   addBox() {
     const geometry = new THREE.BoxGeometry(10, 10, 10);
     const material = new THREE.MeshBasicMaterial({
-      color: 0xffffff
+      color: 0xffffff,
       // wireframe: true
     });
     const mesh = new THREE.Mesh(geometry, material);
@@ -1066,8 +1111,9 @@ class Builder extends Component {
 
   //***** LIGHTS
 
-  removeLights() {// nup
-    console.log("removeLights this.lights", this.lights, this.lights.length)
+  removeLights() {
+    // nup
+    console.log("removeLights this.lights", this.lights, this.lights.length);
     // while (this.lights.length) {
     //   this.lights[0].removeSpotlight();
     // }
@@ -1089,10 +1135,10 @@ class Builder extends Component {
     const options = {
       position: spotlightPosArr,
       builder: this,
-      target: targetAr
+      target: targetAr,
     };
     const newWallLight = new WallLight(options);
-    this.setState({ lights: [...this.state.lights, newWallLight] })
+    this.setState({ lights: [...this.state.lights, newWallLight] });
   }
 
   addGeneralLight(options = {}) {
@@ -1117,10 +1163,10 @@ class Builder extends Component {
     }
   }
 
-  getPlanCallback = snapshot => {
+  getPlanCallback = (snapshot) => {
     console.log("snapshot", snapshot.val());
     const floorSnapshot = snapshot.val();
-    this.floorplanSelectedHandler(floorSnapshot)
+    this.floorplanSelectedHandler(floorSnapshot);
   };
 
   disposeNode = (parentObject) => {
@@ -1131,7 +1177,10 @@ class Builder extends Component {
           node.geometry.dispose();
         }
         if (node.material) {
-          if (node.material instanceof THREE.MeshFaceMaterial || node.material instanceof THREE.MultiMaterial) {
+          if (
+            node.material instanceof THREE.MeshFaceMaterial ||
+            node.material instanceof THREE.MultiMaterial
+          ) {
             node.material.materials.forEach(function (mtrl, idx) {
               if (mtrl.map) mtrl.map.dispose();
               if (mtrl.lightMap) mtrl.lightMap.dispose();
@@ -1140,10 +1189,9 @@ class Builder extends Component {
               if (mtrl.specularMap) mtrl.specularMap.dispose();
               if (mtrl.envMap) mtrl.envMap.dispose();
 
-              mtrl.dispose();    // disposes any programs associated with the material
+              mtrl.dispose(); // disposes any programs associated with the material
             });
-          }
-          else {
+          } else {
             if (node.material.map) node.material.map.dispose();
             if (node.material.lightMap) node.material.lightMap.dispose();
             if (node.material.bumpMap) node.material.bumpMap.dispose();
@@ -1151,13 +1199,13 @@ class Builder extends Component {
             if (node.material.specularMap) node.material.specularMap.dispose();
             if (node.material.envMap) node.material.envMap.dispose();
 
-            node.material.dispose();   // disposes any programs associated with the material
+            node.material.dispose(); // disposes any programs associated with the material
           }
         }
       }
       // console.log("end of disposeNode", i++)
     });
-  }
+  };
 
   emptyScene(destroyAll) {
     // return;
@@ -1166,23 +1214,22 @@ class Builder extends Component {
     const node = this.scene;
     for (var i = node.children.length - 1; i >= 0; i--) {
       var child = node.children[i];
-      console.log("emptyScene child.name", child.name)
+      console.log("emptyScene child.name", child.name);
       if (destroyAll || sceneHelperObjects.indexOf(child.name) === -1) {
         this.disposeNode(child);
         this.scene.remove(child);
       }
     }
-    console.log("scene after", this.scene.children)
+    console.log("scene after", this.scene.children);
     return;
   }
 
   destroyScene() {
     this.emptyScene(true);
     this.scene.dispose();
-    this.renderer.forceContextLoss()
+    this.renderer.forceContextLoss();
     this.renderer.dispose();
   }
-
 
   //set objects
 
@@ -1202,20 +1249,38 @@ class Builder extends Component {
       }
     }
 
-    this.setState({ wallEntities: wallEntities, wallMeshes: wallEntities.map(item => item.getMesh()) }, this.initialWallBuild);
+    this.setState(
+      {
+        wallEntities: wallEntities,
+        wallMeshes: wallEntities.map((item) => item.getMesh()),
+      },
+      this.initialWallBuild
+    );
   }
 
   setEditWalls(walls) {
     const wallEntities = [];
-    walls.forEach(wall => {
+    walls.forEach((wall) => {
       const { col, row, pos, sides, texture } = wall;
-      const options = { x: col, y: row, pos: pos, builder: this, texture: texture };
+      const options = {
+        x: col,
+        y: row,
+        pos: pos,
+        builder: this,
+        texture: texture,
+      };
       const newWall = new WallObject(options);
       // console.log("newWall", newWall)
       if (sides) newWall.addSidesFromData(sides);
       wallEntities.push(newWall);
     });
-    this.setState({ wallEntities: wallEntities, wallMeshes: wallEntities.map(item => item.getMesh()) }, () => this.initialWallBuild(this.fadeInArt));
+    this.setState(
+      {
+        wallEntities: wallEntities,
+        wallMeshes: wallEntities.map((item) => item.getMesh()),
+      },
+      () => this.initialWallBuild(this.fadeInArt)
+    );
   }
 
   setFloor(item) {
@@ -1232,18 +1297,16 @@ class Builder extends Component {
     });
     this.setState({ exportData: this.getExport() });
     this.flaneurControls.setUpCollidableObjects();
-
   }
 
   setSceneMeshes() {
     const meshesInScene = [];
-    this.scene.traverse(node => {
+    this.scene.traverse((node) => {
       if (node instanceof THREE.Mesh) {
         meshesInScene.push(node);
       }
     });
     this.setState({ meshesInScene: meshesInScene });
-
   }
 
   rayIntersect(ray, distance) {
@@ -1254,7 +1317,7 @@ class Builder extends Component {
       // console.log("intersects[i]",i, intersects[i])
       // Check if there's a collision
       if (intersects[i].distance < distance) {
-        console.log("collide", intersects[i].distance, distance,);
+        console.log("collide", intersects[i].distance, distance);
         return true;
       }
     }
@@ -1276,7 +1339,7 @@ class Builder extends Component {
     let all = this.raycaster.intersectObjects(this.state.meshesInScene);
     // console.log("all intersects", all);
     let intersects = all.filter(
-      node =>
+      (node) =>
         node.distance < distance && includes.indexOf(node.object.name) !== -1
     );
 
@@ -1290,7 +1353,7 @@ class Builder extends Component {
     let intersects;
     if (excludeCurrent) {
       intersects = all.filter(
-        node =>
+        (node) =>
           node.distance < distance &&
           ((node.object.name === "artMesh" &&
             node.object !== this.activeArtMesh) ||
@@ -1298,7 +1361,7 @@ class Builder extends Component {
       );
     } else {
       intersects = all.filter(
-        node =>
+        (node) =>
           node.distance < distance &&
           (node.object.name === "artMesh" ||
             node.object.name === "wallMesh" ||
@@ -1310,7 +1373,6 @@ class Builder extends Component {
 
     return intersects[0] || null;
   }
-
 
   addSpotlightHandler() {
     let cameraPosition = this.camera.getWorldPosition();
@@ -1334,7 +1396,7 @@ class Builder extends Component {
       cameraPosition,
       cameraDirection.clone().multiplyScalar(spotlightDistanceFromCamera)
     );
-    let { x, z } = spotlightPos;//y
+    let { x, z } = spotlightPos; //y
     const spotlightPosArr = [x, 60, z];
     console.log("spotlightPosArr", spotlightPosArr);
 
@@ -1349,42 +1411,42 @@ class Builder extends Component {
     const options = {
       position: spotlightPosArr,
       builder: this,
-      target: targetAr
+      target: targetAr,
     };
     const newWallLight = new WallLight(options);
-    this.setState({ lights: [...this.state.lights, newWallLight] });//lights.push(newWallLight
+    this.setState({ lights: [...this.state.lights, newWallLight] }); //lights.push(newWallLight
     newWallLight.displayHelper();
   }
 
   restoreDefaultFloor = () => {
     this.state.floor.resetMaterial();
-  }
+  };
 
   restoreDefaultSurrounds = () => {
     this.state.surroundings.reset();
-  }
+  };
 
   getVaultFloorInstance = (props) => {
     // console.log("getVaultFloorInstance", props)
-    return <VaultFloor {...props}
-      selectedTile={this.state.selectedTile}
-    />
-  }
+    return <VaultFloor {...props} selectedTile={this.state.selectedTile} />;
+  };
 
   getLightFloorInstance = (props) => {
-    return <LightFloor {...props}
-      lights={this.state.lights}
-      selectedSpotlight={this.state.selectedSpotlight}
-      generalLight={this.state.generalLight}
-      addSpotlightHandler={() => this.addSpotlightHandler()}
-    />
-  }
-
+    return (
+      <LightFloor
+        {...props}
+        lights={this.state.lights}
+        selectedSpotlight={this.state.selectedSpotlight}
+        generalLight={this.state.generalLight}
+        addSpotlightHandler={() => this.addSpotlightHandler()}
+      />
+    );
+  };
 
   sculptureTransformControls = (e) => {
     console.log("sculptureTransformControls", e.target.id);
     this.transformOrig.setMode(e.target.id);
-  }
+  };
   getElevatorFloors() {
     const floors = {
       0: {
@@ -1395,7 +1457,7 @@ class Builder extends Component {
         tileCallback: this.artClickHandler.bind(this),
         draggable: true,
         addUploader: true,
-        actions: ["delete", "edit"]
+        actions: ["delete", "edit"],
       },
       1: {
         name: "Frames",
@@ -1405,7 +1467,7 @@ class Builder extends Component {
         tileCallback: this.frameClickHandler.bind(this),
         selectable: true,
         addMaster: true,
-        selectableRestoreDefault: { color: 0x666666 }
+        selectableRestoreDefault: { color: 0x666666 },
       },
       2: {
         name: "Floors",
@@ -1414,7 +1476,7 @@ class Builder extends Component {
         level: 2,
         tileCallback: this.floorTileCallback.bind(this),
         addMaster: true,
-        restoreDefault: this.restoreDefaultFloor.bind(this)
+        restoreDefault: this.restoreDefaultFloor.bind(this),
       },
       3: {
         name: "Walls",
@@ -1424,8 +1486,7 @@ class Builder extends Component {
         tileCallback: this.wallTileCallback.bind(this),
         selectable: true,
         addMaster: true,
-        selectableRestoreDefault: { color: 0xe1f5fe }
-
+        selectableRestoreDefault: { color: 0xe1f5fe },
       },
       4: {
         name: "Lights",
@@ -1440,8 +1501,7 @@ class Builder extends Component {
         level: 5,
         tileCallback: this.surroundingsTileCallback.bind(this),
         addMaster: true,
-        restoreDefault: this.restoreDefaultSurrounds.bind(this)
-
+        restoreDefault: this.restoreDefaultSurrounds.bind(this),
       },
 
       6: {
@@ -1450,13 +1510,15 @@ class Builder extends Component {
         refPath: "users/" + this.props.firebase.currentUID + "/3d object",
         level: 6,
         tileCallback: this.sculptureTileCallback.bind(this),
-        sculptureTransformClickHandler: this.sculptureTransformControls.bind(this)
-      }
+        sculptureTransformClickHandler: this.sculptureTransformControls.bind(
+          this
+        ),
+      },
     };
     return floors;
   }
 
-  floorCalledCallback = floor => {
+  floorCalledCallback = (floor) => {
     console.log("floorCalledCallback", floor);
     if (this.currentFloor === "Lights") {
       this.removeLightsHelpers();
@@ -1468,15 +1530,15 @@ class Builder extends Component {
   };
 
   addLightHelpers() {
-    this.state.lights.forEach(light => {
+    this.state.lights.forEach((light) => {
       light.displayHelper();
     });
   }
   removeLightsHelpers() {
-    console.log("removeLightsHelpers")
+    console.log("removeLightsHelpers");
     this.detachTransformControls();
     this.setState({ selectedSpotlight: null }, () => {
-      this.state.lights.forEach(light => {
+      this.state.lights.forEach((light) => {
         light.undisplayHelper();
       });
     });
@@ -1484,27 +1546,27 @@ class Builder extends Component {
 
   animate = () => {
     this.renderer.render(this.scene, this.camera);
-    const delta = this.clock.getDelta()
+    const delta = this.clock.getDelta();
     // if (this.flaneurControls) {
     this.flaneurControls.update(delta);
     // }
     if (this.state.sculptureAnimations.length > 0) {
-      this.state.sculptureAnimations.forEach(item => {
+      this.state.sculptureAnimations.forEach((item) => {
         item.mixer.update(delta);
-      })
+      });
     }
 
     requestAnimationFrame(this.animate);
     this.stats && this.stats.update();
-  }
+  };
   render() {
     const { galleryId, floorplan, exportData, userId } = this.state;
     // <MainCanvas refer={mount => (this.mount = mount)} />
 
     return (
       <ErrorBoundary>
-        {(this.props.firebase.currentUID) &&
-          (<BuilderHeader
+        {this.props.firebase.currentUID && (
+          <BuilderHeader
             onEditDropdownChangeHandler={this.onEditDropdownChangeHandler}
             saveGallery={this.saveGallery}
             galleryDesc={this.state.galleryDesc}
@@ -1513,10 +1575,14 @@ class Builder extends Component {
             plannerGallery={this.state.plannerGallery}
             galleryId={galleryId}
             floorplan={floorplan}
-            floorplanSelectedHandler={(data) => this.floorplanSelectedHandler(data)}
+            floorplanSelectedHandler={(data) =>
+              this.floorplanSelectedHandler(data)
+            }
             exportData={exportData}
-            userId={userId} />)}
-        <div id="boardCanvas" ref={mount => this.mount = mount} />
+            userId={userId}
+          />
+        )}
+        <div id="boardCanvas" ref={(mount) => (this.mount = mount)} />
         {this.state.draggableVaultElementActive && (
           <Draggable
             itemDragover={this.dragOverHandler}
@@ -1527,7 +1593,10 @@ class Builder extends Component {
           >
             <DraggableVaultElement
               ref={this.draggableImageRef}
-              imgSrc={this.state.draggableVaultItem.thumb || this.state.draggableVaultItem.url}
+              imgSrc={
+                this.state.draggableVaultItem.thumb ||
+                this.state.draggableVaultItem.url
+              }
             />
           </Draggable>
         )}
@@ -1540,17 +1609,19 @@ class Builder extends Component {
             elevatorInnerClickHandler={this.elevatorInnerClickHandler}
           />
         )}
-        {this.mount && <Uploader
-          fileDragover={this.dragOverHandler}
-          fileDragLeaveHandler={this.fileDragLeaveHandler}
-          fileDrop={(item, uploadTask) =>
-            this.fileDropHandler(item, uploadTask)
-          }
-          wallOver={this.state.wallOver}
-          type="art"
-          validation="image"
-          domElement={this.mount}
-        />}
+        {this.mount && (
+          <Uploader
+            fileDragover={this.dragOverHandler}
+            fileDragLeaveHandler={this.fileDragLeaveHandler}
+            fileDrop={(item, uploadTask) =>
+              this.fileDropHandler(item, uploadTask)
+            }
+            wallOver={this.state.wallOver}
+            type="art"
+            validation="image"
+            domElement={this.mount}
+          />
+        )}
       </ErrorBoundary>
     );
   }
@@ -1566,4 +1637,4 @@ const DraggableVaultElement = React.forwardRef((props, ref) => (
 //   return <div id="boardCanvas" ref={mount => props.refer(mount)} />;
 // };
 
-export default withFirebase(Builder)
+export default withFirebase(Builder);

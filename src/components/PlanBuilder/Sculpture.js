@@ -42,6 +42,7 @@ export default class Sculpture {
       this.rotationGroup = new THREE.Group();
 
       if (position) {//from database
+        console.log("place sculpture from db",this.gltfScene)
         this.gltfScene.position.set(position.x, position.y, position.z);
         this.rotation = new Quaternion(quaternion._x, quaternion._y, quaternion._z, quaternion._w)
         this.gltfScene.scale.set(scale.x, scale.y, scale.z);

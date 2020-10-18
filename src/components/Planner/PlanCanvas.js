@@ -273,11 +273,7 @@ class PlanCanvas extends Component {
     if (y < 0) debugger;
     if (x > 5) x -= 5;
     if (y > 5) y -= 5;
-    // console.log(
-    //   "getWallsFromPos",
-    //   Math.floor(x / voxelSizePlus),
-    //   Math.floor(y / voxelSizePlus)
-    // );
+
     return this.props.walls[Math.max(0,Math.floor(x / voxelSizePlus))][
       Math.max(0,Math.floor(y / voxelSizePlus))
     ];

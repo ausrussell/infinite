@@ -314,6 +314,7 @@ const BuilderHeader = ({ history, firebase, galleryDesc, galleryId, onEditDropdo
         }
         saveProcessedValues(desc, galleryData);
         const uidToSaveTo = (firebase.isCurator && curatorsUID) ? curatorsUID : firebase.currentUID;
+        console.log("save values to","users/" + uidToSaveTo + "/galleryData/" + id)
         const options = {
             refPath: "users/" + uidToSaveTo + "/galleryData/" + id,
             callback: (savedData) => {
