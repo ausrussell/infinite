@@ -12,6 +12,7 @@ import SceneLoader from "./SceneLoader";
 import PageTitle from "../Navigation/PageTitle";
 import { GalleryHelp } from "./GalleryHelp";
 import { ArtDetails } from "./ArtDetails";
+import { FocusEye } from "./FocusEye";
 import { compose } from "recompose";
 
 import { MapControls } from "./orbit";
@@ -32,7 +33,7 @@ class GalleryBase extends Component {
     wallWidth: 20,
     wallMeshes: [],
     artMeshes: [],
-    onArt: null,
+    onArt: null, //art details
     guiAdded: false,
     stats: false,
     owner: null,
@@ -200,30 +201,20 @@ class GalleryBase extends Component {
   setUpScene() {
     const width = this.mount.clientWidth;
     // const height = this.mount.clientHeight;
-    const height = this.mount.parentElement.clientHeight - 48; // height wasn't getting set after new landing animation
+    const height = this.mount.clientHeight; // height wasn't getting set after new landing animation
     this.setState({ width: width, height: height });
-    console.log(
-      "height, width",
-      height,
-      width,
-      window.innerWidth,
-      window.innerHeight
-    );
+    console.log("height, width", height, width);
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(60, width / height, 1, 1000);
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
     });
-
-    // this.renderer.setSize(width, height);
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setSize(width, height);
 
     this.mount.appendChild(this.renderer.domElement);
-    // this.addLight();
     // this.addHelperGrid();
 
     this.renderer.render(this.scene, this.camera);
-    // this.mount.firstElementChild.focus();
   }
 
   focusGallery = () => {
@@ -263,21 +254,21 @@ class GalleryBase extends Component {
       console.log("touched e", e.object);
 
       const now = Date.now();
-      console.log("this.lastTap && now",this.lastTap,now)
+      console.log("this.lastTap && now", this.lastTap, now);
 
       if (this.lastTap && now - this.lastTap < 1000) {
-        console.log("do move", e.object)
+        console.log("do move", e.object);
         let hoveredOn3d;
-        e.object.traverseAncestors(item => {
+        e.object.traverseAncestors((item) => {
           if (item.name === "OSG_Scene" && !hoveredOn3d) hoveredOn3d = item;
-        })
+        });
         if (hoveredOn3d) {
           this.flaneurControls.moveTo3d(hoveredOn3d);
         } else {
           this.flaneurControls.moveToArt(e.object);
         }
       } else {
-        console.log("setting this.lastTap",this.lastTap)
+        console.log("setting this.lastTap", this.lastTap);
         this.lastTap = now;
       }
     });
@@ -381,21 +372,60 @@ class GalleryBase extends Component {
 
   setArtDetails = (snap) => {
     const snapVal = !snap ? null : snap.val();
-    console.log("gotArtDetails", snapVal);
-
+    console.log("gotArtDetails onArt", snapVal);
     this.setState({ onArt: snapVal });
   };
+
+  offArtHandler() {
+    console.log("offArtHandler");
+    this.setArtDetails(null);
+    this.setState({ focusEye: null });
+  }
+
+  onArtHandler(selectedArt) {
+    console.log("glallery onArtHandler", selectedArt);
+    const frameMesh = selectedArt.artMesh;
+
+    if (this.state.focusEye || !frameMesh) return;
+    const frameMat = frameMesh.matrixWorld;
+    var box = new THREE.Box3();
+    box.setFromObject(frameMesh);
+    let boxSize = box.getSize();
+    const frameWidth = selectedArt.wall.pos === 0 ? boxSize.z : boxSize.x;
+    const frameHeight = boxSize.y;
+    var newpos = new THREE.Vector3(
+      frameMesh.position.x - frameWidth / 2,
+      frameMesh.position.y + frameHeight / 2,
+      frameMesh.position.z - 5
+    );
+    newpos.applyMatrix4(frameMat);
+    newpos.project(this.camera);
+    newpos.x = Math.round(((newpos.x + 1) * this.mount.clientWidth) / 2);
+    newpos.y = Math.round(((-newpos.y + 1) * this.mount.clientHeight) / 2) ;
+
+    newpos.mount = this.mount;
+    const widthHalf = (this.mount.clientWidth) / 2;
+    const heightHalf = (this.mount.clientHeight) / 2 + this.mount.offsetTop;
+
+    newpos.center = {
+      x: widthHalf,
+      y: heightHalf,
+    };
+    this.setState({ focusEye: newpos });
+  }
 
   animate = () => {
     const delta = this.clock.getDelta();
     this.flaneurControls && this.flaneurControls.update(delta);
     this.mapControls && this.mapControls.update();
     this.flyControls && this.flyControls.update(delta);
-    this.state.sculptureAnimations.forEach((item) => {item.mixer.update(delta)});
+    this.state.sculptureAnimations.forEach((item) => {
+      item.mixer.update(delta);
+    });
     this.renderer.render(this.scene, this.camera);
     this.stats && this.stats.update();
     this.animateCall = requestAnimationFrame(() => this.animate());
-  }
+  };
 
   render() {
     return (
@@ -408,6 +438,12 @@ class GalleryBase extends Component {
         </div>
         <MainCanvas refer={(mount) => (this.mount = mount)} />
         {this.state.onArt && <ArtDetails selectedArt={this.state.onArt} />}
+        {this.state.focusEye && (
+          <FocusEye
+            focusEye={this.state.focusEye}
+            focusEye2={this.state.focusEye2}
+          />
+        )}
       </ErrorBoundary>
     );
   }

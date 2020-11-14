@@ -1,11 +1,11 @@
 import * as THREE from "three";
 import Animate from "../../Helpers/animate";
-import { isEqual } from 'lodash';
+import { isEqual } from "lodash";
 
 const { Quaternion, Vector3, Vector2, Plane, Raycaster } = THREE;
-export const Events = new THREE.EventDispatcher()
+export const Events = new THREE.EventDispatcher();
 
-const degreesToRadians = degrees => {
+const degreesToRadians = (degrees) => {
   return (degrees * Math.PI) / 180;
 };
 
@@ -76,7 +76,7 @@ class FlaneurControls {
     this.currentDestination = null;
     this.defaultObjectY = 40;
     this.collisionDistance = 5;
-    this.setUpAnimations()
+    this.setUpAnimations();
     this.collidableObjects = [];
     // this.setUpCollidableObjects();
 
@@ -85,7 +85,6 @@ class FlaneurControls {
     this.onArt = false;
     this.movingToArt = false;
     this.cameraRotationSpeed = 1;
-
 
     this._mouse = new Vector2();
     this._plane = new Plane();
@@ -101,37 +100,35 @@ class FlaneurControls {
     this.scope = this;
   }
 
-
   setUpAnimations() {
     this.moveToDestinationAni = new Animate({
       duration: 5000,
       timing: "circ",
-      draw: progress => this.moveToDestinationLoop(progress),
-      done: this.doneMoveToDestination
+      draw: (progress) => this.moveToDestinationLoop(progress),
+      done: this.doneMoveToDestination,
     });
     this.moveToArtAni = new Animate({
       duration: 1000,
       timing: "circ",
-      draw: progress => this.moveToArtLoop(progress),
-      done: this.doneMoveToArt
+      draw: (progress) => this.moveToArtLoop(progress),
+      done: this.doneMoveToArt,
     });
     this.restoreDefaultFovAni = new Animate({
       duration: 600,
       timing: "circ",
-      draw: progress => this.restoreDefaultFovLoop(progress),
-      done: this.doneRestoreDefaultFov
+      draw: (progress) => this.restoreDefaultFovLoop(progress),
+      done: this.doneRestoreDefaultFov,
     });
     this.easeOutCameraTurn = new Animate({
       duration: 200,
       timing: "easeOut",
-      draw: progress => this.easeOutCameraTurnLoop(progress),
-      done: this.doneEaseOutCameraTurn
+      draw: (progress) => this.easeOutCameraTurnLoop(progress),
+      done: this.doneEaseOutCameraTurn,
     });
-
   }
 
   easeCamera(dir) {
-    this.easeOutCameraTurn.end()
+    this.easeOutCameraTurn.end();
     this.easeOutCameraTurn.begin();
   }
 
@@ -142,27 +139,31 @@ class FlaneurControls {
     this.moveCameraRight = false;
     this.moveCameraLeft = false;
     this.cameraRotationSpeed = defaultCameraSpeed;
-  }
+  };
 
   setUpCollidableObjects() {
-    this.collidableObjects = [this.clickFloorPlane, ...this.builder.state.wallMeshes];
+    this.collidableObjects = [
+      this.clickFloorPlane,
+      ...this.builder.state.wallMeshes,
+    ];
     if (this.mode === "Gallery" && this.builder.state.artMeshes) {
       this.collidableObjects.push(...this.builder.state.artMeshes);
     }
-    if (this.footstepsHoverMesh) this.collidableObjects.push(this.footstepsHoverMesh);
-    console.log("setUpCollidableObjects", this.collidableObjects)
-
+    if (this.footstepsHoverMesh)
+      this.collidableObjects.push(this.footstepsHoverMesh);
+    console.log("setUpCollidableObjects", this.collidableObjects);
   }
 
   addCollidableObject(obj) {
     this.collidableObjects.push(obj);
-    console.log("addCollidableObject", obj, this.collidableObjects)
-
+    console.log("addCollidableObject", obj, this.collidableObjects);
   }
 
   loadImagery() {
     var loader = new THREE.TextureLoader();
-    loader.load("../imagery/foot.png", imagery => this.setUpFootsteps(imagery));
+    loader.load("../imagery/foot.png", (imagery) =>
+      this.setUpFootsteps(imagery)
+    );
   }
 
   setTarget(vector) {
@@ -189,7 +190,7 @@ class FlaneurControls {
     }
   }
 
-  onMouseDown = event => {
+  onMouseDown = (event) => {
     if (!this.enabled) return;
 
     if (this.domElement !== document) {
@@ -217,39 +218,45 @@ class FlaneurControls {
     // console.log("mousedown this.artOver",this.artOver)
     if (this.artOver) {
       // debugger;
-      this.moveToArt();
+      // console.log("this.artOver",this.artOver)
+      // console.log("this.artOver.frameDisplayObject",this.artOver.frameDisplayObject);
+      // console.log("this.selectedArt",this.selectedArt)
+      if (
+        this.selectedArt &&
+        isEqual(this.artOver.frameDisplayObject, this.selectedArt)
+      ) {
+        console.log("do moveInArt", event, hoverIntersect);
+        this.moveInArt(hoverIntersect);
+      } else {
+        this.moveToArt();
+      }
     }
 
     if (this.hoveredOn3d) {
       this.moveTo3d();
     }
-
   };
 
-  onTouchStart = event => {
+  onTouchStart = (event) => {
     console.log("onDocumentTouchStart", event);
     if (event.touches.length === 1) {
       event.preventDefault();
       this.mouse.x = event.touches[0].pageX - window.innerWidth / 2;
       this.mouse.y = event.touches[0].pageY - window.innerHeight / 2;
-    };
+    }
     console.log("this.mouse", this.mouse);
     this.moveLeft = true;
-    this.domElement.addEventListener('touchend', this.onTouchEnd, false);
-
-  }
+    this.domElement.addEventListener("touchend", this.onTouchEnd, false);
+  };
 
   onTouchEnd = () => {
     this.moveLeft = false;
-    this.domElement.removeEventListener('touchend', this.onTouchEnd);
+    this.domElement.removeEventListener("touchend", this.onTouchEnd);
+  };
 
-  }
+  onDocumentTouchMove = () => {};
 
-  onDocumentTouchMove = () => {
-
-  }
-
-  onMouseUp = event => {
+  onMouseUp = (event) => {
     if (!this.enabled) return;
     event.preventDefault();
     event.stopPropagation();
@@ -269,22 +276,19 @@ class FlaneurControls {
     this.mouseDragOn = false;
   };
 
-
-
-  onMouseMove = event => {
-    this.onDocumentMouseMove(event)
+  onMouseMove = (event) => {
+    this.onDocumentMouseMove(event);
+    return;
     this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     // this.mouse.y = -((event.clientY - (window.innerHeight - this.domElement.offsetHeight)) / this.domElement.offsetHeight) * 2 + 1;
     // console.log("event",event)
     // this.mouse.y = -((event.clientY - (window.innerHeight - this.domElement.offsetHeight)) / this.domElement.offsetHeight) * 2 + 1;
     this.mouse.y = -(event.offsetY / this.domElement.offsetHeight) * 2 + 1;
 
-
     // console.log("event.clientY",event.clientY,"window.innerHeight",window.innerHeight,"this.domElement.offsetHeight",this.domElement.offsetHeight)
     // console.log("this.mouse.y",this.mouse.y)
     if (this.enabled) {
       this.checkForFloorHover();
-
     }
 
     if (this.mode === "Gallery") this.checkForArtHover();
@@ -294,75 +298,81 @@ class FlaneurControls {
     event.preventDefault();
 
     var rect = this.domElement.getBoundingClientRect();
-
     this._mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    this._mouse.y = - ((event.clientY - rect.top) / rect.height) * 2 + 1;
+    this._mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    // debugger;
+    this.mouse.x = this._mouse.x;
+    this.mouse.y = this._mouse.y;
 
     this.raycaster.setFromCamera(this._mouse, this.object);
 
     this._intersections.length = 0;
 
     this.raycaster.setFromCamera(this._mouse, this.object);
-    this.raycaster.intersectObjects(this.collidableObjects, true, this._intersections);
+    this.raycaster.intersectObjects(
+      this.collidableObjects,
+      true,
+      this._intersections
+    );
+    if (this.enabled) {
+      this.checkForFloorHover(this.getIntersectType(this._intersections[0]));
+    }
+    if (this.mode === "Gallery")
+      this.checkForArtHover(this.getIntersectType(this._intersections[0]));
 
     if (this._intersections.length > 0) {
       var object = this._intersections[0].object;
-      // console.log("intersected", object)
+      // console.log("intersected", object);
 
-      this._plane.setFromNormalAndCoplanarPoint(this.object.getWorldDirection(this._plane.normal), this._worldPosition.setFromMatrixPosition(object.matrixWorld));
+      this._plane.setFromNormalAndCoplanarPoint(
+        this.object.getWorldDirection(this._plane.normal),
+        this._worldPosition.setFromMatrixPosition(object.matrixWorld)
+      );
 
       if (this._hovered !== object) {
-
         // this.scope.dispatchEvent( { type: 'hoveron', object: object } );
 
-        this.domElement.style.cursor = 'pointer';
+        this.domElement.style.cursor = "pointer";
         this._hovered = object;
         // Events.dispatchEvent({ type: "hoveron", object: this.hoveredOn3d || this._hovered });
-
       }
-
     } else {
-
-
       if (this._hovered !== null) {
-        // this.hoveredOn3d 
+        // this.hoveredOn3d
         // this.scope.dispatchEvent( { type: 'hoveroff', object: this._hovered } );
 
         this._hovered = null;
-
       }
-      this.domElement.style.cursor = 'auto';
-
+      this.domElement.style.cursor = "auto";
     }
-    (this.mode === "Gallery") && this.sculptureTraverser()
+    this.mode === "Gallery" && this.sculptureTraverser();
   }
   sculptureTraverser() {
     let hoveredOn3d = null;
 
-    this._hovered && this._hovered.traverseAncestors(item => {
-      if (item.name === "OSG_Scene" && !hoveredOn3d) hoveredOn3d = item;
-    })
+    this._hovered &&
+      this._hovered.traverseAncestors((item) => {
+        if (item.name === "OSG_Scene" && !hoveredOn3d) hoveredOn3d = item;
+      });
     if (hoveredOn3d && !this.hoveredOn3d) {
       // console.log("hoveredOn3d",hoveredOn3d)
       this.hoveredOn3d = hoveredOn3d;
-      Events.dispatchEvent({ type: 'hoveron', object: this.hoveredOn3d });
-
+      Events.dispatchEvent({ type: "hoveron", object: this.hoveredOn3d });
     } else if (this.hoveredOn3d) {
       // console.log("hoveredOff 3d",this.hoveredOn3d)
-      Events.dispatchEvent({ type: 'hoveroff', object: this.hoveredOn3d });
+      Events.dispatchEvent({ type: "hoveroff", object: this.hoveredOn3d });
       this.hoveredOn3d = null;
     }
   }
 
-
-
-
-  onKeyDown = event => {
+  onKeyDown = (event) => {
     // console.log("onKeyDown", event.keyCode)
 
     if (!this.moveToArtAni.stop) {
       this.moveToArtAni.end();
-      if (this.object.fov !== this.defaultFov) { this.restoreDefaultFov() }
+      if (this.object.fov !== this.defaultFov) {
+        this.restoreDefaultFov();
+      }
     }
     switch (event.keyCode) {
       case 38: /*up*/
@@ -372,7 +382,7 @@ class FlaneurControls {
         if (event.shiftKey) {
           this.moveUp = true;
         } else {
-        /*W*/ this.moveForward = true;
+          /*W*/ this.moveForward = true;
         }
         break;
 
@@ -393,7 +403,7 @@ class FlaneurControls {
         if (event.shiftKey) {
           this.moveDown = true;
         } else {
-        /*S*/ this.moveBackward = true;
+          /*S*/ this.moveBackward = true;
         }
         break;
 
@@ -420,7 +430,7 @@ class FlaneurControls {
     }
   };
   //
-  onKeyUp = event => {
+  onKeyUp = (event) => {
     switch (event.keyCode) {
       case 38: /*up*/
       case 87:
@@ -433,7 +443,7 @@ class FlaneurControls {
         // /*A*/ this.moveLeft = false;
         // this.moveCameraLeft = false;
         if (this.moveCameraLeft) {
-          this.easeCamera()
+          this.easeCamera();
         }
         this.moveLeft = false;
         break;
@@ -448,7 +458,7 @@ class FlaneurControls {
       case 68:
         // /*D*/ this.moveRight = false;
         if (this.moveCameraRight) {
-          this.easeCamera()
+          this.easeCamera();
           // this.easeCamera("right")
         }
         this.moveRight = false;
@@ -557,7 +567,7 @@ class FlaneurControls {
       this.moveForward = false;
       this.moveRight = true;
       this.collideCoast = true;
-      actualMoveSpeed *= .1;
+      actualMoveSpeed *= 0.1;
     }
 
     if (this.moveForward || (this.autoForward && !this.moveBackward)) {
@@ -583,18 +593,17 @@ class FlaneurControls {
     }
 
     if (this.moveCameraRight) {
-      this.rotateCamera("right")
+      this.rotateCamera("right");
       !this.onArt && this.checkForArtHover();
     }
 
     if (this.moveCameraLeft) {
-      this.rotateCamera("left")
+      this.rotateCamera("left");
       !this.onArt && this.checkForArtHover();
     }
 
     if (!isEqual(oldPosition, Object.assign({}, this.object.position))) {
       !this.moveToDestinationAni.stop && this.doneMoveToDestination();
-      // this.checkForFloorHover();
       this.checkForArtHover();
       this.onArt && this.offArtHandler();
     }
@@ -606,29 +615,38 @@ class FlaneurControls {
   }
 
   offArtHandler() {
-    this.builder.setArtDetails(null);
+    console.log("offArtHandler");
+    this.builder.offArtHandler();
+    // this.builder.setArtDetails(null);
     this.restoreDefaultFov();
     this.onArt = false;
+    this.selectedArt = null;
   }
-
 
   cameraRotation(dir) {
     let rot;
     switch (dir) {
       case "left":
-        rot = this.cameraRotationQuarternion.setFromAxisAngle(new Vector3(0, 1, 0), degreesToRadians(this.cameraRotationSpeed));
+        rot = this.cameraRotationQuarternion.setFromAxisAngle(
+          new Vector3(0, 1, 0),
+          degreesToRadians(this.cameraRotationSpeed)
+        );
         break;
       case "right":
-        rot = this.cameraRotationQuarternion.setFromAxisAngle(new Vector3(0, 1, 0), degreesToRadians(-this.cameraRotationSpeed));
+        rot = this.cameraRotationQuarternion.setFromAxisAngle(
+          new Vector3(0, 1, 0),
+          degreesToRadians(-this.cameraRotationSpeed)
+        );
         break;
-      default: break;
+      default:
+        break;
     }
     // console.log("rot",rot)
-    return rot
+    return rot;
   }
 
   rotateCamera(dir) {
-    const cur = this.object.quaternion
+    const cur = this.object.quaternion;
     const rot = this.cameraRotation(dir);
     cur.multiplyQuaternions(rot, cur);
   }
@@ -652,7 +670,9 @@ class FlaneurControls {
 
     // window.e
 
-    if (this.mode === "Gallery") { window.removeEventListener("keydown", this.onKeyDown, false); } else {
+    if (this.mode === "Gallery") {
+      window.removeEventListener("keydown", this.onKeyDown, false);
+    } else {
       this.domElement.removeEventListener("keydown", this.onKeyDown, false);
     }
     // this.domElement.removeEventListener("keydown", this.onKeyDown, false);
@@ -709,18 +729,18 @@ class FlaneurControls {
     const cameraAni = new Animate({
       duration: this.builder.initialAnimationTime,
       timing: "circ",
-      draw: progress => this.cameraFlight(progress)
+      draw: (progress) => this.cameraFlight(progress),
     });
     cameraAni.animate();
   }
 
-  cameraFlight = progress => {
+  cameraFlight = (progress) => {
     //45, 300
     const x = Math.sin(Math.PI * progress) * this.cameraFlightHyp;
     const cameraPosition = [
       x,
       this.builder.initialCameraHeight - 200 * progress,
-      this.builder.cameraZAfterInitialAnimation * progress
+      this.builder.cameraZAfterInitialAnimation * progress,
     ];
     this.setCameraPosition(cameraPosition);
     // this.camera.lookAt(new THREE.Vector3(0, 0, 0));
@@ -736,7 +756,6 @@ class FlaneurControls {
     this.object.position.set(...cameraPosition);
   }
   createClickFloor() {
-
     // this.builder.gridWidth,
     // this.builder.gridDepth
     const clickFloorPlaneGeo = new THREE.PlaneBufferGeometry(
@@ -747,7 +766,7 @@ class FlaneurControls {
     this.clickFloorPlane = new THREE.Mesh(
       clickFloorPlaneGeo,
       new THREE.MeshStandardMaterial({
-        visible: false
+        visible: false,
         // color: 0xf10000
       })
     );
@@ -769,18 +788,18 @@ class FlaneurControls {
       // color: 0xfefaf1,
       opacity: 0.4,
       transparent: true,
-      map: imagery
+      map: imagery,
       // repeat: 1
     });
     const footDestinationMaterial = new THREE.MeshBasicMaterial({
       // color: 0xfefaf1,
       map: imagery,
       opacity: 1,
-      transparent: true
+      transparent: true,
     });
 
     // footHoverMaterial.map = footDestinationMaterial.map = this.footTexture;
-    // footHoverMaterial.alphaMap = imagery; 
+    // footHoverMaterial.alphaMap = imagery;
     footHoverMaterial.needsUpdate = footDestinationMaterial.needsUpdate = true;
     this.footstepsHoverMesh = new THREE.Mesh(footGeo, footHoverMaterial);
     this.footstepsHoverMesh.name = "footHover";
@@ -789,9 +808,9 @@ class FlaneurControls {
       footDestinationMaterial
     );
     this.footstepsDestinationMesh.name = "footDestination";
-    this.footstepsHoverMesh.translateY(-1);//initial hide
+    this.footstepsHoverMesh.translateY(-1); //initial hide
     this.builder.scene.add(this.footstepsHoverMesh);
-    this.footstepHoverOffset = new THREE.Vector3(10, 0.2, 10)
+    this.footstepHoverOffset = new THREE.Vector3(10, 0.2, 10);
     this.bindEvents();
     this.collidableObjects.push(this.footstepsHoverMesh);
     // console.log("setUpFootsteps collidableObjects", this.collidableObjects)
@@ -813,36 +832,79 @@ class FlaneurControls {
   }
 
   moveToArt(artMesh) {
-    this.selectedArt = (artMesh) ? artMesh.frameDisplayObject : this.artOver.frameDisplayObject;
-    this.selectedArt.data.art && this.builder.getArtDetail(this.selectedArt.data.art.key, "art")
-    // console.log("move to this.artOver", this.artOver, this.selectedArt);
+    this.selectedArt = artMesh
+      ? artMesh.frameDisplayObject
+      : this.artOver.frameDisplayObject;
+    this.selectedArt.data.art &&
+      this.builder.getArtDetail(this.selectedArt.data.art.key, "art");
+
     const destinationVector = new THREE.Vector3(0, 1, 0);
     destinationVector.copy(this.selectedArt.viewingPosition.getWorldPosition());
     var quaternion = new THREE.Quaternion();
     let r;
-    r = (this.selectedArt.wall.pos === 0) ? Math.PI / 2 : 0;
-    if (this.selectedArt.side === "back" && this.selectedArt.wall.pos === 0) r = -Math.PI / 2;
-    if (this.selectedArt.side === "back" && this.selectedArt.wall.pos === 1) r = Math.PI;
+    r = this.selectedArt.wall.pos === 0 ? Math.PI / 2 : 0;
+    if (this.selectedArt.side === "back" && this.selectedArt.wall.pos === 0)
+      r = -Math.PI / 2;
+    if (this.selectedArt.side === "back" && this.selectedArt.wall.pos === 1)
+      r = Math.PI;
 
     quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), r);
     this.currentDestination = destinationVector;
     this.currentDestination.cameraQuaternion = quaternion;
     // const opp = (this.selectedArt.ratio <= 1) ? this.selectedArt.artMesh.geometry.parameters.height / 2 : this.selectedArt.artMesh.parameters.width / 2;
-    const opp = (this.selectedArt.ratio <= 1) ? this.selectedArt.imageHeight / 2 : this.selectedArt.imageWidth / 2;
+    const opp =
+      this.selectedArt.ratio <= 1
+        ? this.selectedArt.imageHeight / 2
+        : this.selectedArt.imageWidth / 2;
     const adj = 25;
-    this.currentDestination.fov = Math.atan(opp / adj) * 180 / Math.PI * 2;
+    this.currentDestination.fov = ((Math.atan(opp / adj) * 180) / Math.PI) * 2;
+    this.moveFrom = this.object.position;
+    this.moveFrom.fov = this.object.fov;
+    this.moveToArtAni.begin();
+  }
+
+  moveInArt(hoverIntersect) {
+    const destinationVector = new THREE.Vector3(0, 1, 0);
+    if (this.selectedArt.wall.pos === 0) {
+      destinationVector.x = this.object.position.x;
+      destinationVector.y = hoverIntersect.point.y;
+      destinationVector.z = hoverIntersect.point.z; //.point.y
+    } else {
+      destinationVector.x = hoverIntersect.point.x;
+      destinationVector.y = hoverIntersect.point.y;
+      destinationVector.z = this.object.position.z; //.point.y
+    }
+
+    console.log("destinationVector", destinationVector);
+    // destinationVector.copy(this.selectedArt.viewingPosition.getWorldPosition());
+
+    var quaternion = new THREE.Quaternion();
+    let r;
+    r = this.selectedArt.wall.pos === 0 ? Math.PI / 2 : 0;
+    if (this.selectedArt.side === "back" && this.selectedArt.wall.pos === 0)
+      r = -Math.PI / 2;
+    if (this.selectedArt.side === "back" && this.selectedArt.wall.pos === 1)
+      r = Math.PI;
+
+    quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), r);
+    this.currentDestination = destinationVector;
+    this.currentDestination.cameraQuaternion = quaternion;
+    // const opp = (this.selectedArt.ratio <= 1) ? this.selectedArt.artMesh.geometry.parameters.height / 2 : this.selectedArt.artMesh.parameters.width / 2;
+
+    this.currentDestination.fov = this.object.fov;
     this.moveFrom = this.object.position;
     this.moveFrom.fov = this.object.fov;
     this.moveToArtAni.begin();
   }
 
   moveTo3d(obj) {
-    console.log("moveToSculpture", this.hoveredOn3d)
-    this.selectedArt = (obj) ? obj.scope : this.hoveredOn3d.scope;
+    console.log("moveToSculpture", this.hoveredOn3d);
+    this.selectedArt = obj ? obj.scope : this.hoveredOn3d.scope;
     // this.selectedArt.data.art && this.builder.getArtDetail(this.selectedArt.data.art.key)
     // // console.log("move to this.artOver", this.artOver, this.selectedArt);
-    this.selectedArt.key && this.builder.getArtDetail(this.selectedArt.key, "3d object")
-    console.log("this.selectedArt.key", this.selectedArt.key)
+    this.selectedArt.key &&
+      this.builder.getArtDetail(this.selectedArt.key, "3d object");
+    console.log("this.selectedArt.key", this.selectedArt.key);
     // this.builder.setState({ onArt: {selectedArt: this.selectedArt.data }})
     const destinationVector = new THREE.Vector3(0, 1, 0);
     destinationVector.copy(this.selectedArt.viewingPosition.getWorldPosition());
@@ -850,15 +912,17 @@ class FlaneurControls {
     this.currentDestination = destinationVector;
     this.currentDestination.cameraQuaternion = quaternion;
     // // const opp = (this.selectedArt.ratio <= 1) ? this.selectedArt.artMesh.geometry.parameters.height / 2 : this.selectedArt.artMesh.parameters.width / 2;
-    const opp = (this.selectedArt.ratio <= 1) ? this.selectedArt.imageHeight / 2 : this.selectedArt.imageWidth / 2;
+    const opp =
+      this.selectedArt.ratio <= 1
+        ? this.selectedArt.imageHeight / 2
+        : this.selectedArt.imageWidth / 2;
     const adj = 25;
-    this.currentDestination.fov = Math.atan(opp / adj) * 180 / Math.PI * 2;
+    this.currentDestination.fov = ((Math.atan(opp / adj) * 180) / Math.PI) * 2;
     this.moveFrom = this.object.position;
     this.moveFrom.fov = this.object.fov;
 
     this.moveToArtAni.begin();
   }
-
 
   lerp(a, b, t) {
     return a + (b - a) * t;
@@ -870,20 +934,38 @@ class FlaneurControls {
 
   moveToArtLoop(progress) {
     this.moveToDestinationAni.end();
-    var newX = (this.moveFrom.x - ((this.moveFrom.x - this.currentDestination.x) * progress)); // interpolate between a and b where
-    var newZ = (this.moveFrom.z - ((this.moveFrom.z - this.currentDestination.z) * progress)); // interpolate between a and b where
-    var newY = (this.moveFrom.y - ((this.moveFrom.y - this.currentDestination.y) * progress)); // interpolate between a and b where
-    var newFov = this.lerp(this.moveFrom.fov, this.currentDestination.fov, progress);
+    var newX =
+      this.moveFrom.x -
+      (this.moveFrom.x - this.currentDestination.x) * progress; // interpolate between a and b where
+    var newZ =
+      this.moveFrom.z -
+      (this.moveFrom.z - this.currentDestination.z) * progress; // interpolate between a and b where
+    var newY =
+      this.moveFrom.y -
+      (this.moveFrom.y - this.currentDestination.y) * progress; // interpolate between a and b where
+    var newFov = this.lerp(
+      this.moveFrom.fov,
+      this.currentDestination.fov,
+      progress
+    );
     this.setFov(newFov);
     this.object.position.set(newX, newY, newZ);
-    this.object.quaternion.slerp(this.currentDestination.cameraQuaternion, progress);
+    this.object.quaternion.slerp(
+      this.currentDestination.cameraQuaternion,
+      progress
+    );
     this.movingToArt = true;
   }
 
   moveToDestinationLoop(progress) {
-    var newX = (this.moveFrom.x - ((this.moveFrom.x - this.currentDestination.x) * progress));
-    var newZ = (this.moveFrom.z - ((this.moveFrom.z - this.currentDestination.z) * progress));
-    var newY = (this.moveFrom.y - ((this.moveFrom.y - this.defaultObjectY) * progress));
+    var newX =
+      this.moveFrom.x -
+      (this.moveFrom.x - this.currentDestination.x) * progress;
+    var newZ =
+      this.moveFrom.z -
+      (this.moveFrom.z - this.currentDestination.z) * progress;
+    var newY =
+      this.moveFrom.y - (this.moveFrom.y - this.defaultObjectY) * progress;
     this.object.position.set(newX, newY, newZ);
   }
 
@@ -897,38 +979,33 @@ class FlaneurControls {
 
   onArtHandler() {
     this.selectedArt.artLeaveHandler();
+    this.builder.onArtHandler && this.builder.onArtHandler(this.selectedArt);
+    // debugger;
   }
 
   doneMoveToDestination = () => {
     this.moveToDestinationAni.end();
-    // debugger;
     this.builder.scene.remove(this.footstepsDestinationMesh);
-    // this.footstepsHoverMesh.translateY(10)
     this.currentDestination = null;
   };
 
   checkForIntersecting() {
-    // handle this in index ??
     this.object.updateMatrixWorld();
     this.raycaster.setFromCamera(this.mouse, this.object);
-    const intersect = {};
-    const intersectedCollidable = this.raycaster.intersectObjects(this.collidableObjects); //collidableObjects
+    const intersectedCollidable = this.raycaster.intersectObjects(
+      this.collidableObjects
+    );
     const intersected0 = intersectedCollidable[0];
-    // const intersectedAll = this.raycaster.intersectObjects(this.builder.scene.children); //collidableObjects
-    //     debugger;
-    // console.log("intersectedAll",intersectedAll, this.builder.scene.children)
+    return this.getIntersectType(intersected0);
+  }
 
-    // intersectedAll[0] && intersectedAll[0].object.traverseAncestors(item => {
-    //   console.log("traverseAncestors", item);
-    //   if (item.name === "OSG_Scene") {
-    //     console.log("intersected0 - OSG_Scene", item)
-    //   }
-    // })
+  getIntersectType(intersected0) {
+    const intersect = {};
 
     if (!intersected0) {
       return intersect;
     }
-    // console.log("flaneur intersected0",intersected0)
+
     switch (intersected0.object.name) {
       case "footHover":
         intersect.footstepsHover = intersected0;
@@ -939,6 +1016,7 @@ class FlaneurControls {
 
       case "artMesh":
         intersect.artMesh = intersected0;
+        intersect.point = intersected0.point;
         break;
       // case "3d object":
       //   debugger;
@@ -951,37 +1029,41 @@ class FlaneurControls {
     return intersect;
   }
 
-  checkForFloorHover() {
-    const intersect = this.checkForIntersecting();
-    if (intersect.clickFloorPlane || intersect.footstepsHover) {//this.footstepsHoverMesh && 
-      intersect.clickFloorPlane && this.positionFootstepsHover(intersect.clickFloorPlane);
+  checkForFloorHover(intersectType) {
+    const intersect = intersectType || this.checkForIntersecting();
+    if (intersect.clickFloorPlane || intersect.footstepsHover) {
+      //this.footstepsHoverMesh &&
+      intersect.clickFloorPlane &&
+        this.positionFootstepsHover(intersect.clickFloorPlane);
     } else {
-      // console.log("checkForFloorHover interesect",intersect)
-      this.footstepsHoverMesh.translateY(-1);//hide under floor
+      this.footstepsHoverMesh.translateY(-1); //hide under floor
     }
   }
 
-  checkForArtHover() {
-    const intersect = this.checkForIntersecting();
+  checkForArtHover(intersectType) {
+    const intersect = intersectType || this.checkForIntersecting();
     if (intersect.artMesh) {
-      console.log("intersect.artMesh")
+      // console.log("intersect.artMesh");
       this.overArtHandler(intersect.artMesh);
     } else {
-      this.artOver && this.leaveArtHandler()
+      this.artOver && this.leaveArtHandler();
     }
   }
 
   overArtHandler(artMesh) {
-    if (!this.artOver || (this.artOver && artMesh.object.uuid !== this.artOver.uuid)) {
+    if (
+      !this.artOver ||
+      (this.artOver && artMesh.object.uuid !== this.artOver.uuid)
+    ) {
       // console.log("artMesh.object.uuid !== this.artOver.uuid", artMesh.object, this.artOver)
       this.artOver = artMesh.object;
-      this.artOver.frameDisplayObject.artHoverHandler()
+      this.artOver.frameDisplayObject.artHoverHandler();
     }
   }
 
   leaveArtHandler() {
     this.artOver.frameDisplayObject.artLeaveHandler();
-    this.artOver = null
+    this.artOver = null;
   }
 
   positionFootstepsHover(intersect) {
@@ -996,7 +1078,9 @@ class FlaneurControls {
   }
 
   getFootAngle(destination) {
-    this.footstepsAngle.subVectors(this.object.position, destination).normalize();
+    this.footstepsAngle
+      .subVectors(this.object.position, destination)
+      .normalize();
     const texture = this.footstepsHoverMesh.material.map;
     var angle = Math.atan2(
       this.object.position.x - destination.x,
@@ -1025,13 +1109,14 @@ class FlaneurControls {
   }
 
   restoreDefaultFovLoop(progress) {
-    const newFov = this.moveFromFov - ((this.moveFromFov - this.defaultFov) * progress);
+    const newFov =
+      this.moveFromFov - (this.moveFromFov - this.defaultFov) * progress;
     // console.log("restoreDefaultFovLoop",newFov)
     this.setFov(newFov);
   }
 
   doneDefaultFov() {
-    this.restoreDefaultFovAni.end()
+    this.restoreDefaultFovAni.end();
   }
 }
 

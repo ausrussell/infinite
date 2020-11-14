@@ -657,6 +657,11 @@ class Builder extends Component {
     console.log("setArtDetails", data.val());
   };
 
+  offArtHandler() {
+    console.log("offArtHandler");
+    this.setArtDetails(null);
+  }
+
   resetTranslatedArt() {
     this.transformOriginVector.copy(this.activeArtMesh.getWorldPosition());
     let options = {
@@ -839,7 +844,7 @@ class Builder extends Component {
     recursiveIntersects.forEach((intersect) => {
       if (!onControl) {
         intersect.object.traverseAncestors((item) => {
-          console.log("item",item)
+          console.log("item", item);
           if (item.parent?.type === "TransformControlsGizmo") {
             onControl = true;
           }
@@ -1019,7 +1024,7 @@ class Builder extends Component {
   setUpScene() {
     // debugger;
     const width = this.mount.clientWidth;
-    const height = this.mount.parentElement.clientHeight - 48; // height wasn't getting set after new landing animation
+    const height = this.mount.clientHeight; // height wasn't getting set after new landing animation
     this.setState({ width: width, height: height });
     this.scene = new THREE.Scene();
     // this.scene.background = new THREE.Color().setHSL(0.6, 0, 1);
