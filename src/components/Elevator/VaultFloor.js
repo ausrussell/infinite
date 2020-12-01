@@ -90,7 +90,7 @@ class VaultFloor extends Component {
   setInitialList() {
     this.list = [];
     if (this.props.addUploader) {
-      this.list.push(<UploaderTile validation="image" />)
+      this.list.push(<UploaderTile validation="image" >Upload Art</UploaderTile>)
     }
     if (this.props.restoreDefault) {
       this.list.push(<RestoreDefaultTile onClick={() => this.props.restoreDefault()} />)

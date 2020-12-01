@@ -194,8 +194,6 @@ class Builder extends Component {
   onWindowResize = () => {
     const width = this.mount.clientWidth;
     const height = this.mount.clientHeight;
-    console.log("onWindowResize", width, height);
-
     this.renderer.setSize(width, height);
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
@@ -598,6 +596,7 @@ class Builder extends Component {
     this.addGeneralLight();
     this.initialCameraAnimation();
     this.setSceneMeshes();
+    this.onWindowResize();
   };
 
   getExport() {
