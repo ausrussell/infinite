@@ -29,6 +29,9 @@ const SignInPage = () => (
 
 
 class SignInFormBase extends Component {
+  state = {
+    error:""
+  }
   onSubmit = values => {
 
     const { email, password } = values;
@@ -40,6 +43,7 @@ class SignInFormBase extends Component {
       })
       .catch(error => {
         console.log("error with user submit", error)
+        this.setState({error:"Email or password don't match our records"})
       });
 
   };
@@ -79,7 +83,9 @@ class SignInFormBase extends Component {
             Log In
           </Button>
         </Form.Item>
+        {this.state.error && <p>Problem: {this.state.error}</p>}
       </Form>
+
     );
   }
 }

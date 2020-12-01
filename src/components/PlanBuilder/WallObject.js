@@ -5,7 +5,6 @@ import WallLight from "./WallLight";
 import Animate from "../../Helpers/animate";
 import TextureAdder from "../../Helpers/TextureAdder";
 
-
 class WallObject {
   constructor(options) {
     // console.log("WallObject", options);
@@ -27,10 +26,10 @@ class WallObject {
     this.wallDepth = 5;
     this.defaultImageWidth = this.wallWidth * 0.6;
     this.defaultImageHeight = 15;
-    if (options.preview) {//just change location if in Studio
-      this.posX = this.posZ = 0
-    }
-    else {
+    if (options.preview) {
+      //just change location if in Studio
+      this.posX = this.posZ = 0;
+    } else {
       this.setXZPos();
     }
 
@@ -39,13 +38,12 @@ class WallObject {
     texture && this.textureAdder.setDataToMaterial(this.texture);
 
     if (options.preview) {
-      this.wallMesh.translateY(-30)
+      this.wallMesh.translateY(-30);
     } else {
       this.addLights();
       this.addFrames();
     }
     this.setupExport();
-
   }
 
   setupExport() {
@@ -53,32 +51,30 @@ class WallObject {
       col,
       row,
       pos,
-      height
+      height,
     }))(this);
-    this.export.texture = this.texture || { color: 0xe1f5fe }
+    this.export.texture = this.texture || { color: 0xe1f5fe };
   }
 
   addArtToExport() {
     this.export.sides = {};
-    const artToSave = []
+    const artToSave = [];
 
     Object.entries(this.sides).forEach((value, index) => {
       const side = value[1];
       const framesToSave = [];
       const sideFrames = side.frames;
-      sideFrames.forEach(item => {
+      sideFrames.forEach((item) => {
         const frameData = item.getExport();
         // console.log("frameData",frameData.art.key)
-        artToSave.push(frameData.art.key)
+        artToSave.push(frameData.art.key);
         framesToSave.push(JSON.stringify(frameData));
       });
       this.export.sides[value[0]] = framesToSave;
     });
 
     if (artToSave.length) this.export.artKeys = artToSave;
-
   }
-
 
   getExport = () => {
     this.addArtToExport();
@@ -87,7 +83,8 @@ class WallObject {
 
   initialAnimateBuild(index, done) {
     const animationStartDelay =
-      this.builder.initialAnimationTime / this.builder.state.wallEntities.length;
+      this.builder.initialAnimationTime /
+      this.builder.state.wallEntities.length;
     setTimeout(() => {
       this.animateWallBuild(() => done && done(index));
     }, index * animationStartDelay);
@@ -103,7 +100,7 @@ class WallObject {
     this.wallMaterial = new THREE.MeshStandardMaterial({
       color: 0xe1f5fe,
       opacity: this.opacity,
-      transparent: true
+      transparent: true,
     });
   }
 
@@ -115,7 +112,7 @@ class WallObject {
     );
     this.setWallMaterial();
     this.wallMesh = new THREE.Mesh(geometry, this.wallMaterial);
-    
+
     this.wallMesh.castShadow = true;
     this.wallMesh.name = "wallMesh";
     this.wallGroup.receiveShadow = true;
@@ -137,15 +134,16 @@ class WallObject {
     const wallAni = new Animate({
       duration: 1000,
       timing: "circ",
-      draw: progress => this.drawing(progress),
-      done: done
+      draw: (progress) => this.drawing(progress),
+      done: done,
     });
 
     wallAni.animate(performance.now());
-    this.opacity = (this.texture && this.texture.opacity) ? this.texture.opacity : 1;
+    this.opacity =
+      this.texture && this.texture.opacity ? this.texture.opacity : 1;
     this.wallMaterial.opacity = this.opacity;
   }
-  drawing = progress => {
+  drawing = (progress) => {
     progress += 0.01;
     this.wallMesh.scale.set(1, progress, 1);
 
@@ -177,15 +175,19 @@ class WallObject {
     }
   }
 
+  setCurrentSideOver(side) {
+    this.currentSideOver = this.sides[side];
+  }
+
   addLights() {
-    Object.keys(this.sides).forEach(side => this.lightsForSide(side));
+    Object.keys(this.sides).forEach((side) => this.lightsForSide(side));
   }
   lightsForSide(side) {
     this.sides[side].wallLight = new WallLight(this, side);
     this.sides[side].wallLight.setWallLight();
   }
   addFrames() {
-    Object.keys(this.sides).forEach(side =>
+    Object.keys(this.sides).forEach((side) =>
       this.createDefaultFramesForSide(side)
     );
   }
@@ -195,7 +197,7 @@ class WallObject {
       imageWidth: this.defaultImageWidth,
       imageHeight: this.defaultImageHeight,
       defaultFrame: true,
-      index: 0
+      index: 0,
     };
     this.sides[side].defaultFrame.setDefaultFrameGroup(options);
     this.sides[side].frames = []; /// maybe move to constructor
@@ -271,22 +273,21 @@ class WallObject {
       }
     });
   }
-  disposeCallback = item => {
+  disposeCallback = (item) => {
     item.remove();
   };
   removeGroup() {
-    this.removeAllLights()
+    this.removeAllLights();
 
     this.disposeHierarchy(this.wallGroup, this.disposeCallback); //does this dispose save memory??
-
 
     this.builder.scene.remove(this.wallGroup);
   }
 
   removeAllLights() {
-    ["front", "back"].forEach(side => {
-      this.sides[side].wallLight.removeSpotlight()
-    })
+    ["front", "back"].forEach((side) => {
+      this.sides[side].wallLight.removeSpotlight();
+    });
   }
   switchLightOffIfNoArt(side) {
     if (this.sides[side].frames.length === 0) {
@@ -294,13 +295,23 @@ class WallObject {
     }
     this.updateWallLight(side);
   }
+
+  addArtRapid({ itemData }) {
+    const side = "front";
+    this.sides[side].hasArt = true;
+    let index = this.sides[side].frames.push(new Frame(this, side));
+    itemData.holder = this.currentSideOver.defaultFrame;
+    this.currentSideOver.frames[index - 1].addArtRapid(itemData);
+    this.wallGroup.remove(this.currentSideOver.defaultFrame.group);
+  }
+
   addImageFile({
     file,
     side,
     holderOver,
     uploadTask,
     itemData,
-    draggableImageRef
+    draggableImageRef,
   }) {
     this.builder.scene.updateMatrixWorld(true);
     this.sides[side].hasArt = true;
@@ -311,7 +322,6 @@ class WallObject {
       uploadTask: uploadTask,
       holder: this.currentSideOver.defaultFrame,
       draggableImageRef: draggableImageRef,
-      
     };
     this.currentSideOver.frames[index - 1].addArt(options);
 
@@ -322,18 +332,17 @@ class WallObject {
     this.addWallLightToScene(side);
     return;
     // }
-
   }
 
   fadeInArt() {
-    Object.entries(this.sides).forEach(sideItem => {
+    Object.entries(this.sides).forEach((sideItem) => {
       const side = sideItem[0];
-      this.sides[side].frames.forEach(frame => frame.fadeFrameIn());
+      this.sides[side].frames.forEach((frame) => frame.fadeFrameIn());
     });
   }
 
-  addSidesFromData = sides => {
-    Object.entries(sides).forEach(sideItem => {
+  addSidesFromData = (sides) => {
+    Object.entries(sides).forEach((sideItem) => {
       const side = sideItem[0];
       this.sides[side].frames = [];
       const newFrame = new Frame(this, side);
@@ -352,7 +361,7 @@ class WallObject {
   setDataToMaterial(data) {
     this.textureAdder.setDataToMaterial(data);
   }
-  wallTileCallback = item => {
+  wallTileCallback = (item) => {
     this.export.texture = item;
     delete this.export.texture.ref;
     this.setDataToMaterial(item);

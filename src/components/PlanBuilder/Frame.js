@@ -258,6 +258,27 @@ class Frame {
   getFrameGroup() {
     return this.group;
   }
+
+  addArtRapid(itemData){
+    const image = new Image();
+    image.src = itemData.url;
+    const options = {
+      file: itemData.url,
+      image: image,
+      holder: itemData.holder
+    };
+    // const next = snapshot => {
+    //   // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+    //   var progress = snapshot.bytesTransferred / snapshot.totalBytes;
+    //   if (this.artMesh) this.show(progress);
+    //   //console.log("Upload is " + progress + "% done");
+    //   //console.log("snapshot", snapshot.ref);
+    // };
+
+    image.onload = () => this.imageLoadedHandler(options);
+    // this.show(1);
+
+  }
   addArt(options) {//from dropping or dragging an image
     const { file, uploadTask, holder, draggableImageRef } = options;//file is itemdata or dragged file
     const addingHolder = holder || this;
@@ -403,7 +424,6 @@ class Frame {
   imageLoadedHandler(options) {
     const { image, file, holder } = options;
     this.file = file;
-
     const loader = new THREE.TextureLoader();
     var texture = loader.load(file);
     let imageWidth = image.width;

@@ -33,7 +33,8 @@ class GalleryBase extends Component {
     wallWidth: 20,
     wallMeshes: [],
     artMeshes: [],
-    onArt: null, //art details
+    onArt: null, //art details -- frame
+    focusEye: false,
     guiAdded: false,
     stats: false,
     owner: null,
@@ -123,7 +124,7 @@ class GalleryBase extends Component {
     console.log("renderer.info.memory before", this.renderer.info.memory);
     window.cancelAnimationFrame(this.animateCall);
     if (!this.sceneLoader) return;
-    this.animateCall = undefined;
+    if (this.animateCall) this.animateCall = undefined;
 
     this.state.artMeshes.forEach((item) => {
       item.frameDisplayObject.destroyViewingPosition();
@@ -149,10 +150,10 @@ class GalleryBase extends Component {
     console.log("addGui");
     this.setState({ guiAdded: true });
     this.gui = new Gui();
-    this.gui.gui.add(this.gui, "fov", 25, 180).onChange((e) => {
-      this.fov = e;
-      this.flaneurControls.setFov(e);
-    });
+    // this.gui.gui.add(this.gui, "fov", 25, 180).onChange((e) => {
+    //   this.fov = e;
+    //   this.flaneurControls.setFov(e);
+    // });
   }
 
   setupStats() {
@@ -191,7 +192,7 @@ class GalleryBase extends Component {
   onWindowResize = () => {
     const width = this.mount.clientWidth;
     const height = this.mount.clientHeight;
-    console.log("onWindowResize", width, height);
+    // console.log("onWindowResize", width, height);
     this.renderer.setSize(width, height);
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
@@ -231,7 +232,7 @@ class GalleryBase extends Component {
       this.mapControls = new MapControls(this.camera, this.renderer.domElement); //new
       this.mapControls.enableZoom = false;
       this.mapControls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
-      this.mapControls.dampingFactor = 0.05;
+      this.mapControls.dampingFactor = 0.15;
       this.mapControls.minPolarAngle = Math.PI * 0.25; //0;//1;//0; // radians
 
       this.mapControls.maxPolarAngle = Math.PI * 0.75;
@@ -244,6 +245,11 @@ class GalleryBase extends Component {
     }
   }
 
+  setupFocusArtForMobile(artObject) {
+    this.mapControls.enableZoom = false;
+    this.setState({ focusEye: artObject });
+  }
+
   setupDragControls() {
     this.dragControls = new DragControls(
       this.state.artMeshes,
@@ -251,10 +257,15 @@ class GalleryBase extends Component {
       this.renderer.domElement
     );
     this.dragControls.addEventListener("dragstart", (e) => {
-      console.log("touched e", e.object);
+      //double tap
+      console.log("touched e", e.object.uuid);
 
       const now = Date.now();
       console.log("this.lastTap && now", this.lastTap, now);
+      if (this.state.onArt && e.object.uuid === this.state.onArt.artMesh.uuid) {
+        // console.log("clicked on selected art", this.selectedArt.artMesh.uuid);
+        if (!this.state.focusArt) this.setupFocusArtForMobile(e.object);
+      }
 
       if (this.lastTap && now - this.lastTap < 1000) {
         console.log("do move", e.object);
@@ -307,7 +318,6 @@ class GalleryBase extends Component {
     this.setState({ galleryData: data }, this.setScene);
     this.setupListeners();
     this.setCamera();
-
     this.animate();
     this.flaneurControls && this.flaneurControls.setUpCollidableObjects(); //removed for OrbitControls
   };
@@ -327,6 +337,8 @@ class GalleryBase extends Component {
     };
     this.sceneLoader = new SceneLoader(options);
     this.sceneLoader.renderData();
+
+    this.onWindowResize()
     // this.addBox();
     // this.addHelperGrid();
   }
@@ -376,16 +388,15 @@ class GalleryBase extends Component {
     this.setState({ onArt: snapVal });
   };
 
-  offArtHandler() {
+  offArtHandler = () => {
     console.log("offArtHandler");
     this.setArtDetails(null);
     this.setState({ focusEye: null });
-  }
+  };
 
   onArtHandler(selectedArt) {
     console.log("glallery onArtHandler", selectedArt);
     const frameMesh = selectedArt.artMesh;
-
     if (this.state.focusEye || !frameMesh) return;
     const frameMat = frameMesh.matrixWorld;
     var box = new THREE.Box3();
@@ -401,20 +412,26 @@ class GalleryBase extends Component {
     newpos.applyMatrix4(frameMat);
     newpos.project(this.camera);
     newpos.x = Math.round(((newpos.x + 1) * this.mount.clientWidth) / 2);
-    newpos.y = Math.round(((-newpos.y + 1) * this.mount.clientHeight) / 2) ;
-
+    newpos.y = Math.round(((-newpos.y + 1) * this.mount.clientHeight) / 2);
     newpos.mount = this.mount;
-    const widthHalf = (this.mount.clientWidth) / 2;
-    const heightHalf = (this.mount.clientHeight) / 2 + this.mount.offsetTop;
+    const widthHalf = this.mount.clientWidth / 2;
+    const heightHalf = this.mount.clientHeight / 2 + this.mount.offsetTop;
 
     newpos.center = {
       x: widthHalf,
       y: heightHalf,
     };
+    newpos.leaveHandler = this.leaveHandler;
     this.setState({ focusEye: newpos });
   }
 
+  leaveHandler = () => {
+    console.log("glallery leavehandler");
+    this.flaneurControls.offArtHandler();
+  };
+
   animate = () => {
+    // console.log("animate")
     const delta = this.clock.getDelta();
     this.flaneurControls && this.flaneurControls.update(delta);
     this.mapControls && this.mapControls.update();
@@ -438,12 +455,7 @@ class GalleryBase extends Component {
         </div>
         <MainCanvas refer={(mount) => (this.mount = mount)} />
         {this.state.onArt && <ArtDetails selectedArt={this.state.onArt} />}
-        {this.state.focusEye && (
-          <FocusEye
-            focusEye={this.state.focusEye}
-            focusEye2={this.state.focusEye2}
-          />
-        )}
+        {this.state.focusEye && <FocusEye focusEye={this.state.focusEye} />}
       </ErrorBoundary>
     );
   }

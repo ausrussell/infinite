@@ -1,9 +1,42 @@
-import React from "react";
-import styled from "styled-components";
+import React, { useState, useEffect } from "react";
 import { useSpring, animated } from "react-spring";
 
+const useMousePosition = () => {
+  const [position, setPosition] = useState({
+    x: window.innerWidth / 2,
+    y: window.innerHeight / 2,
+  });
+  useEffect(() => {
+    const setFromEvent = (e) => setPosition({ x: e.clientX, y: e.clientY });
+    window.addEventListener("mousemove", setFromEvent);
+    return () => {
+      window.removeEventListener("mousemove", setFromEvent);
+    };
+  }, []);
+  return position;
+};
+
 export const FocusEye = ({ focusEye }) => {
-  console.log("FocusEye", focusEye);
+  const position = useMousePosition();
+  useEffect(() => {
+    const clickHandler = (e) => {
+      // debugger;
+      if (
+        e.x < focusEye.x ||
+        e.x > focusEye.mount.offsetWidth - focusEye.x ||
+        e.y < focusEye.y ||
+        e.y > focusEye.mount.offsetHeight - focusEye.y
+      ) {
+        console.log("setBorderON");
+        focusEye.leaveHandler();
+      }
+    };
+
+    focusEye.mount.addEventListener("click", (e) => clickHandler(e));
+    return () => {
+      focusEye.mount.removeEventListener("click", (e) => clickHandler(e));
+    };
+  }, [focusEye]);
 
   const props = useSpring({
     from: {
@@ -27,23 +60,13 @@ export const FocusEye = ({ focusEye }) => {
   });
 
   return (
-    <>
+    <div className="focus-screen">
       <animated.div className="focus-eye" style={props}></animated.div>
-    </>
+      <animated.div
+        className="focus-cursor"
+        style={{ top: position.y - 20, left: position.x - 20 }}
+      ></animated.div>
+      <div className="focus-escape"></div>
+    </div>
   );
 };
-
-const EyeBorder = styled.div`
-  /* Adapt the colors based on primary prop */
-  background: white;
-  font-size: 1em;
-  border: 4px solid palevioletred;
-  border-radius: 3px;
-  position: absolute;
-  top: ${(props) => props.focusEye.y}px;
-  left: ${(props) => props.focusEye.x}px;
-  width: ${(props) => props.focusEye.width}px;
-  z-index: 2;
-  height: ${(props) => props.focusEye.height}px;
-  opacity: 0.5;
-`;

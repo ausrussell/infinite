@@ -108,7 +108,7 @@ class Firebase {
   }
 
   getAssetOnce = ({ refPath }) => {
-    console.log("getAsset refPath",refPath)
+    // console.log("getAsset refPath",refPath)
     const ref = app.database().ref(refPath);
     
     return  ref.once("value")

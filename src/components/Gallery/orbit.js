@@ -307,16 +307,10 @@ var OrbitControls = function (object, domElement) {
 
 	}();
 
-
-
-
-
 	this.dispose = function () {
-
 		scope.domElement.removeEventListener('contextmenu', onContextMenu, false);
 		scope.domElement.removeEventListener('mousedown', onMouseDown, false);
 		scope.domElement.removeEventListener('wheel', onMouseWheel, false);
-
 		scope.domElement.removeEventListener('touchstart', onTouchStart, false);
 		scope.domElement.removeEventListener('touchend', onTouchEnd, false);
 		scope.domElement.removeEventListener('touchmove', onTouchMove, false);
@@ -404,10 +398,8 @@ var OrbitControls = function (object, domElement) {
 		var v = new Vector3();
 
 		return function panLeft(distance, objectMatrix) {
-
 			v.setFromMatrixColumn(objectMatrix, 0); // get X column of objectMatrix
 			v.multiplyScalar(- distance);
-
 			panOffset.add(v);
 
 		};

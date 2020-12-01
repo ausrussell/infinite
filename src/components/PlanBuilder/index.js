@@ -25,7 +25,7 @@ import Elevator from "../Elevator";
 
 import ErrorBoundary from "../ErrorBoundary";
 
-import { TransformControls } from "./TransformControls_Apr19";
+import { TransformControls } from "./TransformControls";
 
 // import { TransformControls } from "three"
 
@@ -319,6 +319,8 @@ class Builder extends Component {
     });
   }
 
+  addRapidArt(dropData) {}
+
   removeSpotlight(spotLight) {
     const lights = this.state.lights;
     const index = lights.indexOf(spotLight);
@@ -506,8 +508,45 @@ class Builder extends Component {
     this.setSceneMeshes();
   }
 
-  floorplanSelectedHandler = (data) => {
-    console.log("Builder floorplanSelectedHandler", data);
+  rapidBuild(newState, artItems) {
+    console.log("addArtItems", newState, artItems);
+    const newTitle = this.props.firebase.currentUser.displayName + " gallery";
+    const galleryDesc = {
+      title: newTitle,
+    };
+    const newerState = Object.assign(newState, {
+      galleryTitle: newTitle,
+      galleryDesc: galleryDesc,
+    });
+
+    this.setState(newerState, () => this.rebuildFromRapid(artItems));
+
+    // const newerState = Object.assign(newState, {
+    //   galleryTitle: newTitle,
+    //   floorplan: newState.floorplan,
+    //   galleryDesc: galleryDesc,
+    //   galleryId: newState.id,
+    //   // floor: new Floor({ builder: this }),
+    //   surroundings: new Surroundings(this),
+    //   userId: this.state.userId,
+    // });
+    // console.log("rapidBuild newerState galleryDesc",newerState, galleryDesc)
+
+    // this.setState(newerState, () => this.rebuildFromFloorplan());
+  }
+
+  rebuildFromRapid = (data) => {
+    console.log("rebuildFromRapid", data);
+    // this.checkForChanges();
+    this.setFloor();
+    this.setWalls(() => this.addArtItems(data)); //?
+    this.addGeneralLight();
+    this.initialCameraAnimation();
+    this.setSceneMeshes();
+  };
+
+  floorplanSelectedHandler = (data, artItems) => {
+    console.log("Builder floorplanSelectedHandler", data, artItems);
     this.emptyScene();
     // const floor = new Floor({ builder: this });
     console.log("intialState", this.getInitialState());
@@ -522,10 +561,35 @@ class Builder extends Component {
     returnVal.then((snapshot) => {
       newState.galleryId = snapshot.key;
       // this.setState({ galleryId: snapshot.key });
-      this.setState(newState, () => this.rebuildFromFloorplan());
+      if (artItems) {
+        this.rapidBuild(newState, artItems);
+      } else {
+        this.setState(newState, () => this.rebuildFromFloorplan());
+      }
     });
   };
+  addArtItems(artItems) {
+    console.log("artItems",artItems, this.state.wallMeshes);
+    // const artItemsLength = artItems.length;
+    const wallsLength = this.state.wallMeshes.length;
 
+    let i = Math.floor(wallsLength/2);
+    // const intersectedData = {
+    //   wallOver: this.state.wallEntities[i],
+    //   wallSideOver: side,
+    //   // voxelClicked: voxelClicked
+    // };
+    this.state.wallEntities[i].setCurrentSideOver("front");
+    const addImageData = {
+      itemData: artItems[0],
+      side: "front",
+      // draggableImageRef: this.draggableImageRef,
+      // uploadTask: uploadTask,
+    };
+
+    this.state.wallEntities[i].addArtRapid(addImageData);
+
+  }
   rebuildFromFloorplan = (data) => {
     console.log("rebuildFromFloorplan", data);
     // this.checkForChanges();
@@ -654,7 +718,7 @@ class Builder extends Component {
     artKeys.forEach((key) => this.getArtDetail(key));
   }
   setArtDetails = (data) => {
-    console.log("setArtDetails", data.val());
+    data && console.log("setArtDetails", data.val());
   };
 
   offArtHandler() {
@@ -1022,7 +1086,6 @@ class Builder extends Component {
 
   //scene setup and animation
   setUpScene() {
-    // debugger;
     const width = this.mount.clientWidth;
     const height = this.mount.clientHeight; // height wasn't getting set after new landing animation
     this.setState({ width: width, height: height });
@@ -1238,7 +1301,7 @@ class Builder extends Component {
 
   //set objects
 
-  setWalls() {
+  setWalls = (callback) => {
     const floorplan = this.state.floorplan.data;
     this.voxelsX = floorplan.length;
     this.voxelsY = floorplan[0].length;
@@ -1259,11 +1322,11 @@ class Builder extends Component {
         wallEntities: wallEntities,
         wallMeshes: wallEntities.map((item) => item.getMesh()),
       },
-      this.initialWallBuild
+      callback || this.initialWallBuild
     );
   }
 
-  setEditWalls(walls) {
+  setEditWalls(walls, callback) {
     const wallEntities = [];
     walls.forEach((wall) => {
       const { col, row, pos, sides, texture } = wall;
@@ -1580,9 +1643,7 @@ class Builder extends Component {
             plannerGallery={this.state.plannerGallery}
             galleryId={galleryId}
             floorplan={floorplan}
-            floorplanSelectedHandler={(data) =>
-              this.floorplanSelectedHandler(data)
-            }
+            floorplanSelectedHandler={this.floorplanSelectedHandler}
             exportData={exportData}
             userId={userId}
           />

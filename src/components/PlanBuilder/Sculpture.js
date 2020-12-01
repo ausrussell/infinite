@@ -71,8 +71,8 @@ export default class Sculpture {
     });
   }
 
-  artLeaveHandler = () => {
-    console.log("artLeaveHandler in sculpture");
+  endArtHoverAni = () => {
+    console.log("endArtHoverAni in sculpture");
     this.hoverOff();
   }
 

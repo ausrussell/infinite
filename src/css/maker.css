@@ -61,7 +61,7 @@
   flex-direction: column;
 }
 canvas {
-  cursor: crosshair;
+  /* cursor: crosshair; */
 }
 
 .floorplan-title-field {

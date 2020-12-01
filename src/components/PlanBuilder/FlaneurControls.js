@@ -9,6 +9,8 @@ const degreesToRadians = (degrees) => {
   return (degrees * Math.PI) / 180;
 };
 
+const defaultFov = 60;
+
 const defaultCameraSpeed = 1;
 
 class FlaneurControls {
@@ -68,8 +70,8 @@ class FlaneurControls {
       this.domElement.focus();
     }
 
-    this.mouse = new THREE.Vector2();
-    this.raycaster = new THREE.Raycaster();
+    this.mouse = new Vector2();
+    this.raycaster = new Raycaster();
     this.handleResize();
     this.createClickFloor();
     this.loadImagery();
@@ -81,20 +83,13 @@ class FlaneurControls {
     // this.setUpCollidableObjects();
 
     if (this.mode === "Gallery") this.setUpArtMovement();
-    this.defaultFov = 60;
-    this.onArt = false;
-    this.movingToArt = false;
+
+    // this.onArt = this.builder.state.onArt;
+    this.focusArt = false;
     this.cameraRotationSpeed = 1;
 
-    this._mouse = new Vector2();
     this._plane = new Plane();
-    this._raycaster = new Raycaster();
-
-    this._mouse = new Vector2();
-    // var _offset = new Vector3();
-    // var _intersection = new Vector3();
     this._worldPosition = new Vector3();
-    // var _inverseMatrix = new Matrix4();
     this._intersections = [];
     this._hovered = null;
     this.scope = this;
@@ -215,21 +210,18 @@ class FlaneurControls {
     if (hoverIntersect.footstepsHover) {
       this.moveToDestination();
     }
-    // console.log("mousedown this.artOver",this.artOver)
+    // if (
+    //   this.builder.state.onArt &&
+    //   hoverIntersect.artMesh &&
+    //   hoverIntersect.artMesh.object.uuid === this.builder.state.onArt.artMesh.uuid
+    // ) {
+    //   console.log("clicked on selected art",this.selectedArt.artMesh.uuid)
+    //   if(!this.builder.state.focusArt) this.setupFocusArt();
+    //   this.originalOnArtDestination = this.currentDestination;
+    //   this.moveInArt(hoverIntersect, event.shiftKey);
+    // } else 
     if (this.artOver) {
-      // debugger;
-      // console.log("this.artOver",this.artOver)
-      // console.log("this.artOver.frameDisplayObject",this.artOver.frameDisplayObject);
-      // console.log("this.selectedArt",this.selectedArt)
-      if (
-        this.selectedArt &&
-        isEqual(this.artOver.frameDisplayObject, this.selectedArt)
-      ) {
-        console.log("do moveInArt", event, hoverIntersect);
-        this.moveInArt(hoverIntersect);
-      } else {
-        this.moveToArt();
-      }
+      this.moveToArt();
     }
 
     if (this.hoveredOn3d) {
@@ -277,38 +269,16 @@ class FlaneurControls {
   };
 
   onMouseMove = (event) => {
-    this.onDocumentMouseMove(event);
-    return;
-    this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    // this.mouse.y = -((event.clientY - (window.innerHeight - this.domElement.offsetHeight)) / this.domElement.offsetHeight) * 2 + 1;
-    // console.log("event",event)
-    // this.mouse.y = -((event.clientY - (window.innerHeight - this.domElement.offsetHeight)) / this.domElement.offsetHeight) * 2 + 1;
-    this.mouse.y = -(event.offsetY / this.domElement.offsetHeight) * 2 + 1;
-
-    // console.log("event.clientY",event.clientY,"window.innerHeight",window.innerHeight,"this.domElement.offsetHeight",this.domElement.offsetHeight)
-    // console.log("this.mouse.y",this.mouse.y)
-    if (this.enabled) {
-      this.checkForFloorHover();
-    }
-
-    if (this.mode === "Gallery") this.checkForArtHover();
-  };
-
-  onDocumentMouseMove(event) {
     event.preventDefault();
 
     var rect = this.domElement.getBoundingClientRect();
-    this._mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    this._mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-    // debugger;
-    this.mouse.x = this._mouse.x;
-    this.mouse.y = this._mouse.y;
+    this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-    this.raycaster.setFromCamera(this._mouse, this.object);
+    this.raycaster.setFromCamera(this.mouse, this.object);
 
     this._intersections.length = 0;
 
-    this.raycaster.setFromCamera(this._mouse, this.object);
     this.raycaster.intersectObjects(
       this.collidableObjects,
       true,
@@ -331,8 +301,7 @@ class FlaneurControls {
 
       if (this._hovered !== object) {
         // this.scope.dispatchEvent( { type: 'hoveron', object: object } );
-
-        this.domElement.style.cursor = "pointer";
+        // this.domElement.style.cursor = "pointer";
         this._hovered = object;
         // Events.dispatchEvent({ type: "hoveron", object: this.hoveredOn3d || this._hovered });
       }
@@ -343,10 +312,10 @@ class FlaneurControls {
 
         this._hovered = null;
       }
-      this.domElement.style.cursor = "auto";
+      // this.domElement.style.cursor = "auto";
     }
     this.mode === "Gallery" && this.sculptureTraverser();
-  }
+  };
   sculptureTraverser() {
     let hoveredOn3d = null;
 
@@ -373,6 +342,9 @@ class FlaneurControls {
       if (this.object.fov !== this.defaultFov) {
         this.restoreDefaultFov();
       }
+    }
+    if (this.focusArt && event.key === "Escape") {
+      this.offArtHandler();
     }
     switch (event.keyCode) {
       case 38: /*up*/
@@ -436,6 +408,8 @@ class FlaneurControls {
       case 87:
         /*W*/ this.moveForward = false;
         this.moveUp = false;
+        this.zoomIn = false;
+
         break;
 
       case 37: /*left*/
@@ -452,6 +426,7 @@ class FlaneurControls {
       case 83:
         /*S*/ this.moveBackward = false;
         this.moveDown = false;
+        this.zoomOut = false;
         break;
 
       case 39: /*right*/
@@ -541,6 +516,49 @@ class FlaneurControls {
   }
 
   update(delta) {
+    // console.log("delta",delta)
+    return this.builder.state.focusEye ? this.updateFocus(delta) : this.updateWalking(delta);
+  }
+
+  updateFocus(delta) {
+    let actualFocusSpeed = delta * this.movementSpeed;
+    if (this.moveForward) {
+      const newFov = Math.max(this.object.fov - 2, 3);
+      this.setFov(newFov);
+    }
+    if (this.moveBackward) {
+      const timing = (timeFraction) =>
+        Math.max(1 - (1 - Math.pow(timeFraction, 3)), 0.02);
+      const progress = timing(this.object.fov / this.currentDestination.fov);
+      this.moveFrom.fov = this.object.fov;
+      this.moveToArtLoop(progress);
+    }
+    if (this.moveLeft) {
+      this.object.translateX(-actualFocusSpeed);
+    }
+    if (this.moveRight) {
+      this.object.translateX(actualFocusSpeed);
+    }
+
+    if (this.moveUp) {
+      this.object.translateY(actualFocusSpeed);
+    }
+    if (this.moveDown) {
+      this.object.translateY(-actualFocusSpeed);
+    }
+
+    if (this.moveCameraRight) {
+      this.rotateCamera("right");
+      this.checkForArtHover();
+    }
+
+    if (this.moveCameraLeft) {
+      this.rotateCamera("left");
+      this.checkForArtHover();
+    }
+  }
+
+  updateWalking(delta) {
     if (this.enabled === false) {
       return;
     }
@@ -594,18 +612,18 @@ class FlaneurControls {
 
     if (this.moveCameraRight) {
       this.rotateCamera("right");
-      !this.onArt && this.checkForArtHover();
+      this.checkForArtHover();
     }
 
     if (this.moveCameraLeft) {
       this.rotateCamera("left");
-      !this.onArt && this.checkForArtHover();
+      this.checkForArtHover();
     }
 
     if (!isEqual(oldPosition, Object.assign({}, this.object.position))) {
       !this.moveToDestinationAni.stop && this.doneMoveToDestination();
       this.checkForArtHover();
-      this.onArt && this.offArtHandler();
+      this.offArtHandler();
     }
 
     if (this.collideCoast) {
@@ -617,10 +635,13 @@ class FlaneurControls {
   offArtHandler() {
     console.log("offArtHandler");
     this.builder.offArtHandler();
+    // this.currentDestination = null;
     // this.builder.setArtDetails(null);
     this.restoreDefaultFov();
-    this.onArt = false;
+    // this.onArt = false;
+    this.builder.setState({ onArt: false });
     this.selectedArt = null;
+    this.domElement.style.cursor = "crosshair";
   }
 
   cameraRotation(dir) {
@@ -851,19 +872,21 @@ class FlaneurControls {
     quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), r);
     this.currentDestination = destinationVector;
     this.currentDestination.cameraQuaternion = quaternion;
-    // const opp = (this.selectedArt.ratio <= 1) ? this.selectedArt.artMesh.geometry.parameters.height / 2 : this.selectedArt.artMesh.parameters.width / 2;
     const opp =
       this.selectedArt.ratio <= 1
         ? this.selectedArt.imageHeight / 2
         : this.selectedArt.imageWidth / 2;
     const adj = 25;
     this.currentDestination.fov = ((Math.atan(opp / adj) * 180) / Math.PI) * 2;
+    console.log("this.currentDestination.fov", this.currentDestination.fov);
+
     this.moveFrom = this.object.position;
     this.moveFrom.fov = this.object.fov;
+    this.originalOnArtDestination = this.currentDestination;
     this.moveToArtAni.begin();
   }
 
-  moveInArt(hoverIntersect) {
+  moveInArt(hoverIntersect, shift) {
     const destinationVector = new THREE.Vector3(0, 1, 0);
     if (this.selectedArt.wall.pos === 0) {
       destinationVector.x = this.object.position.x;
@@ -874,10 +897,6 @@ class FlaneurControls {
       destinationVector.y = hoverIntersect.point.y;
       destinationVector.z = this.object.position.z; //.point.y
     }
-
-    console.log("destinationVector", destinationVector);
-    // destinationVector.copy(this.selectedArt.viewingPosition.getWorldPosition());
-
     var quaternion = new THREE.Quaternion();
     let r;
     r = this.selectedArt.wall.pos === 0 ? Math.PI / 2 : 0;
@@ -885,13 +904,11 @@ class FlaneurControls {
       r = -Math.PI / 2;
     if (this.selectedArt.side === "back" && this.selectedArt.wall.pos === 1)
       r = Math.PI;
-
     quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), r);
     this.currentDestination = destinationVector;
     this.currentDestination.cameraQuaternion = quaternion;
-    // const opp = (this.selectedArt.ratio <= 1) ? this.selectedArt.artMesh.geometry.parameters.height / 2 : this.selectedArt.artMesh.parameters.width / 2;
-
-    this.currentDestination.fov = this.object.fov;
+    const fovDelta = shift ? 10 : -10;
+    this.currentDestination.fov = this.object.fov + fovDelta;
     this.moveFrom = this.object.position;
     this.moveFrom.fov = this.object.fov;
     this.moveToArtAni.begin();
@@ -900,18 +917,13 @@ class FlaneurControls {
   moveTo3d(obj) {
     console.log("moveToSculpture", this.hoveredOn3d);
     this.selectedArt = obj ? obj.scope : this.hoveredOn3d.scope;
-    // this.selectedArt.data.art && this.builder.getArtDetail(this.selectedArt.data.art.key)
-    // // console.log("move to this.artOver", this.artOver, this.selectedArt);
     this.selectedArt.key &&
       this.builder.getArtDetail(this.selectedArt.key, "3d object");
-    console.log("this.selectedArt.key", this.selectedArt.key);
-    // this.builder.setState({ onArt: {selectedArt: this.selectedArt.data }})
     const destinationVector = new THREE.Vector3(0, 1, 0);
     destinationVector.copy(this.selectedArt.viewingPosition.getWorldPosition());
     var quaternion = this.selectedArt.rotationGroup.quaternion;
     this.currentDestination = destinationVector;
     this.currentDestination.cameraQuaternion = quaternion;
-    // // const opp = (this.selectedArt.ratio <= 1) ? this.selectedArt.artMesh.geometry.parameters.height / 2 : this.selectedArt.artMesh.parameters.width / 2;
     const opp =
       this.selectedArt.ratio <= 1
         ? this.selectedArt.imageHeight / 2
@@ -920,7 +932,6 @@ class FlaneurControls {
     this.currentDestination.fov = ((Math.atan(opp / adj) * 180) / Math.PI) * 2;
     this.moveFrom = this.object.position;
     this.moveFrom.fov = this.object.fov;
-
     this.moveToArtAni.begin();
   }
 
@@ -933,7 +944,7 @@ class FlaneurControls {
   }
 
   moveToArtLoop(progress) {
-    this.moveToDestinationAni.end();
+    !this.moveToDestinationAni.stop && this.moveToDestinationAni.end();
     var newX =
       this.moveFrom.x -
       (this.moveFrom.x - this.currentDestination.x) * progress; // interpolate between a and b where
@@ -954,7 +965,6 @@ class FlaneurControls {
       this.currentDestination.cameraQuaternion,
       progress
     );
-    this.movingToArt = true;
   }
 
   moveToDestinationLoop(progress) {
@@ -970,18 +980,31 @@ class FlaneurControls {
   }
 
   doneMoveToArt = () => {
+    console.log("moveToArtAni.end", this.moveToArtAni);
     this.moveToArtAni.end();
-    this.currentDestination = null;
-    this.onArt = true;
-    this.onArtHandler();
-    // console.log("doneMoveToArt this.onArt", this.onArt);
+    console.log("this.currentDestination", this.currentDestination);
+    console.log("this.selectedArt", this.selectedArt);
+    if (this.originalOnArtDestination) {
+      this.currentDestination = this.originalOnArtDestination;
+      this.originalOnArtDestination = null;
+    }
+    this.builder.setState({ onArt: this.selectedArt });
+    // this.onArtHandler();
   };
 
-  onArtHandler() {
-    this.selectedArt.artLeaveHandler();
+  setupFocusArt() {
+    if (!this.selectedArt) return;
+    this.selectedArt.endArtHoverAni();
     this.builder.onArtHandler && this.builder.onArtHandler(this.selectedArt);
+    this.domElement.style.cursor = "none";
     // debugger;
   }
+
+  // focusArt() {
+  //   this.builder.onArtHandler && this.builder.onArtHandler(this.selectedArt);
+  //   this.domElement.style.cursor = "none";
+  //   this.focussedArt = this.builderonArt;
+  // }
 
   doneMoveToDestination = () => {
     this.moveToDestinationAni.end();
@@ -1055,14 +1078,15 @@ class FlaneurControls {
       !this.artOver ||
       (this.artOver && artMesh.object.uuid !== this.artOver.uuid)
     ) {
-      // console.log("artMesh.object.uuid !== this.artOver.uuid", artMesh.object, this.artOver)
+      // console.log("artMesh.object.uuid !== this.artOver.uuid", artMesh.object, this.artOver);
+      this.artOver && this.artOver.frameDisplayObject.endArtHoverAni();
       this.artOver = artMesh.object;
       this.artOver.frameDisplayObject.artHoverHandler();
     }
   }
 
   leaveArtHandler() {
-    this.artOver.frameDisplayObject.artLeaveHandler();
+    this.artOver.frameDisplayObject.endArtHoverAni();
     this.artOver = null;
   }
 
@@ -1103,15 +1127,16 @@ class FlaneurControls {
 
   restoreDefaultFov() {
     this.restoreDefaultFovAni.end();
-
-    this.moveFromFov = this.object.fov;
-    this.restoreDefaultFovAni.begin();
+    if (this.object.fov !== defaultFov) {
+      this.moveFromFov = this.object.fov;
+      console.log("begin restore fov", this.moveFromFov);
+      this.restoreDefaultFovAni.begin();
+    }
   }
 
   restoreDefaultFovLoop(progress) {
     const newFov =
-      this.moveFromFov - (this.moveFromFov - this.defaultFov) * progress;
-    // console.log("restoreDefaultFovLoop",newFov)
+      this.moveFromFov - (this.moveFromFov - defaultFov) * progress;
     this.setFov(newFov);
   }
 

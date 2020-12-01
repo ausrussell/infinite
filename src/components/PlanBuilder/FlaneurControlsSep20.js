@@ -801,7 +801,7 @@ class FlaneurControls {
   };
 
   onArtHandler() {
-    this.selectedArt.artLeaveHandler();
+    this.selectedArt.endArtHoverAni();
   }
 
   doneMoveToDestination = () => {
@@ -868,7 +868,7 @@ class FlaneurControls {
   }
 
   leaveArtHandler() {
-    this.artOver.frameDisplayObject.artLeaveHandler();
+    this.artOver.frameDisplayObject.endArtHoverAni();
     this.artOver = null
   }
 

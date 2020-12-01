@@ -269,16 +269,6 @@ section.ant-layout {
   background-color: #273238;
 }
 
-.focus-eye2 {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: block;
-  background-color: green;
-  z-index: 100;
-  position: absolute;
-}
-
 .focus-eye {
   border: 1px solid;
   border-image: repeating-linear-gradient(
@@ -304,4 +294,87 @@ section.ant-layout {
   pointer-events: none;
   background-clip: content-box;
   background-blend-mode: screen;
+  cursor: none !important;
+}
+
+.focus-screen {
+  /* cursor:none !important; */
+}
+
+.focus-cursor {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #fff8e1;
+  /* border-radius: 50%; */
+  position: absolute;
+  transition-duration: 200ms;
+  transition-timing-function: ease-out;
+  /* animation: cursorAnim .7s infinite alternate; */
+  pointer-events: none;
+}
+
+.focus-cursor::after {
+  content: "";
+  width: 40px;
+  height: 40px;
+  position: absolute;
+  border: 8px solid #6345ad;
+  /* border-radius: 50%; */
+  opacity: .5;
+  top: -2px;
+  left: -2px;
+  /* animation: cursorAnim2 .7s infinite alternate; */
+}
+
+@keyframes cursorAnim {
+  from {
+      transform: scale(1);
+  }
+  to {
+      transform: scale(.9);
+  }
+}
+
+@keyframes cursorAnim2 {
+  from {
+      transform: scale(.9);
+  }
+  to {
+      transform: scale(.65);
+  }
+}
+
+@keyframes cursorAnim3 {
+  0% {
+      transform: scale(1);
+  }
+  50% {
+      transform: scale(3);
+  }
+  100% {
+      transform: scale(1);
+      opacity: 0;
+  }
+}
+
+.focus-escape {
+  position: absolute;
+  top:130px;
+  right: 30px;
+width:30px;
+height:30px;
+border: 2px solid #6345ad;
+border-radius: 50%;
+background-color: #333;
+pointer-events: none;
+
+}
+
+.focus-escape:after {
+content: "X";
+font-size: 50px;
+position: absolute;
+top:-26px;
+right: -3px;
+color:#fff8e1
 }

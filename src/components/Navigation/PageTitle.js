@@ -18,7 +18,6 @@ const PageTitle = (props) => {
     }
 
     const measureRef = useCallback((title) => {
-        console.log("measureRef",measureRef)
         if (title){
             if (title && title.getBoundingClientRect().height > maxTitleHeight) {
                 console.log("title.getBoundingClientRect().height",title.getBoundingClientRect().height)
@@ -31,7 +30,6 @@ const PageTitle = (props) => {
         <Row className={rowClass}>
             <Col span={24} style={{ textAlign: "center" }}>
                     {props.title ? <Title level={2} style={titleStyle} className="page-title-2"><div ref={measureRef}>{props.title}</div></Title> : <div className="title-logo-holder"><img src={logoSrc} className="title-logo" alt="hangar logo" style={{ marginTop: -4 }} /></div>}
-                
                 {props.help && <HelpModal content={props.help} />}
             </Col>
         </Row>

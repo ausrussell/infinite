@@ -39,6 +39,7 @@ class FloorplanDropdown extends Component {
     masterCallback = snap => {
         const list = this.addToList(snap, "master");
         this.setState({ floorplans: list }, this.props.firebase.getUsersFloorplans(this.userCallback));
+        this.props.setFloorplans(list);
     }
 
     userCallback = snap => {

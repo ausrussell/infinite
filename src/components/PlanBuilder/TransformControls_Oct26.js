@@ -812,7 +812,7 @@ var TransformControlsGizmo = function() {
   var scaleHandleGeometry = new PlaneBufferGeometry(0.295, 0.295);
 
   var lineGeometry = new BufferGeometry();
-  lineGeometry.addAttribute(
+  lineGeometry.setAttribute(
     "position",
     new Float32BufferAttribute([0, 0, 0, 1, 0, 0], 3)
   );
@@ -829,7 +829,7 @@ var TransformControlsGizmo = function() {
       );
     }
 
-    geometry.addAttribute("position", new Float32BufferAttribute(vertices, 3));
+    geometry.setAttribute("position", new Float32BufferAttribute(vertices, 3));
 
     return geometry;
   };
@@ -839,7 +839,7 @@ var TransformControlsGizmo = function() {
   var TranslateHelperGeometry = function() {
     var geometry = new BufferGeometry();
 
-    geometry.addAttribute(
+    geometry.setAttribute(
       "position",
       new Float32BufferAttribute([0, 0, 0, 1, 1, 1], 3)
     );
@@ -1559,7 +1559,7 @@ var TransformControlsGizmo = function() {
         object.updateMatrix();
 
         var tempGeometry = object.geometry.clone();
-        tempGeometry.applyMatrix(object.matrix);
+        tempGeometry.applyMatrix4(object.matrix);
         object.geometry = tempGeometry;
         object.renderOrder = Infinity;
 
