@@ -74,6 +74,26 @@ position: relative;
 
 }
 
+
+
+.art-details-description {
+  overflow-y: auto;
+  max-height: 33vh;
+  padding-right: 10px;
+}
+.art-details-description::-webkit-scrollbar {
+  -webkit-appearance: none;
+}
+
+.art-details-description::-webkit-scrollbar:vertical {
+  width: 11px;
+}
+.art-details-description::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  border: 2px solid white; /* should match background, can't be transparent */
+  background-color: rgba(0, 0, 0, .5);
+}
+
 button.ant-btn.ant-btn-primary {
 border-color: #718792;
 }

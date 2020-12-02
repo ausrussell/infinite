@@ -21,7 +21,7 @@ export const ArtDetails = ({ selectedArt }) => {
                     {year && <p>{year}</p>}
                     {artist && <h4>{artist}</h4>}
                     {media && <h5>{media}</h5>}
-                    {description && <p>{description}</p>}
+                    {description && <div className="art-details-description">{description}</div>}
                     {license && <p>{rightsMap[license].icon}</p>}
                 </div> :
                 <div className="art-details-card-open-holder"><div className="art-details-down-button" onClick={openDetails} ><UpOutlined /></div></div>}

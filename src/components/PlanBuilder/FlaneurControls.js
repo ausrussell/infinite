@@ -988,7 +988,7 @@ class FlaneurControls {
       this.currentDestination = this.originalOnArtDestination;
       this.originalOnArtDestination = null;
     }
-    this.builder.setState({ onArt: this.selectedArt });
+    // this.builder.setState({ onArt: this.selectedArt });
     // this.onArtHandler();
   };
 

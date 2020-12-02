@@ -380,6 +380,7 @@ class Builder extends Component {
     // this.dragControls.objects = sculptures;
     console.log("this.dragControls.objects", this.dragControls.getObjects());
     console.log("this scene", this.scene.children);
+    this.onWindowResize();
   }
 
   selectingArtHandler = () => {

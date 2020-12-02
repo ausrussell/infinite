@@ -117,7 +117,7 @@ class Firebase {
   updateAsset = (path, object) => {
     console.log("updateAsset", path, object)
     delete object.ref;
-    object.updateTime = new Date();
+    object.updateTime = new Date().getTime();//app.database.ServerValue.TIMESTAMP;//new Date();
 
     const ref = this.database
       .ref(path)
