@@ -32,7 +32,7 @@ console.log("sending welcome to ",user.displayName, user)
     html: `<p style="font-size: 16px;">Thank you for joining <a href="https://hangar.social">Hangar</a>!</p>
        <p>In these early days I really appreciate you taking a moment to look at some galleries and make your own. All your feedback is very welcome!</p>
        <p>You can check out this short demo video to see how quick and easy it can be to make an impressive gallery online:<br />
-       <a href="https://youtu.be/QvyW_znUuo8">Hangar demo</a>
+       <a href="https://youtu.be/LSwVwNi4Rzk">How to make a Gallery on Hangar.social</a>
        <p>You can also get info by clicking the ? at the top of most pages.</p>
        <p>Happy Hanging!</p>
        <p>Kind regards,</p>
