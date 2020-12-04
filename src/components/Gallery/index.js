@@ -127,7 +127,8 @@ class GalleryBase extends Component {
     if (this.animateCall) this.animateCall = undefined;
 
     this.state.artMeshes.forEach((item) => {
-      item.frameDisplayObject.destroyViewingPosition();
+      console.log("arftMeshItem",item)
+      item.frameDisplayObject && item.frameDisplayObject.destroyViewingPosition();
     });
     this.disposeNode(this.scene);
     this.sceneLoader.destroy(); //only disposing background at the moment
