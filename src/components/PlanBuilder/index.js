@@ -479,6 +479,7 @@ class Builder extends Component {
         surroundings: new Surroundings(this),
         userId: userId,
       });
+      console.log("newState to set",newState)
       this.setState(newState, () => this.rebuildGallery(galleryData));
     }
   };
@@ -681,6 +682,7 @@ class Builder extends Component {
     galleryData.art = [];
 
     this.state.wallEntities.forEach((item) => {
+      debugger;
       const wallExport = item.getExport();
       galleryData.walls.push(wallExport);
       wallExport.artKeys && galleryData.art.push(...wallExport.artKeys);

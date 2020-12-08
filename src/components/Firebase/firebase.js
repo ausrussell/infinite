@@ -27,7 +27,7 @@ class Firebase {
       console.log("call updateAccount", this.currentUID);
 
       this.updateAccount();
-      this.isCurator = (this.currentUID === "0XHMilIweAghhLcophtPU4Ekv7D3");
+      this.isCurator = (this.currentUID === "0XHMilIweAghhLcophtPU4Ekv7D3" || this.currentUID === "bGXdibczHIWMfdbHCgAiCsjGEPx2");
       console.log("this.auth.onAuthStateChanged", this.currentUID,"is curator",this.isCurator);
 
     });

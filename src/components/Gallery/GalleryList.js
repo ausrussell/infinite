@@ -104,7 +104,7 @@ const GalleryList = ({ listCallback, firebase, selectCallback, markerSelected, h
 
   const onContainerClickHandler = (e, item, ref) => {
     const { nameEncoded } = item;
-    if (e.target.src || e.target.classList[0] === "ant-list-item-meta-title") history.push({ pathname: "/Gallery/" + nameEncoded })
+    if (e.target.src || e.target.classList[0] === "ant-list-item-meta-title" || e.target.classList[0] ===  "gallery-list-item-image") history.push({ pathname: "/Gallery/" + nameEncoded })
   }
 
   const artLoadedListCallback = item => {

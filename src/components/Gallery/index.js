@@ -11,7 +11,7 @@ import GeneralLight from "../PlanBuilder/GeneralLight";
 import SceneLoader from "./SceneLoader";
 import PageTitle from "../Navigation/PageTitle";
 import { GalleryHelp } from "./GalleryHelp";
-import { ArtDetails } from "./ArtDetails";
+import { ArtDetails, ArtDetailsList } from "./ArtDetails";
 import { FocusEye } from "./FocusEye";
 import { compose } from "recompose";
 
@@ -24,6 +24,11 @@ import { isMobile } from "react-device-detect";
 
 import Gui from "../Gui";
 import * as Stats from "stats-js";
+
+import { Button, Dropdown, List, Menu, Row, Col } from "antd";
+import { DownOutlined, UpOutlined, StarOutlined } from "@ant-design/icons";
+import moment from "moment";
+
 
 class GalleryBase extends Component {
   state = {
@@ -40,6 +45,8 @@ class GalleryBase extends Component {
     owner: null,
     sculptures: [],
     sculptureAnimations: [],
+    visible: false,
+    catalogue: [],
   };
 
   constructor(props) {
@@ -127,8 +134,9 @@ class GalleryBase extends Component {
     if (this.animateCall) this.animateCall = undefined;
 
     this.state.artMeshes.forEach((item) => {
-      console.log("arftMeshItem",item)
-      item.frameDisplayObject && item.frameDisplayObject.destroyViewingPosition();
+      console.log("arftMeshItem", item);
+      item.frameDisplayObject &&
+        item.frameDisplayObject.destroyViewingPosition();
     });
     this.disposeNode(this.scene);
     this.sceneLoader.destroy(); //only disposing background at the moment
@@ -339,7 +347,7 @@ class GalleryBase extends Component {
     this.sceneLoader = new SceneLoader(options);
     this.sceneLoader.renderData();
 
-    this.onWindowResize()
+    this.onWindowResize();
     // this.addBox();
     // this.addHelperGrid();
   }
@@ -372,9 +380,13 @@ class GalleryBase extends Component {
     ); //to overcome ant d difficult refocussing
   };
 
-  getArtDetail = (key, type) => {
+  getArtDetail = (key, type, artOwner) => {
+
+    const owner = (artOwner !== this.state.owner) ? artOwner : this.state.owner;
+    console.log("owner, refPath",owner,"users/" + owner + "/" + type + "/" + key,);
+
     const options = {
-      refPath: "users/" + this.state.owner + "/" + type + "/" + key,
+      refPath: "users/" + owner + "/" + type + "/" + key,
       once: true,
       callback: this.setArtDetails,
     };
@@ -431,6 +443,26 @@ class GalleryBase extends Component {
     this.flaneurControls.offArtHandler();
   };
 
+  titleClickHandler = () => {
+    console.log("titleClickHandler");
+    // this.camera.position.z = 245;
+    // this.camera.position.y = 45;
+    this.flaneurControls.moveToInitial();
+  };
+
+  handleMenuClick = (e) => {
+    if (e.key === "3") {
+      this.setState({ visible: false });
+    }
+  };
+
+  handleVisibleChange = (flag) => {
+    console.log("handleVisibleChange", flag);
+    this.setCatalogue();
+
+    this.setState({ visible: flag });
+  };
+
   animate = () => {
     // console.log("animate")
     const delta = this.clock.getDelta();
@@ -445,14 +477,118 @@ class GalleryBase extends Component {
     this.animateCall = requestAnimationFrame(() => this.animate());
   };
 
+  getArtForCatalogueDetail = (key, type) => {
+    const options = {
+      refPath: "users/" + this.state.owner + "/" + type + "/" + key,
+      once: true,
+      callback: this.setArtForCatalogue,
+    };
+
+    console.log("getArtForCatalogueDetail", options);
+    this.props.firebase.getAsset(options);
+  };
+
+  setArtForCatalogue = (snap) => {
+    const snapVal = !snap ? null : snap.val();
+    console.log("gotArtDetails onArt", snapVal);
+    const newCatalogue = this.state.catalogue;
+    newCatalogue.push(snapVal);
+    this.setState({ catalogue: newCatalogue });
+    console.log("state.catalogue", this.state.catalogue);
+  };
+
+  setCatalogue() {
+    if (this.state.catalogue.length === 0) {
+      this.state.artMeshes.forEach((art) => {
+        console.log("art", art);
+        this.getArtForCatalogueDetail(
+          art.frameDisplayObject.data.art.key,
+          "art"
+        );
+      });
+    }
+  }
+
+  borrowClickHandler = async (item) => {
+    console.log("borrowClickHandler", item);
+    const assetRef = await this.props.firebase.getNewAssetRef("art");
+    const path = "art/" + assetRef.key;
+    const options = {
+      borrowed:  moment().format("MMMM Do YYYY, h:mm:ss a")
+    }
+    Object.assign(options, item);
+    const dbPath = "users/" + this.props.firebase.currentUID + "/" + path;
+    this.props.firebase.updateAsset(dbPath, options).then(() => {
+
+    })
+
+  };
+
   render() {
+    const catalogue = (
+      <Menu onClick={this.handleMenuClick}>
+        <Menu.Item key="1">
+          <Row>
+            <Col span={24} style={{ width: "75vw" }}>
+              {this.state.galleryData?.description}
+              <List
+                style={{ maxHeight: "75vh", overflow: "auto" }}
+                itemLayout="vertical"
+                size="large"
+                dataSource={this.state.catalogue}
+                renderItem={(item, i) => (
+                  <List.Item
+                    className="gallery-list-item-holder"
+                    key={`art-${i}`}
+                    extra={
+                      <div className="gallery-list-item-image">
+                        <img src={item.thumb || item.url}
+       
+                          alt={item.title} />
+                      </div>
+                    }
+                    actions={[
+                      <IconText
+                        icon={StarOutlined}
+                        text="Borrow Work"
+                        key="list-vertical-star-o"
+                        borrowClickHandler={()=> this.borrowClickHandler(item)}
+                      />,
+                    ]}
+                  >
+                    <ArtDetailsList selectedArt={item} />
+                  </List.Item>
+                )}
+              ></List>
+            </Col>
+          </Row>
+        </Menu.Item>
+      </Menu>
+    );
     return (
       <ErrorBoundary>
         <div className="page-header-area">
           <PageTitle
             title={this.state.galleryData.title}
             help={this.GalleryHelp}
-          />
+            titleClickHandler={this.titleClickHandler}
+          >
+            {this.props.firebase.isCurator && <Dropdown
+              overlay={catalogue}
+              onVisibleChange={this.handleVisibleChange}
+              visible={this.state.visible}
+              trigger={["click"]}
+              placement="bottomCenter"
+            >
+              <Button
+                // className="Xant-dropdown-link"
+                onClick={(e) => e.preventDefault()}
+                style={{ marginLeft: 15 }}
+              >
+                <DownOutlined />
+              </Button>
+            </Dropdown>}
+          </PageTitle>
         </div>
         <MainCanvas refer={(mount) => (this.mount = mount)} />
         {this.state.onArt && <ArtDetails selectedArt={this.state.onArt} />}
@@ -461,6 +597,13 @@ class GalleryBase extends Component {
     );
   }
 }
+
+const IconText = ({ icon, text, borrowClickHandler }) => (
+  <div onClick={borrowClickHandler}>
+    {React.createElement(icon)}
+    {text}
+  </div>
+);
 
 const Gallery = compose(withAuthentication, withFirebase)(GalleryBase);
 

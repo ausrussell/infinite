@@ -342,9 +342,11 @@ class WallObject {
   }
 
   addSidesFromData = (sides) => {
+    console.log("sides",sides)
     Object.entries(sides).forEach((sideItem) => {
       const side = sideItem[0];
       this.sides[side].frames = [];
+      console.log("sides[side]",sides[side])
       const newFrame = new Frame(this, side);
       this.sides[side].hasArt = true;
       this.sides[side].frames.push(newFrame);

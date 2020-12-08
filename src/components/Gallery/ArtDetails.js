@@ -30,3 +30,14 @@ export const ArtDetails = ({ selectedArt }) => {
     </div>)
 }
 
+export const ArtDetailsList = ({ selectedArt }) => {
+    const { title, artist, description, media, year, license } = selectedArt;
+
+    return(                 <div>{title|| <span style={{ fontStyle: "italic" }}>Untitled</span>}
+    {year && <p>{year}</p>}
+    {artist && <h4>{artist}</h4>}
+    {media && <h5>{media}</h5>}
+    {description && <div className="art-details-description">{description}</div>}
+    {license && <p>{rightsMap[license].icon}</p>}</div>)
+}
+

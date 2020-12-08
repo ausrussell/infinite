@@ -82,6 +82,9 @@ class FlaneurControls {
     this.collidableObjects = [];
     // this.setUpCollidableObjects();
 
+    this.destinationVector = new THREE.Vector3();
+
+
     if (this.mode === "Gallery") this.setUpArtMovement();
 
     // this.onArt = this.builder.state.onArt;
@@ -94,6 +97,7 @@ class FlaneurControls {
     this._hovered = null;
     this.scope = this;
   }
+
 
   setUpAnimations() {
     this.moveToDestinationAni = new Animate({
@@ -208,7 +212,7 @@ class FlaneurControls {
     this.mouseDragOn = true;
     const hoverIntersect = this.checkForIntersecting();
     if (hoverIntersect.footstepsHover) {
-      this.moveToDestination();
+      this.moveToDestination(this.footstepsHoverMesh.position);
     }
     // if (
     //   this.builder.state.onArt &&
@@ -349,7 +353,7 @@ class FlaneurControls {
     switch (event.keyCode) {
       case 38: /*up*/
       case 87:
-        // if (!this.moveToDestinationAni.stop) this.doneMoveToDestination();//this.moveToDestinationAni.end();
+        
 
         if (event.shiftKey) {
           this.moveUp = true;
@@ -371,7 +375,7 @@ class FlaneurControls {
 
       case 40: /*down*/
       case 83:
-        // if (!this.moveToDestinationAni.stop) this.doneMoveToDestination();//this.moveToDestinationAni.end();
+        
         if (event.shiftKey) {
           this.moveDown = true;
         } else {
@@ -837,7 +841,17 @@ class FlaneurControls {
     // console.log("setUpFootsteps collidableObjects", this.collidableObjects)
   }
 
-  moveToDestination() {
+  moveToInitial(){
+    this.offArtHandler();
+    this.currentDestination = new THREE.Vector3(0, 45, 245);;
+    this.currentDestination.cameraQuaternion = new THREE.Quaternion();
+    this.currentDestination.fov = 60;
+    this.moveFrom = this.object.position;
+    this.moveFrom.fov = this.object.fov;
+    this.moveToArtAni.begin();
+  }
+
+  moveToDestination(pos) {
     this.moveToDestinationAni.end();
     if (!this.builder.scene.getObjectByName("footDestination")) {
       this.builder.scene.add(this.footstepsDestinationMesh);
@@ -845,9 +859,8 @@ class FlaneurControls {
     this.footstepsDestinationMesh.position.copy(
       this.footstepsHoverMesh.position
     );
-    const destinationVector = new THREE.Vector3();
-    destinationVector.copy(this.footstepsHoverMesh.position);
-    this.currentDestination = destinationVector;
+    this.destinationVector.copy(pos);
+    this.currentDestination = this.destinationVector;
     this.moveFrom = this.object.position;
     this.moveToDestinationAni.begin();
   }
@@ -856,8 +869,15 @@ class FlaneurControls {
     this.selectedArt = artMesh
       ? artMesh.frameDisplayObject
       : this.artOver.frameDisplayObject;
+
+      const artParts = this.selectedArt.data.art.file.split("/")
+      console.log("artParts[7]",artParts[7]);
+      const fileParts = artParts[7].split("%2F")
+      console.log("fileParts",fileParts,fileParts[1]);
+
+      
     this.selectedArt.data.art &&
-      this.builder.getArtDetail(this.selectedArt.data.art.key, "art");
+      this.builder.getArtDetail(this.selectedArt.data.art.key, "art", fileParts[1]);
 
     const destinationVector = new THREE.Vector3(0, 1, 0);
     destinationVector.copy(this.selectedArt.viewingPosition.getWorldPosition());
@@ -997,7 +1017,7 @@ class FlaneurControls {
     this.selectedArt.endArtHoverAni();
     this.builder.onArtHandler && this.builder.onArtHandler(this.selectedArt);
     this.domElement.style.cursor = "none";
-    // debugger;
+    
   }
 
   // focusArt() {

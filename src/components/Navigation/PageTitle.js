@@ -9,7 +9,7 @@ const logoSrc = "https://firebasestorage.googleapis.com/v0/b/infinite-a474a.apps
 const maxTitleHeight = 40;
 
 const PageTitle = (props) => {
-    // console.log("props.title",props.title, rowStyle)
+    console.log("PageTitle props",props)
     const [measuredFontSize, setMesuredFontSize] = useState(30)
     const rowClass = (props.title) ? "title-row-title" : "title-row-no-title";
     const titleStyle = {
@@ -29,7 +29,7 @@ const PageTitle = (props) => {
     return (
         <Row className={rowClass}>
             <Col span={24} style={{ textAlign: "center" }}>
-                    {props.title ? <Title level={2} style={titleStyle} className="page-title-2"><div ref={measureRef}>{props.title}</div></Title> : <div className="title-logo-holder"><img src={logoSrc} className="title-logo" alt="hangar logo" style={{ marginTop: -4 }} /></div>}
+                    {props.title ? <Title level={2} style={titleStyle} className="page-title-2" onClick={props.titleClickHandler}><div ref={measureRef}><span>{props.title}</span>{props.children}</div></Title> : <div className="title-logo-holder"><img src={logoSrc} className="title-logo" alt="hangar logo" style={{ marginTop: -4 }} /></div>}
                 {props.help && <HelpModal content={props.help} />}
             </Col>
         </Row>
