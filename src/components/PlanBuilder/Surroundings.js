@@ -1,4 +1,7 @@
 // import React, { Component } from "react";
+//... [ 0] [ 3] [ 6] [ 9]  [0,0] [1,0] [2,0] [3,0]   [  ] [py] [  ] [  ]      [ ] [2] [ ] [ ]     
+//... [ 1] [ 4] [ 7] [10]  [0,1] [1,1] [2,1] [3,1]   [nx] [pz] [px] [nz]      [1] [4] [0] [5]     
+//... [ 2] [ 5] [ 8] [11]  [0,2] [1,2] [2,2] [3,2]   [  ] [ny] [  ] [  ]
 import * as THREE from "three";
 
 export default class Surroundings {
@@ -23,6 +26,7 @@ export default class Surroundings {
     const urls = [
       item.px, item.nx, item.py, item.ny, item.pz, item.nz
     ];
+    console.log("surroundings setDataToMaterial urls",urls)
     var reflectionCube = new THREE.CubeTextureLoader().load(urls);
     console.log("reflectionCube",reflectionCube)
     this.scene.background = reflectionCube;

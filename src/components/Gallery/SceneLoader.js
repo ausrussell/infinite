@@ -24,7 +24,6 @@ class SceneLoader {
     this.builder = builder;
   }
   renderData() {
-    // debugger;
     // this.addBox();
     // this.add3d();
     this.renderFloor();
@@ -77,7 +76,7 @@ class SceneLoader {
     });
     // console.log("artMeshes in renderwalls", artMeshes)
     this.builder.setState({ wallMeshes: wallMeshes, artMeshes: artMeshes })
-
+     
   }
 
   addBox() {
@@ -161,7 +160,6 @@ class SceneLoader {
   add3d() {
     let loader = new GLTFLoader();
     loader.load(perseusUrl, (gltf) => {
-      // debugger;
       const perseus = gltf.scene.children[0];
       perseus.translateZ(30)
       perseus.scale.set(2, 2, 2);

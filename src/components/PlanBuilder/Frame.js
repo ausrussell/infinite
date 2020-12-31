@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import Animate from "../../Helpers/animate";
-import TextureAdder from "../../Helpers/TextureAdder"
+import TextureAdder from "../../Helpers/TextureAdder";
 
 class Frame {
   constructor(props, side = "front") {
@@ -10,7 +10,7 @@ class Frame {
     this.group.name = "artHolder";
     this.group.holderClass = this;
     this.group.side = side;
-    this.group.setFrameColor = frameData => this.setDataToMaterial(frameData);
+    this.group.setFrameColor = (frameData) => this.setDataToMaterial(frameData);
     this.group.removeTexture = () => this.removeTexture();
 
     this.frameData = { color: 0x666666 }; //default frame color
@@ -18,7 +18,8 @@ class Frame {
     this.frameWidth = 1;
     this.export = {};
 
-    if (props) {//i.e. made by WallObject
+    if (props) {
+      //i.e. made by WallObject
       this.wall = props;
       const { wallDepth, wallWidth, wallHeight } = this.wall;
 
@@ -29,24 +30,24 @@ class Frame {
       this.maxFrameWidth = this.wallWidth * 0.8;
       this.maxFrameHeight = wallHeight * 0.8;
       this.hasArt = this.wall.sides[side].hasArt;
-
       this.side = side;
       this.group.wallPos = this.wall.pos;
     }
-
   }
-
   getExport() {
     this.export.groupPosition = this.group.position;
     this.export.frame = this.frameData;
     this.export.side = this.side;
+    this.export.borrowed = this.borrowed;
     if (!this.artKey) this.artKey = this.getKeyFromFile();
     this.export.art = {
       file: this.artMesh.file, //iMaterial.map,
       width: this.artMesh.geometry.parameters.width * this.artMesh.scale.x,
       height: this.artMesh.geometry.parameters.height * this.artMesh.scale.y,
-      key: this.artKey
+      key: this.artKey,
+      borrowed: this.borrowed
     };
+    console.log("this.export",this.export)
     return this.export;
   }
 
@@ -54,15 +55,12 @@ class Frame {
     // const texture1 = this.textureLoader.load("../textures/wood/wood3.png");
     // this.fmaterial = new THREE.MeshLambertMaterial({
     this.fmaterial = new THREE.MeshStandardMaterial({
-
       color: this.frameData.color,
       side: THREE.DoubleSide,
-      transparent: true
+      transparent: true,
       // map: texture1
     });
     this.textureAdder = new TextureAdder({ material: this.fmaterial });
-
-
   }
 
   removeTexture() {
@@ -70,7 +68,7 @@ class Frame {
     this.fmaterial.dispose();
     this.frameMesh.material = null;
     this.setDefaultFrameMaterial();
-    this.frameMesh.material = this.fmaterial
+    this.frameMesh.material = this.fmaterial;
   }
 
   setDefaultFrameGroup(options) {
@@ -80,7 +78,7 @@ class Frame {
     const material = new THREE.MeshBasicMaterial({
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0
+      opacity: 0,
       // color: "#f111ff"
     });
     const defaultArtMesh = new THREE.Mesh(defaultPlane, material);
@@ -114,21 +112,26 @@ class Frame {
   setFramePosition() {
     if (this.wall) {
       const wallMatrix = this.wall.wallMesh.matrixWorld;
-      const shiftedLeft = wallMatrix.makeTranslation(//in relation to wall
+      const shiftedLeft = wallMatrix.makeTranslation(
+        //in relation to wall
         (-this.artMesh.geometry.parameters.width * this.artMesh.scale.x) / 2,
         (-this.artMesh.geometry.parameters.height * this.artMesh.scale.y) / 2,
         0
       );
       this.frameMesh.position.setFromMatrixPosition(shiftedLeft);
-    }
-    else {//for Preview
-      this.frameMesh.position.set(-this.artMesh.geometry.parameters.width / 2, -this.artMesh.geometry.parameters.height / 2, 0);
+    } else {
+      //for Preview
+      this.frameMesh.position.set(
+        -this.artMesh.geometry.parameters.width / 2,
+        -this.artMesh.geometry.parameters.height / 2,
+        0
+      );
     }
   }
 
   removeFromWall = () => {
     this.wall.removeFrame(this, this.side);
-  }
+  };
 
   setFrameMeshRescaled({ totalWidth, totalHeight }) {
     this.setFrameGeometry(totalWidth, totalHeight);
@@ -141,14 +144,14 @@ class Frame {
   getWallData = () => {
     return {
       wallOver: this.wall,
-      wallSideOver: this.side
+      wallSideOver: this.side,
     };
   };
   rescale = () => {
     let options = {
       totalWidth: this.artMesh.geometry.parameters.width * this.artMesh.scale.x,
       totalHeight:
-        this.artMesh.geometry.parameters.height * this.artMesh.scale.y
+        this.artMesh.geometry.parameters.height * this.artMesh.scale.y,
     };
     //console.log("rescale options", options);
     this.setFrameMeshRescaled(options);
@@ -182,7 +185,7 @@ class Frame {
       bevelThickness: 0.5,
       bevelSize: 1,
       bevelOffset: 0,
-      bevelSegments: 8
+      bevelSegments: 8,
     };
     this.fgeometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
   }
@@ -202,7 +205,7 @@ class Frame {
     // this.group.holderClass = this;//??
     this.fmaterial = this.oldGroup.holderClass.fmaterial;
     this.frameMesh = this.oldGroup.children.find(
-      item => item.name === "frameMesh"
+      (item) => item.name === "frameMesh"
     );
     const wallMatrix = this.wall.wallMesh.matrixWorld;
 
@@ -259,13 +262,13 @@ class Frame {
     return this.group;
   }
 
-  addArtRapid(itemData){
+  addArtRapid(itemData) {
     const image = new Image();
     image.src = itemData.url;
     const options = {
       file: itemData.url,
       image: image,
-      holder: itemData.holder
+      holder: itemData.holder,
     };
     // const next = snapshot => {
     //   // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
@@ -277,21 +280,22 @@ class Frame {
 
     image.onload = () => this.imageLoadedHandler(options);
     // this.show(1);
-
   }
-  addArt(options) {//from dropping or dragging an image
-    const { file, uploadTask, holder, draggableImageRef } = options;//file is itemdata or dragged file
+  addArt(options) {
+    //from dropping or dragging an image
+    const { file, uploadTask, holder, draggableImageRef } = options; //file is itemdata or dragged file
     const addingHolder = holder || this;
     //console.log("addART", file);
-    if (file.url || file.thumb) {//not sure why some old art has thumb but no url
+    if (file.url || file.thumb) {
+      //not sure why some old art has thumb but no url
 
       const options = {
-
         file: file.url || file.thumb,
         image: draggableImageRef.current,
         holder: addingHolder,
-
       };
+      this.borrowed = file.borrowed ? file.borrowed : null;
+      console.log("addArt", options);
       this.imageLoadedHandler(options);
       this.show(1);
     } else {
@@ -300,9 +304,9 @@ class Frame {
       const options = {
         file: file,
         image: image,
-        holder: addingHolder
+        holder: addingHolder,
       };
-      const next = snapshot => {
+      const next = (snapshot) => {
         // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
         var progress = snapshot.bytesTransferred / snapshot.totalBytes;
         if (this.artMesh) this.show(progress);
@@ -310,17 +314,16 @@ class Frame {
         //console.log("snapshot", snapshot.ref);
       };
 
-      image.onload = image => this.imageLoadedHandler(options);
+      image.onload = (image) => this.imageLoadedHandler(options);
       uploadTask.on("state_changed", {
-        next: next
+        next: next,
         // complete: complete
       });
-      uploadTask.then(snapshot => {
+      uploadTask.then((snapshot) => {
         //console.log("uploaded file", snapshot);
-        uploadTask.snapshot.ref.getDownloadURL()
-          .then(downloadURL => {
-            this.artMesh.file = downloadURL;
-          });
+        uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+          this.artMesh.file = downloadURL;
+        });
       });
     }
   }
@@ -330,7 +333,8 @@ class Frame {
     this.group.position.set(groupPosition.x, groupPosition.y, 0);
   }
 
-  setArt(art) {//from art data
+  setArt(art) {
+    //from art data
     //console.log("setArt art", art);
     const texture = this.textureLoader.load(art.file);
     const artPlane = new THREE.PlaneGeometry(art.width, art.height, 0);
@@ -338,28 +342,27 @@ class Frame {
       side: THREE.DoubleSide,
       map: texture,
       opacity: 0,
-      transparent: true
+      transparent: true,
     });
     this.artMesh = new THREE.Mesh(artPlane, this.iMaterial);
     this.artMesh.name = "artMesh";
     this.artMesh.file = art.file;
+    this.artMesh.borrowed = art.borrowed;
     this.wallDepth && this.artMesh.translateZ(this.wallDepth);
     this.group.add(this.artMesh);
     if (this.side === "back") this.group.rotateY(Math.PI);
 
-
     this.artKey = this.getKeyFromFile();
-
   }
 
   getKeyFromFile() {
     const fileParts = this.artMesh.file.split("/");
     //console.log("fileParts", fileParts);
     const finalBit = fileParts[fileParts.length - 1];
-    const finalBits = finalBit.split("%2F")
+    const finalBits = finalBit.split("%2F");
     //console.log("finalBits", finalBits)
 
-    const keyToAdd = finalBits[3];//art.key || 
+    const keyToAdd = finalBits[3]; //art.key ||
     //console.log("keyToAdd", keyToAdd)
     return keyToAdd;
   }
@@ -370,7 +373,7 @@ class Frame {
     this.setFrameMesh(this.artMesh.geometry);
     this.fmaterial.opacity = 0;
     //console.log("setFrame this.frameMesh", this.frameMesh);
-    this.setDataToMaterial(frame)
+    this.setDataToMaterial(frame);
     this.group.add(this.frameMesh);
   }
 
@@ -379,8 +382,8 @@ class Frame {
     // this.frameData = frame;
     const options = {
       imageWidth: 30,
-      imageHeight: 20
-    }
+      imageHeight: 20,
+    };
 
     this.setDefaultFrameGroup(options);
   }
@@ -389,12 +392,12 @@ class Frame {
     const fadeAni = new Animate({
       duration: 450,
       timing: "circ",
-      draw: progress => this.fadingIn(progress)
+      draw: (progress) => this.fadingIn(progress),
     });
-    this.finalOpacity = (this.fmaterial.opacity > 0) ? this.fmaterial.opacity : 1;
+    this.finalOpacity = this.fmaterial.opacity > 0 ? this.fmaterial.opacity : 1;
     fadeAni.animate(performance.now());
   }
-  fadingIn = progress => {
+  fadingIn = (progress) => {
     progress += 0.01;
     this.show(progress);
     if (this.frameMesh) this.fmaterial.opacity = this.finalOpacity * progress;
@@ -405,6 +408,7 @@ class Frame {
     this.setGroup(groupPosition);
     this.setArt(art);
     this.setFrame(frame);
+    this.borrowed = art.borrowed;
   }
 
   fitToFrame(w, h, fitW, fitH) {
@@ -444,7 +448,7 @@ class Frame {
         side: THREE.DoubleSide,
         map: texture,
         opacity: 0.1,
-        transparent: true
+        transparent: true,
       });
     } else {
       this.iMaterial.map = texture;
@@ -480,7 +484,6 @@ class Frame {
   setDataToMaterial(data) {
     this.frameData = data;
     this.textureAdder.setDataToMaterial(data);
-
   }
   show(opacity = 1) {
     this.artMesh.material.opacity = opacity;

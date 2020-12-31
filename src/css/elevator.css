@@ -229,7 +229,6 @@ padding: 0px;
 
 .floorplan-new-button {
   border-top: 1px solid #b0bec5;
-
   border-bottom:1px solid #b0bec5;
 /* margin:auto; */
 width: 100%;
@@ -246,6 +245,33 @@ margin: 2px;
   background-color: #4527a0;
   color:#fff;
   opacity:.8;
+}
+
+.borrowed .borrowed-badge {
+  position: absolute;
+  bottom: 2px;
+  right: 10px;
+  padding:3px 8px;
+  background-color: #ff8f00;
+  color:#fff;
+  opacity:.8;
+}
+
+.borrower-details-holder {
+  border: 2px solid #ff8f00;
+  padding: 10px;
+  cursor: pointer;
+
+}
+
+.borrower-details-holder:hover {
+  color: #4527a0; 
+  fill: #4527a0;
+}
+
+.footsteps-link {
+  transform: rotate(-35deg);
+  float:right;
 }
 
 .gallery-edit-dropdown .ant-select-item.ant-select-item-option:hover{

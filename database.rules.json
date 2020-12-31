@@ -1,12 +1,18 @@
 {
   "rules": {
-    ".read": true,
     "users": {
+      ".read": true,
       "$uid": {
-        ".write": "$uid === auth.uid"
+        ".write": "$uid === auth.uid || newData.hasChild('art')",
+        "art": {
+          "$art": {
+            ".write": "newData.hasChild('borrowedBy')"
+          }
+        }
       }
     },
     "publicGalleries": {
+      ".read": true,
       "$uid": {
         ".write": "auth !== null"
       }

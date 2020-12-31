@@ -77,6 +77,7 @@ class WallDisplayObject {
         data: item,
         side: side
       };
+ 
       const frameObj = new FrameDisplayObject(options);
       frameObj.renderFrame();
       this.art[side].push(frameObj); 

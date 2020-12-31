@@ -18,7 +18,6 @@ export const UploadRapidButtonBase = ({ title, firebase, makeGalleryCallback }) 
     console.log("rapid success", artItems);
     makeGalleryCallback(artItems)
   };
-  const validateFile = () => {};
   return (
     <UploaderTileBase firebase={firebase} onSuccess={onSuccess}>
       <Button>{title}</Button>
@@ -91,9 +90,6 @@ const UploaderTileBase = (props) => {
       next: next,
       complete: complete,
     });
-  };
-  const beforeUpload = (file, fileList) => {
-    console.log("beforeUpload", file, fileList);
   };
   const handleChange = (e) => {
     console.log("handleChange", e);

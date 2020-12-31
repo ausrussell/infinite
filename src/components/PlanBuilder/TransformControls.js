@@ -207,7 +207,6 @@ this.name = "TransformControls"
 			this.object.updateMatrixWorld();
 			this.object.parent.matrixWorld.decompose(parentPosition, parentQuaternion, parentScale);
 			this.object.matrixWorld.decompose(worldPosition, worldQuaternion, worldScale);
-
 			parentQuaternionInv.copy(parentQuaternion).inverse();
 			worldQuaternionInv.copy(worldQuaternion).inverse();
 		}

@@ -84,7 +84,6 @@ class FlaneurControls {
 
     this.destinationVector = new THREE.Vector3();
 
-
     if (this.mode === "Gallery") this.setUpArtMovement();
 
     // this.onArt = this.builder.state.onArt;
@@ -97,7 +96,6 @@ class FlaneurControls {
     this._hovered = null;
     this.scope = this;
   }
-
 
   setUpAnimations() {
     this.moveToDestinationAni = new Animate({
@@ -223,7 +221,7 @@ class FlaneurControls {
     //   if(!this.builder.state.focusArt) this.setupFocusArt();
     //   this.originalOnArtDestination = this.currentDestination;
     //   this.moveInArt(hoverIntersect, event.shiftKey);
-    // } else 
+    // } else
     if (this.artOver) {
       this.moveToArt();
     }
@@ -353,8 +351,6 @@ class FlaneurControls {
     switch (event.keyCode) {
       case 38: /*up*/
       case 87:
-        
-
         if (event.shiftKey) {
           this.moveUp = true;
         } else {
@@ -375,7 +371,6 @@ class FlaneurControls {
 
       case 40: /*down*/
       case 83:
-        
         if (event.shiftKey) {
           this.moveDown = true;
         } else {
@@ -521,7 +516,9 @@ class FlaneurControls {
 
   update(delta) {
     // console.log("delta",delta)
-    return this.builder.state.focusEye ? this.updateFocus(delta) : this.updateWalking(delta);
+    return this.builder.state.focusEye
+      ? this.updateFocus(delta)
+      : this.updateWalking(delta);
   }
 
   updateFocus(delta) {
@@ -841,9 +838,9 @@ class FlaneurControls {
     // console.log("setUpFootsteps collidableObjects", this.collidableObjects)
   }
 
-  moveToInitial(){
+  moveToInitial() {
     this.offArtHandler();
-    this.currentDestination = new THREE.Vector3(0, 45, 245);;
+    this.currentDestination = new THREE.Vector3(0, 45, 245);
     this.currentDestination.cameraQuaternion = new THREE.Quaternion();
     this.currentDestination.fov = 60;
     this.moveFrom = this.object.position;
@@ -870,14 +867,10 @@ class FlaneurControls {
       ? artMesh.frameDisplayObject
       : this.artOver.frameDisplayObject;
 
-      const artParts = this.selectedArt.data.art.file.split("/")
-      console.log("artParts[7]",artParts[7]);
-      const fileParts = artParts[7].split("%2F")
-      console.log("fileParts",fileParts,fileParts[1]);
+    const type = this.selectedArt.borrowed ? "borrowed-art" : "art";
 
-      
     this.selectedArt.data.art &&
-      this.builder.getArtDetail(this.selectedArt.data.art.key, "art", fileParts[1]);
+      this.builder.getArtDetail(this.selectedArt.data.art.key, type);
 
     const destinationVector = new THREE.Vector3(0, 1, 0);
     destinationVector.copy(this.selectedArt.viewingPosition.getWorldPosition());
@@ -1017,7 +1010,6 @@ class FlaneurControls {
     this.selectedArt.endArtHoverAni();
     this.builder.onArtHandler && this.builder.onArtHandler(this.selectedArt);
     this.domElement.style.cursor = "none";
-    
   }
 
   // focusArt() {

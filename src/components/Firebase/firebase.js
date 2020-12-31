@@ -1,6 +1,7 @@
 import app from "firebase";
 import "firebase/database";
 import "firebase/auth";
+import moment from "moment";
 
 const config = {
   apiKey: process.env.REACT_APP_API_KEY,
@@ -10,7 +11,7 @@ const config = {
   storageBucket: process.env.REACT_APP_STORAGE_BUCKET,
   messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID,
   appId: process.env.REACT_APP_ID,
-  measurementId: process.env.REACT_APP_MEASUREMENT_ID
+  measurementId: process.env.REACT_APP_MEASUREMENT_ID,
 };
 
 class Firebase {
@@ -19,31 +20,36 @@ class Firebase {
     this.auth = app.auth();
     this.storage = app.storage();
     this.database = app.database();
-    this.functions = app.functions()
+    this.functions = app.functions();
     this.isCurator = false;
-    this.auth.onAuthStateChanged(user => {
+    this.auth.onAuthStateChanged((user) => {
       this.currentUID = user ? user.uid : null;
       this.currentUser = user;
       console.log("call updateAccount", this.currentUID);
 
       this.updateAccount();
-      this.isCurator = (this.currentUID === "0XHMilIweAghhLcophtPU4Ekv7D3" || this.currentUID === "bGXdibczHIWMfdbHCgAiCsjGEPx2");
-      console.log("this.auth.onAuthStateChanged", this.currentUID,"is curator",this.isCurator);
-
+      this.isCurator =
+        this.currentUID === "0XHMilIweAghhLcophtPU4Ekv7D3" ||
+        this.currentUID === "bGXdibczHIWMfdbHCgAiCsjGEPx2";
+      console.log(
+        "this.auth.onAuthStateChanged",
+        this.currentUID,
+        "is curator",
+        this.isCurator
+      );
     });
   }
 
   setupNewUser = (user, { displayName, email, username }) => {
     user.user.updateProfile({
-      displayName: displayName
+      displayName: displayName,
     });
-    return this.user(user.user.uid)
-      .set({
-        displayName,
-        username,
-        email,
-        createdAt: app.database.ServerValue.TIMESTAMP
-      });
+    return this.user(user.user.uid).set({
+      displayName,
+      username,
+      email,
+      createdAt: app.database.ServerValue.TIMESTAMP,
+    });
   };
 
   updateAccount = () => {
@@ -52,15 +58,15 @@ class Firebase {
         // const snap = snapshot.val();
         let updateOptions = {
           lastLogin: app.database.ServerValue.TIMESTAMP,
-          displayName: this.currentUser.displayName,//these three values from 
+          displayName: this.currentUser.displayName, //these three values from
           // username: this.currentUser.username,
-          email: this.currentUser.email
-        }
+          email: this.currentUser.email,
+        };
         // console.log("updateOptions",updateOptions)
-        this.user(this.currentUID).set(updateOptions)
-      })
+        this.user(this.currentUID).set(updateOptions);
+      });
     }
-  }
+  };
 
   getCurrentUser = () => {
     return this.auth.user;
@@ -69,23 +75,23 @@ class Firebase {
   // *** Auth API ***
 
   doCreateUserWithEmailAndPassword = ({ email, password }) =>
-    this.auth
-      .createUserWithEmailAndPassword(email, password)
-      .catch(error => {
-        console.error(error); //Handle error
-      });
+    this.auth.createUserWithEmailAndPassword(email, password).catch((error) => {
+      console.error(error); //Handle error
+    });
 
-  doSignInWithEmailAndPassword = (email, password) => this.auth.signInWithEmailAndPassword(email, password);
+  doSignInWithEmailAndPassword = (email, password) =>
+    this.auth.signInWithEmailAndPassword(email, password);
 
   doSignOut = () => this.auth.signOut();
 
-  doPasswordReset = email => this.auth.sendPasswordResetEmail(email);
+  doPasswordReset = (email) => this.auth.sendPasswordResetEmail(email);
 
-  doPasswordUpdate = password => this.auth.currentUser.updatePassword(password);
+  doPasswordUpdate = (password) =>
+    this.auth.currentUser.updatePassword(password);
 
   // *** User API ***
 
-  user = uid => this.database.ref(`users/${uid}/account`);
+  user = (uid) => this.database.ref(`users/${uid}/account`);
 
   users = () => this.database.ref("users");
 
@@ -94,36 +100,42 @@ class Firebase {
     const ref = app.database().ref(refPath);
     ref.orderByChild(orderField).on("value", callback);
     return ref;
-  }
+  };
 
   getAsset = ({ refPath, callback, once }) => {
-    console.log("getAsset refPath",refPath)
+    console.log("getAsset refPath", refPath);
     const ref = app.database().ref(refPath);
     if (once) {
-      ref.once("value").then((snap) => {callback(snap)});
+      ref.once("value").then((snap) => {
+        callback(snap);
+      });
     } else {
       ref.on("value", callback);
     }
     return ref;
-  }
+  };
+
+  getUsersBorrowed;
 
   getAssetOnce = ({ refPath }) => {
     // console.log("getAsset refPath",refPath)
     const ref = app.database().ref(refPath);
-    
-    return  ref.once("value")
-  }
+
+    return ref.once("value");
+  };
+
+  updateAssets = (updates) => {
+    return app.database().ref().update(updates);
+  };
 
   updateAsset = (path, object) => {
-    console.log("updateAsset", path, object)
+    // console.log("updateAsset", path, object);
     delete object.ref;
-    object.updateTime = new Date().getTime();//app.database.ServerValue.TIMESTAMP;//new Date();
+    object.updateTime = moment().format("MMMM Do YYYY, h:mm:ss a"); //new Date().getTime(); //app.database.ServerValue.TIMESTAMP;//new Date();
 
-    const ref = this.database
-      .ref(path)
-    return ref.update(object)
-  }
-
+    const ref = this.database.ref(path);
+    return ref.update(object);
+  };
 
   storeFloorplan = ({ data, title, timestamp }) => {
     console.log("storeFloorplan", this.currentUID);
@@ -133,40 +145,39 @@ class Firebase {
     newPostRef.set({
       data: data,
       title: title,
-      timestamp: timestamp
+      timestamp: timestamp,
     });
     return newPostRef;
   };
 
   updateTitle = (path, title) => {
-    const ref = this.database
-      .ref("users/" + this.currentUID + "/" + path)
-    return ref.update({ title: title })
-  }
-
-
+    const ref = this.database.ref("users/" + this.currentUID + "/" + path);
+    return ref.update({ title: title });
+  };
 
   assetPath = (type) => "users/" + this.currentUID + "/" + type + "/";
 
   getAssetRef = (type, key) => {
-    return this.database
-    .ref("users/" + this.currentUID + "/" + type + '/' + key)
-  }
+    return this.database.ref(
+      "users/" + this.currentUID + "/" + type + "/" + key
+    );
+  };
 
   deleteFolderContents(path) {
     const ref = this.storage.ref(path);
-    return ref.listAll()
-      .then(dir => {
-        dir.items.forEach(fileRef => {
-          console.log("deleteFile", fileRef.name)
+    return ref
+      .listAll()
+      .then((dir) => {
+        dir.items.forEach((fileRef) => {
+          console.log("deleteFile", fileRef.name);
           this.deleteFile(ref.fullPath, fileRef.name);
         });
-        dir.prefixes.forEach(folderRef => {
-          console.log("deleteFolderContents recursive", folderRef.fullPath)
+        dir.prefixes.forEach((folderRef) => {
+          console.log("deleteFolderContents recursive", folderRef.fullPath);
           this.deleteFolderContents(folderRef.fullPath);
-        })
+        });
       })
-      .catch(error => {
+      .catch((error) => {
         console.log("delete folder", error);
       });
   }
@@ -175,7 +186,7 @@ class Firebase {
     const newAssetRef = this.database
       .ref("users/" + this.currentUID + "/" + type)
       .push();
-    return newAssetRef
+    return newAssetRef;
   }
 
   storeAsset = (path, file) => {
@@ -185,39 +196,38 @@ class Firebase {
       "users/" + this.currentUID + "/" + path + "/" + name
     );
     // imageRef.dbPath =  "users/" + this.currentUID + "/" + path;
-    console.log("storeAsset", "users/" + this.currentUID + "/" + path + "/" + name)
+    console.log(
+      "storeAsset",
+      "users/" + this.currentUID + "/" + path + "/" + name
+    );
     return ref.put(file);
-  }
+  };
 
   deleteFile(pathToFile, fileName) {
     const ref = this.storage.ref(pathToFile);
     const childRef = ref.child(fileName);
-    childRef.delete()
+    childRef.delete();
   }
 
   deleteValue(path, key) {
-    const ref = this.database.ref(path)
-    console.log("deleteValue path", path, key)
-    return ref.update({ [key]: null })
+    const ref = this.database.ref(path);
+    console.log("deleteValue path", path, key);
+    return ref.update({ [key]: null });
   }
 
   deleteAsset = (path, item) => {
     console.log("deleteAsset", path, item);
-    return this.deleteFolderContents(path)
-      .then(() => {
-        const dbRef = this.database
-          .ref(path)
-        return dbRef.remove();
-      });
-
-
-  }
+    return this.deleteFolderContents(path).then(() => {
+      const dbRef = this.database.ref(path);
+      return dbRef.remove();
+    });
+  };
 
   removeRef = (path) => {
-    console.log("removeRef", path)
+    console.log("removeRef", path);
     let ref = this.database.ref(path);
-    ref.remove()
-  }
+    ref.remove();
+  };
 
   storeGallery = (galleryData, id) => {
     let galleryRef;
@@ -231,78 +241,81 @@ class Firebase {
     return galleryRef;
   };
 
-  pushAsset = path => {
+  pushAsset = (path) => {
     return this.database.ref(path).push();
-  }
-
-
+  };
 
   getGalleryByName = async (name, callback) => {
     console.log("getGalleryByName", name);
     const galleryRef = this.database.ref("publicGalleries");
     const selected = galleryRef.orderByChild("nameEncoded").equalTo(name);
-    selected.once("child_added", snapshot => {
-      console.log("getGalleryByName then ", snapshot.val())
+    selected.on("child_added", (snapshot) => {
       const returnedValues = snapshot.val();
-      console.log("getGalleryByName returnedValues", returnedValues)
+      console.log("getGalleryByName returnedValues", returnedValues);
       const ref = app.database().ref(returnedValues.dataPath);
-      ref.once("value", (snapshot) => {
+      ref.on("value", (snapshot) => {
         console.log("getGalleryByName snapshot data", snapshot.val());
         this.detachRefListener(selected);
         this.detachRefListener(ref);
-        const refParts = returnedValues.dataPath.split("/")
+        const refParts = returnedValues.dataPath.split("/");
         const owner = refParts[1];
-        console.log("owner",owner)
-        returnedValues.owner = owner
-        callback(Object.assign(returnedValues, snapshot.val()))
+        returnedValues.owner = owner;
+        returnedValues.galleryKey = snapshot.key;
+        callback(Object.assign(returnedValues, snapshot.val()));
       });
-    })
-  }
+    });
+  };
 
   detachRefListener(ref) {
     ref.off();
   }
 
-  getGalleryById = id => {
-    console.log("getGalleryById", id);
-    const galleryRef = this.database.ref("galleries/" + id);
-    return galleryRef;
+  getPublicGalleryById = (id, callback) => {
+    console.log("getPublicGalleryById", id);
+    const galleryRef = this.database.ref("publicGalleries/" + id);
+    galleryRef.on("value", (snapshot) => {
+      const returnedValues = snapshot.val();
+      const ref = app.database().ref(returnedValues.dataPath);
+
+      ref.once("value", (snapshot) => {
+        const refParts = returnedValues.dataPath.split("/");
+        const owner = refParts[1];
+        returnedValues.owner = owner;
+        returnedValues.galleryKey = snapshot.key;
+        callback(Object.assign(returnedValues, snapshot.val()));
+      });
+    });
   };
 
-  getGalleryList = callback => {
+  getGalleryList = (callback) => {
     const galleryRef = app.database.ref("publicGalleries");
     galleryRef.orderByChild("name").on("value", callback);
     return galleryRef;
   };
 
-  getGalleryEditList = callback => {
+  getGalleryEditList = (callback) => {
     const galleryRef = this.database.ref("galleries");
     galleryRef.orderByChild("name").on("value", callback); //need to add query by user
     console.log("getGalleryEditList");
     const galleryDescs = this.database.ref(
       "users/" + this.currentUID + "galleryDescs"
     );
-    return galleryDescs
+    return galleryDescs;
   };
 
-
-
-  removePlan = key => {
+  removePlan = (key) => {
     this.database
       .ref("users/" + this.currentUID + "/floorplans")
       .child(key)
       .remove();
   };
 
-
   getUsersFloorplans = (callback) => {
-
     this.userFloorplansRef = this.database.ref(
       "users/" + this.currentUID + "/floorplans"
     );
     return this.userFloorplansRef.on("value", callback);
   };
-
 
   detachGetUsersFloorplans() {
     this.userFloorplansRef && this.userFloorplansRef.off();
@@ -312,7 +325,7 @@ class Firebase {
     this.tilesRef = refPath;
     this.newArtRef = app.database().ref(refPath);
     this.newArtRef.on("value", callback);
-    console.log("this.newArtRef", this.newArtRef)
+    console.log("this.newArtRef", this.newArtRef);
     return this.newArtRef;
   };
 
@@ -337,7 +350,7 @@ class Firebase {
       .on("value", callback);
   };
 
-  storeArt = file => {
+  storeArt = (file) => {
     const storageRef = this.storage.ref();
     const path = file.assetType || "art";
     const imageRef = storageRef.child(
@@ -350,7 +363,7 @@ class Firebase {
 
   storeArtRef = (url, ref) => {
     const artData = {
-      url: url
+      url: url,
     };
     console.log(
       "storeArtRef",
@@ -366,11 +379,12 @@ class Firebase {
 
   setLandingLoaded = () => {
     this.landingLoaded = true;
-  }
-  verifyPasswordResetCode = (actionCode) => this.auth.verifyPasswordResetCode(actionCode)
-  
-  confirmPasswordReset = (actionCode, newPassword) => this.auth.confirmPasswordReset(actionCode, newPassword)
+  };
+  verifyPasswordResetCode = (actionCode) =>
+    this.auth.verifyPasswordResetCode(actionCode);
 
+  confirmPasswordReset = (actionCode, newPassword) =>
+    this.auth.confirmPasswordReset(actionCode, newPassword);
 }
 
 export default Firebase;

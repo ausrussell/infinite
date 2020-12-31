@@ -199,11 +199,7 @@ const BuilderHeader = ({
       setTitle(galleryDesc.title);
       setId(galleryId);
       setCuratorsUID(userId);
-      //console.log("after galleryDesc, exportData", galleryDesc, exportData)
-
       setLocation(galleryDesc.location);
-      // publicChange(galleryDesc.public);
-      //console.log("setLocation to ", galleryDesc.location)
       setNameEncoded(galleryDesc.nameEncoded);
       setVisitable(galleryDesc.public && galleryDesc.location);
       if (galleryDesc.galleryImg) {
@@ -244,14 +240,9 @@ const BuilderHeader = ({
     const dataIsChanged =
       currentExportData &&
       JSON.stringify(galleryDataToTest) !== JSON.stringify(currentExportData);
-    //console.log("dataIsChanged, currentExportData, galleryData", dataIsChanged, currentExportData, galleryData);
-    //console.log("currentGalleryDesc, desc", currentGalleryDesc, desc);
-
     let desctest = desc;
     let currentGalleryDescTest = currentGalleryDesc;
-
     if (!currentGalleryDesc.location) delete desctest.location;
-
     desctest = removeEmptyObjects(desctest); //??
     currentGalleryDescTest = removeEmptyObjects(currentGalleryDescTest); //??
     // if (desctest.art) delete desctest.art; //don;t test for art because mightn't have been added in initial galleries
@@ -312,9 +303,10 @@ const BuilderHeader = ({
     }
     values.location = location;
 
-    // console.log("firebase.currentUser", firebase.currentUser, firebase.currentUser.displayName);
-    if (!firebase.isCurator || firebase.currentUser.displayName === "curator")
-      values.userDisplayName = firebase.currentUser.displayName;
+    console.log("firebase.currentUser", firebase.currentUser, firebase.currentUser.displayName);
+    // if (!firebase.isCurator || firebase.currentUser.displayName === "curator")
+    //   values.userDisplayName = firebase.currentUser.displayName;
+
     Object.keys(values).forEach((key) => {
       values[key] = values[key] || null;
     });
@@ -331,9 +323,9 @@ const BuilderHeader = ({
   };
 
   const saveProcessedValues = async (desc, galleryData) => {
-    //console.log("curators",firebase.currentUID)
-    //console.log("curatorsUID save",curatorsUID)
     if (galleryData.art) desc.art = galleryData.art; //puts art keys in description and data
+    if (galleryData.borrowedArt) desc.borrowedArt = galleryData.borrowedArt; //puts art keys in description and data
+
 
     const uidToSaveTo =
       firebase.isCurator && curatorsUID ? curatorsUID : firebase.currentUID;

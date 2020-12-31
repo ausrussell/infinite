@@ -357,6 +357,7 @@ class Builder extends Component {
   }
 
   surroundingsTileCallback(item) {
+    console.log("surroundingsTileCallback in planBuilder",item)
     this.state.surroundings.surroundingsTileCallback(item);
   }
 
@@ -437,6 +438,8 @@ class Builder extends Component {
   }
 
   lightConeHelperSelected(helper) {
+    console.log("helper",helper);
+    // if (!helper.parent) debugger;
     console.log("selected Spotlight", this.state.selectedSpotlight);
     this.state.selectedSpotlight &&
       this.state.selectedSpotlight.controllerClass.deselectSpotlight();
@@ -520,19 +523,6 @@ class Builder extends Component {
     });
 
     this.setState(newerState, () => this.rebuildFromRapid(artItems));
-
-    // const newerState = Object.assign(newState, {
-    //   galleryTitle: newTitle,
-    //   floorplan: newState.floorplan,
-    //   galleryDesc: galleryDesc,
-    //   galleryId: newState.id,
-    //   // floor: new Floor({ builder: this }),
-    //   surroundings: new Surroundings(this),
-    //   userId: this.state.userId,
-    // });
-    // console.log("rapidBuild newerState galleryDesc",newerState, galleryDesc)
-
-    // this.setState(newerState, () => this.rebuildFromFloorplan());
   }
 
   rebuildFromRapid = (data) => {
@@ -630,23 +620,15 @@ class Builder extends Component {
   setEditWallLights(wallLights) {
     if (!wallLights) return;
     const lights = [];
-
-    // wallLights.forEach(light => {
     let i;
-
     const lightsLimit = wallLights.length < 10 ? wallLights.length : 10;
     for (i = 0; i < lightsLimit; i++) {
-      // const options = light;
-      console.log("setEditWallLights", i, wallLights, wallLights[i]);
       const options = wallLights[i];
-
       options.builder = this;
       const newWallLight = new WallLight(options);
       lights.push(newWallLight);
     }
-    // );
     this.setState({ lights: lights });
-    // console.log("wallLights", wallLights);
   }
 
   setEdit3d(sculptures) {
@@ -673,6 +655,7 @@ class Builder extends Component {
     this.setState({ selectedTile: null });
   };
 
+
   //**** SAVE  */
   saveGallery = () => {
     const galleryData = {};
@@ -680,13 +663,16 @@ class Builder extends Component {
     galleryData.floor = this.state.floor.getExport();
     galleryData.walls = [];
     galleryData.art = [];
-
+    galleryData.borrowedArt = [];
     this.state.wallEntities.forEach((item) => {
-      debugger;
       const wallExport = item.getExport();
       galleryData.walls.push(wallExport);
       wallExport.artKeys && galleryData.art.push(...wallExport.artKeys);
+      if (wallExport.borrowedArtToSave){
+        galleryData.borrowedArt.push(...wallExport.borrowedArtToSave);
+      }
     });
+    debugger;
 
     galleryData.lights = [];
     this.state.lights.forEach((item) => {
@@ -1055,6 +1041,8 @@ class Builder extends Component {
     }
 
     if (intersect0.name === "LightConeHelper") {
+      console.log("intersects",intersects)
+      // debugger;
       this.hoverOverObject = intersect0;
       intersectedData[intersect0.name] = intersect0;
     }
@@ -1340,8 +1328,9 @@ class Builder extends Component {
         texture: texture,
       };
       const newWall = new WallObject(options);
-      // console.log("newWall", newWall)
-      if (sides) newWall.addSidesFromData(sides);
+      if (sides) {
+        console.log("sides",sides);
+        newWall.addSidesFromData(sides);}
       wallEntities.push(newWall);
     });
     this.setState(

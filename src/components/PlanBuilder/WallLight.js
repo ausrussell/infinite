@@ -127,6 +127,7 @@ class WallLight {
     this.coneHelper = new THREE.Mesh(geometry, this.coneMaterial);
     this.coneHelper.name = "LightConeHelper";
     this.coneHelper.controllerClass = this;
+    this.coneHelper.matrixAutoUpdate = true;
   }
 
   updateIntensity(intensity) {
@@ -199,10 +200,11 @@ class WallLight {
   }
 
   undisplayHelper() {
-    // debugger;
+   
     this.builder.scene.attach(this.spotLight);
     this.builder.scene.attach(this.helperTarget);
     this.builder.scene.remove(this.coneHelper);
+    this.builder.scene.updateMatrixWorld();
 
     console.log("undisplayHelper this.spotLight", this.spotLight);
   }
@@ -250,13 +252,12 @@ class WallLight {
 
   removeSpotlight() {
     this.builder.scene.remove(this.helperTarget);
-
     this.builder.deselectSpotlight();
-
+    this.coneHelper.translateX(10);//solves issue caused after removing two identically positioned spotlights
+    this.coneHelper.updateMatrixWorld();
     this.coneHelper && this.builder.scene.remove(this.coneHelper);
     this.builder.scene.remove(this.spotLight)
     this.builder.scene.remove(this.coneHelper);
-    console.log("this.helperTarget",this.helperTarget)
     this.builder.removeSpotlight(this);
   }
 

@@ -221,9 +221,9 @@ class ThreeAssetPreview extends Component {
     };
 
     createNewHandler = () => {
-        this.setState({ assetRef: this.props.firebase.getNewAssetRef(this.type) }, () => { debugger; })
+        this.setState({ assetRef: this.props.firebase.getNewAssetRef(this.type) }, () => { console.log("newasset created") })
     }
-
+    
     finishedCallback = () => {
         console.log("finishedCallback");
         this.resetFrame();

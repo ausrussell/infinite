@@ -4,6 +4,8 @@ import * as THREE from "three";
 import "../../css/builder.css";
 import { withAuthentication } from "../Session";
 import { withFirebase } from "../Firebase";
+import { withRouter } from "react-router-dom";
+
 import FlaneurControls from "../PlanBuilder/FlaneurControls";
 import MainCanvas from "./MainCanvas";
 import ErrorBoundary from "../ErrorBoundary";
@@ -11,8 +13,9 @@ import GeneralLight from "../PlanBuilder/GeneralLight";
 import SceneLoader from "./SceneLoader";
 import PageTitle from "../Navigation/PageTitle";
 import { GalleryHelp } from "./GalleryHelp";
-import { ArtDetails, ArtDetailsList } from "./ArtDetails";
+import { ArtDetails } from "./ArtDetails";
 import { FocusEye } from "./FocusEye";
+
 import { compose } from "recompose";
 
 import { MapControls } from "./orbit";
@@ -22,13 +25,10 @@ import { Events } from "../PlanBuilder/FlaneurControls";
 
 import { isMobile } from "react-device-detect";
 
+import Catalogue from "./Catalogue";
+
 import Gui from "../Gui";
 import * as Stats from "stats-js";
-
-import { Button, Dropdown, List, Menu, Row, Col } from "antd";
-import { DownOutlined, UpOutlined, StarOutlined } from "@ant-design/icons";
-import moment from "moment";
-
 
 class GalleryBase extends Component {
   state = {
@@ -68,6 +68,20 @@ class GalleryBase extends Component {
       this.props.match.params.galleryName,
       this.processGallery
     );
+
+    this.backListener = this.props.history.listen((loc, action) => {
+      if (action === "POP") {
+      // debugger;
+
+        this.emptyScene();
+        this.galleryRef = this.props.firebase.getGalleryByName(
+          this.props.match.params.galleryName,
+          this.processGallery
+        );
+    this.flaneurControls.moveToInitial();
+
+      }
+    });
   }
 
   componentDidUpdate(oldProps, oldState) {
@@ -82,9 +96,10 @@ class GalleryBase extends Component {
     console.log("Gallery unmount");
     window.removeEventListener("resize", this.onWindowResize);
     this.flaneurControls && this.flaneurControls.dispose();
-    this.emptyScene();
+    this.emptyScene(true);
     this.gui && this.gui.gui.destroy();
     this.stats && document.body.removeChild(this.stats.dom);
+    this.backListener();
   }
 
   disposeNode = (parentObject) => {
@@ -125,7 +140,7 @@ class GalleryBase extends Component {
     });
   };
 
-  emptyScene() {
+  emptyScene(completeDestruction) {
     console.log("this.scene.children before", this.scene.children);
     console.log("renderer.info before", this.renderer.info);
     console.log("renderer.info.memory before", this.renderer.info.memory);
@@ -147,11 +162,13 @@ class GalleryBase extends Component {
     }
     console.log("this.scene after", this.scene.children);
     console.log("renderer.info after", this.renderer.info);
-    this.scene.dispose();
-    this.setState({ artMeshes: null });
-    console.log("renderer.info.memory after", this.renderer.info.memory);
-    this.renderer.forceContextLoss();
-    this.renderer.dispose();
+    if (completeDestruction) {
+      this.scene.dispose();
+      this.setState({ artMeshes: null });
+      console.log("renderer.info.memory after", this.renderer.info.memory);
+      this.renderer.forceContextLoss();
+      this.renderer.dispose();
+    }
     return;
   }
 
@@ -201,7 +218,6 @@ class GalleryBase extends Component {
   onWindowResize = () => {
     const width = this.mount.clientWidth;
     const height = this.mount.clientHeight;
-    // console.log("onWindowResize", width, height);
     this.renderer.setSize(width, height);
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
@@ -232,12 +248,10 @@ class GalleryBase extends Component {
   };
   setupFlaneurControls() {
     // this.setUpFlyControls();
-    // debugger;
     this.flaneurControls = new FlaneurControls(this.camera, this);
 
     if (isMobile) {
       // this.mapControls =  (this.state.galleryData.title === "501A") ? new OrbitControls(this.camera, this.renderer.domElement): new MapControls(this.camera, this.renderer.domElement);
-      // debugger;
       this.mapControls = new MapControls(this.camera, this.renderer.domElement); //new
       this.mapControls.enableZoom = false;
       this.mapControls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
@@ -320,7 +334,7 @@ class GalleryBase extends Component {
     this.lightGroup = this.generalLight.getLight();
     this.scene.add(this.lightGroup);
   }
-  processGallery = (data) => {
+  processGallery = (data, val) => {
     console.log("processGallery", data);
     this.setState({ owner: data.owner });
     if (this.galleryData) this.emptyScene();
@@ -339,6 +353,7 @@ class GalleryBase extends Component {
 
   setScene() {
     // Load a glTF resource
+    console.log("setScene",this.state.galleryData)
     const options = {
       scene: this.scene,
       sceneData: this.state.galleryData,
@@ -380,13 +395,9 @@ class GalleryBase extends Component {
     ); //to overcome ant d difficult refocussing
   };
 
-  getArtDetail = (key, type, artOwner) => {
-
-    const owner = (artOwner !== this.state.owner) ? artOwner : this.state.owner;
-    console.log("owner, refPath",owner,"users/" + owner + "/" + type + "/" + key,);
-
+  getArtDetail = (key, type) => {
     const options = {
-      refPath: "users/" + owner + "/" + type + "/" + key,
+      refPath: "users/" + this.state.owner + "/" + type + "/" + key,
       once: true,
       callback: this.setArtDetails,
     };
@@ -450,17 +461,19 @@ class GalleryBase extends Component {
     this.flaneurControls.moveToInitial();
   };
 
-  handleMenuClick = (e) => {
-    if (e.key === "3") {
-      this.setState({ visible: false });
-    }
+  changeGallery = ({ galleryKey, nameEncoded }) => {
+    console.log("changeGallery", galleryKey);
+    this.emptyScene();
+    this.props.history.push(`/Gallery/${nameEncoded}`);
+    // this.props.history.replace({ pathname: `/Gallery/${nameEncoded}`})
+    this.props.firebase.getPublicGalleryById(
+      galleryKey,
+      this.buildGalleryChange
+    );
   };
-
-  handleVisibleChange = (flag) => {
-    console.log("handleVisibleChange", flag);
-    this.setCatalogue();
-
-    this.setState({ visible: flag });
+  buildGalleryChange = (data) => {
+    this.processGallery(data);
+    this.flaneurControls.moveToInitial();
   };
 
   animate = () => {
@@ -477,134 +490,36 @@ class GalleryBase extends Component {
     this.animateCall = requestAnimationFrame(() => this.animate());
   };
 
-  getArtForCatalogueDetail = (key, type) => {
-    const options = {
-      refPath: "users/" + this.state.owner + "/" + type + "/" + key,
-      once: true,
-      callback: this.setArtForCatalogue,
-    };
-
-    console.log("getArtForCatalogueDetail", options);
-    this.props.firebase.getAsset(options);
-  };
-
-  setArtForCatalogue = (snap) => {
-    const snapVal = !snap ? null : snap.val();
-    console.log("gotArtDetails onArt", snapVal);
-    const newCatalogue = this.state.catalogue;
-    newCatalogue.push(snapVal);
-    this.setState({ catalogue: newCatalogue });
-    console.log("state.catalogue", this.state.catalogue);
-  };
-
-  setCatalogue() {
-    if (this.state.catalogue.length === 0) {
-      this.state.artMeshes.forEach((art) => {
-        console.log("art", art);
-        this.getArtForCatalogueDetail(
-          art.frameDisplayObject.data.art.key,
-          "art"
-        );
-      });
-    }
-  }
-
-  borrowClickHandler = async (item) => {
-    console.log("borrowClickHandler", item);
-    const assetRef = await this.props.firebase.getNewAssetRef("art");
-    const path = "art/" + assetRef.key;
-    const options = {
-      borrowed:  moment().format("MMMM Do YYYY, h:mm:ss a")
-    }
-    Object.assign(options, item);
-    const dbPath = "users/" + this.props.firebase.currentUID + "/" + path;
-    this.props.firebase.updateAsset(dbPath, options).then(() => {
-
-    })
-
-  };
-
   render() {
-    const catalogue = (
-      <Menu onClick={this.handleMenuClick}>
-        <Menu.Item key="1">
-          <Row>
-            <Col span={24} style={{ width: "75vw" }}>
-              {this.state.galleryData?.description}
-              <List
-                style={{ maxHeight: "75vh", overflow: "auto" }}
-                itemLayout="vertical"
-                size="large"
-                dataSource={this.state.catalogue}
-                renderItem={(item, i) => (
-                  <List.Item
-                    className="gallery-list-item-holder"
-                    key={`art-${i}`}
-                    extra={
-                      <div className="gallery-list-item-image">
-                        <img src={item.thumb || item.url}
-       
-                          alt={item.title} />
-                      </div>
-                    }
-                    actions={[
-                      <IconText
-                        icon={StarOutlined}
-                        text="Borrow Work"
-                        key="list-vertical-star-o"
-                        borrowClickHandler={()=> this.borrowClickHandler(item)}
-                      />,
-                    ]}
-                  >
-                    <ArtDetailsList selectedArt={item} />
-                  </List.Item>
-                )}
-              ></List>
-            </Col>
-          </Row>
-        </Menu.Item>
-      </Menu>
-    );
+    const { galleryData, owner } = this.state;
     return (
       <ErrorBoundary>
         <div className="page-header-area">
           <PageTitle
-            title={this.state.galleryData.title}
+            title={galleryData.title}
             help={this.GalleryHelp}
             titleClickHandler={this.titleClickHandler}
           >
-            {this.props.firebase.isCurator && <Dropdown
-              overlay={catalogue}
-              onVisibleChange={this.handleVisibleChange}
-              visible={this.state.visible}
-              trigger={["click"]}
-              placement="bottomCenter"
-            >
-              <Button
-                // className="Xant-dropdown-link"
-                onClick={(e) => e.preventDefault()}
-                style={{ marginLeft: 15 }}
-              >
-                <DownOutlined />
-              </Button>
-            </Dropdown>}
+            <Catalogue galleryData={galleryData} owner={owner} changeGallery={this.changeGallery} />
           </PageTitle>
         </div>
         <MainCanvas refer={(mount) => (this.mount = mount)} />
-        {this.state.onArt && <ArtDetails selectedArt={this.state.onArt} />}
+        {this.state.onArt && (
+          <ArtDetails
+            selectedArt={this.state.onArt}
+            changeGallery={this.changeGallery}
+          />
+        )}
         {this.state.focusEye && <FocusEye focusEye={this.state.focusEye} />}
       </ErrorBoundary>
     );
   }
 }
 
-const IconText = ({ icon, text, borrowClickHandler }) => (
-  <div onClick={borrowClickHandler}>
-    {React.createElement(icon)}
-    {text}
-  </div>
-);
-
-const Gallery = compose(withAuthentication, withFirebase)(GalleryBase);
+const Gallery = compose(
+  withAuthentication,
+  withFirebase,
+  withRouter
+)(GalleryBase);
 
 export default Gallery;

@@ -59,6 +59,7 @@ class WallObject {
   addArtToExport() {
     this.export.sides = {};
     const artToSave = [];
+    const borrowedArtToSave = [];
 
     Object.entries(this.sides).forEach((value, index) => {
       const side = value[1];
@@ -67,13 +68,19 @@ class WallObject {
       sideFrames.forEach((item) => {
         const frameData = item.getExport();
         // console.log("frameData",frameData.art.key)
-        artToSave.push(frameData.art.key);
         framesToSave.push(JSON.stringify(frameData));
+        if (frameData.borrowed){
+          borrowedArtToSave.push(frameData.art.key)
+        } else {
+          artToSave.push(frameData.art.key);
+        }
       });
       this.export.sides[value[0]] = framesToSave;
     });
 
     if (artToSave.length) this.export.artKeys = artToSave;
+    if (borrowedArtToSave.length) this.export.borrowedArtToSave = borrowedArtToSave;
+
   }
 
   getExport = () => {
@@ -323,6 +330,7 @@ class WallObject {
       holder: this.currentSideOver.defaultFrame,
       draggableImageRef: draggableImageRef,
     };
+
     this.currentSideOver.frames[index - 1].addArt(options);
 
     this.wallGroup.remove(this.currentSideOver.defaultFrame.group);
@@ -346,11 +354,13 @@ class WallObject {
     Object.entries(sides).forEach((sideItem) => {
       const side = sideItem[0];
       this.sides[side].frames = [];
-      console.log("sides[side]",sides[side])
-      const newFrame = new Frame(this, side);
-      this.sides[side].hasArt = true;
-      this.sides[side].frames.push(newFrame);
-      newFrame.addFrameFromData(JSON.parse(sideItem[1][0]));
+      sideItem[1].forEach(item => {
+        const newFrame = new Frame(this, side);
+        this.sides[side].hasArt = true;
+        this.sides[side].frames.push(newFrame);
+        newFrame.addFrameFromData(JSON.parse(item));
+      })
+
     });
   };
   removeTexture() {

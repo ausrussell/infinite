@@ -13,6 +13,8 @@ class Frame {
   constructor({ scene, wall, data, side }) {
     this.scene = scene;
     this.data = JSON.parse(data);
+    
+    this.borrowed = this.data.borrowed;
     this.wall = wall;
     this.side = side;
     this.wallDepth = 5;
@@ -99,7 +101,7 @@ class Frame {
 
   setDefaultFrameHoverMaterial() {
     this.fHoverMaterial = new THREE.MeshStandardMaterial({
-      color: 0x4527a0,
+      color: (this.borrowed) ? "#ff8f00": 0x4527a0,
       side: THREE.DoubleSide,
       transparent: true,
       opacity: 0

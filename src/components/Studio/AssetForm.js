@@ -40,17 +40,21 @@ const AssetForm = (props) => {
     }, [form, props.item, props.item.updateTime]);
 
     const onFinish = fieldsValues => {
-        // fieldsValues.year = fieldsValues['year'] && "1999";//fieldsValues['year'].format('YYYY');
-        debugger;
-
         fieldsValues.year = fieldsValues.year.format('YYYY')
-        // console.log("values.updateTime", moment())
         Object.keys(fieldsValues).forEach(key => { fieldsValues[key] = fieldsValues[key] || null });
-        // const values = {
-        //     ...fieldsValues,
-        //     updateTime: moment().format('MMMM Do YYYY, h:mm:ss a')
-        // }
         saveToDb(fieldsValues);
+    }
+
+    const itemBorrowedContent = ({galleryTitle, borrowed}) => {
+        return <div><Form.Item>
+                      Borrowed from 
+          gallery <strong>{galleryTitle}</strong> on {borrowed}
+          </Form.Item>
+
+          <Form.Item name="borrowersComment" label="Your comment:">
+                <TextArea rows={4}   />
+            </Form.Item>
+            </div>
     }
 
     return (
@@ -64,29 +68,31 @@ const AssetForm = (props) => {
                 artist: item.artist || firebase.currentUser.displayName,
             }}
         >
+            {item.borrowed && itemBorrowedContent(item)}
+
             <Form.Item
                 label="Asset Title"
                 name="title"
             >
-                <Input placeholder="Title" />
+                <Input placeholder="Title" disabled={item.borrowed} />
             </Form.Item>
-            <Form.Item name="shareable" valuePropName="checked">
+            {!item.borrowed && <Form.Item name="shareable" valuePropName="checked">
                 <Checkbox>Allow others to borrow this for their own Hangar gallery</Checkbox>
-            </Form.Item>
+            </Form.Item>}
             {item.type.toLowerCase() === "art" && (
                 <RightsDropdown license={item.license} />
             )}
             <Form.Item name="artist" label="Artist">
-                <Input type="text" />
+                <Input type="text" disabled={item.borrowed} />
             </Form.Item>
             <Form.Item name="media" label="Medium/Media">
-                <Input type="text" />
+                <Input type="text"  disabled={item.borrowed} />
             </Form.Item>
             <Form.Item name="description" label="Description">
-                <TextArea rows={4} />
+                <TextArea rows={4}  disabled={item.borrowed}  />
             </Form.Item>
             <Form.Item label="Year" name="year">
-                <DatePicker picker="year" format={yearFormat}  defaultValue={moment(item.year || moment().format('YYYY'), 'YYYY')} />
+                <DatePicker picker="year" format={yearFormat}  defaultValue={moment(item.year || moment().format('YYYY'), 'YYYY')}  disabled={item.borrowed} />
             </Form.Item>
 
             <Form.Item {...tailLayout}>

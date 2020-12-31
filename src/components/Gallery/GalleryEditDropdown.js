@@ -18,7 +18,6 @@ class GalleryEditDropdown extends Component {
   }
 
   componentDidUpdate(oldProps) {
-    console.log("GalleryEditDropdown oldProps, this.props", oldProps, this.props)
     if (this.props.id !== oldProps.id) console.log("id changed to", this.props.id)
     // console.log("isEmpty(this.props.galleryDesc)",isEmpty(this.props.galleryDesc))
   }
@@ -52,13 +51,8 @@ class GalleryEditDropdown extends Component {
     if (data) {
       data.forEach((childSnapshot) => {
         const snap = childSnapshot.val();
-        const userUID = childSnapshot.key;
-        console.log("userUID", userUID)
-        console.log("snap val", snap)
         if (snap.galleryDesc) {
-          console.log("there are snap.galleryDesc", snap.galleryDesc)
           for (const [key, value] of Object.entries(snap.galleryDesc)) {
-            console.log(`${key}:`, value);
             this.curatorUsers[key] = childSnapshot.key;
             dataList[key] = value;
           }
@@ -85,12 +79,10 @@ class GalleryEditDropdown extends Component {
   };
 
   getGalleryData = (id) => {
-    console.log("getGalleryData", id)
+    console.log("getGalleryData for", id)
     this.selectedId = id;
     this.desc = this.state.dataList[id];
-
     this.userId = this.curatorUsers[id] || this.props.firebase.currentUID;
-    // debugger;
     const options = {
       refPath: "users/" + this.userId + "/galleryData/" + id,
       callback: this.returnData,
