@@ -309,8 +309,8 @@ const BuilderHeader = ({
       firebase.currentUser,
       firebase.currentUser.displayName
     );
-    // if (!firebase.isCurator || firebase.currentUser.displayName === "curator")
-    //   values.userDisplayName = firebase.currentUser.displayName;
+    if (!firebase.isCurator || firebase.currentUser.displayName === "curator") {
+      values.userDisplayName = firebase.currentUser.displayName;}
 
     Object.keys(values).forEach((key) => {
       values[key] = values[key] || null;
