@@ -48,11 +48,11 @@ const FloorplanHeader = (props) => {
     // this.setState({ buildFloorKey: floorplanKey });
   };
 
-  const rndBuild = () => {
-    let rnd = parseInt(form.getFieldValue("rand"));
-    if (!rnd) return;
-    props.rnd(rnd)
-  };
+  // const rndBuild = () => {
+  //   let rnd = parseInt(form.getFieldValue("rand"));
+  //   if (!rnd) return;
+  //   props.rnd(rnd)
+  // };
 
 //   <Row gutter={[12, 12]}>
 //   <Col span={12}>

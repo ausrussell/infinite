@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
 import { withFirebase } from "../Firebase";
-import { Select } from 'antd';
+// import { Select } from 'antd';
 import { CanvasTile } from './PreFab';
 import { withRouter } from "react-router-dom";
 import { compose } from "recompose";
 import * as ROUTES from "../../constants/routes";
 import { Card, Row, Col} from "antd";
 
-const { Option } = Select;
+// const { Option } = Select;
 // const defaultValue = "New Gallery"
 
 const masterRefPath = 'users/0XHMilIweAghhLcophtPU4Ekv7D3'
@@ -20,7 +20,6 @@ class FloorplanDropdown extends Component {
     constructor(props) {
         super(props);
         this.dataList = {};
-        console.log("FloorplanDropdown", props)
     }
 
     componentDidMount() {
@@ -68,17 +67,8 @@ class FloorplanDropdown extends Component {
         return list;
     }
 
-    getTilesX = (data) => {
-        const { cssClass, title, key } = data;
-        console.log("cssClass", cssClass)
-        return (<Option label={title} key={key} value={key} className={cssClass}><div>{title}</div><CanvasTile plan={data.data} /></Option>);
-    }
-
-
     getTiles = (data) => {
         const { cssClass, title, key } = data;
-        console.log("getTiles", cssClass)
-
         const className = cssClass + " header-tile"
         return (<Col key={key}>
             <Card.Grid size="small" title={title} className={className} onClick={() => this.dropdownCallback(key)}>
@@ -87,29 +77,8 @@ class FloorplanDropdown extends Component {
             </Card.Grid>
         </Col>);
     }
-    // const { cssClass, title, key } = data;
-    // const cardStyle = {
-    //     height: 140,
-    //     width: 140,
-    // }
-    // console.log("cssClass", cssClass);
-    // console.log("getTiles data", data)
-    // const cover = <CanvasTile plan={data.plan} />
-    // return (<Col key={key}>
-
-
-    //     <Card title={title} value={key} className={cssClass} cover={cover} />
-
-
-    // </Col>
-    // );
     render() {
-        //this.props.floorplan && isEmpty(this.props.galleryDesc) ? this.props.floorplan.id : 
         const { floorplans } = this.state;
-
-        // <div className="header-tile-title">Select a floorplan</div>
-        // <div className="header-tile-holder">
-        //         </div>
 
         return (<div className="header-tile-outer-holder">
             <div className="header-tile-title">Select a floorplan</div>
@@ -121,23 +90,6 @@ class FloorplanDropdown extends Component {
         </div>
         )
     }
-    //https://www.facebook.com/bluematters/posts/1616683061857795?comment_id=1616686125190822
-
-    // render() {
-    //     //this.props.floorplan && isEmpty(this.props.galleryDesc) ? this.props.floorplan.id : 
-    //     const { floorplans } = this.state;
-    //     return (
-    //         <Select style={{ width: 180 }} listHeight={512} defaultValue={this.props.floorplan && isEmpty(this.props.galleryDesc) ? this.props.floorplan.id : defaultValue} onChange={(id) => this.dropdownCallback(id)}
-    //             dropdownRender={menu => (<div>
-    //                 <div style={{ fontWeight: 600, color: "#333333", marginLeft: 10 }}>Select a floorplan</div>
-    //                 {menu}
-    //             </div>
-    //             )} >
-    //             <Option label="New Floorplan" key="new" value="new" className="user floorplan-new-button"><div>New Floorplan</div><div>Make Your Own</div></Option>
-    //             {floorplans.map(data => this.getTiles(data))}
-    //         </Select>
-    //     )
-    // }
 }
 
 export default compose(

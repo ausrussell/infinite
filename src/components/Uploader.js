@@ -1,4 +1,4 @@
-import React, { Component, useState } from "react";
+import React, { Component, useState, useEffect } from "react";
 // import { Form } from '@ant-design/compatible';
 // import '@ant-design/compatible/assets/index.css';
 import { Button } from "antd";
@@ -13,25 +13,37 @@ const defaultArtValues = {
   shareable: true,
 };
 
-export const UploadRapidButtonBase = ({ title, firebase, makeGalleryCallback }) => {
+export const UploadRapidButtonBase = ({ rapidBuild }) => {
   const onSuccess = (artItems) => {
-    console.log("rapid success", artItems);
-    makeGalleryCallback(artItems)
+    rapidBuild(artItems);
   };
   return (
-    <UploaderTileBase firebase={firebase} onSuccess={onSuccess}>
-      <Button>{title}</Button>
+    <UploaderTileBase onSuccess={onSuccess}>
+      <Button>Auto Upload & Build</Button>
+        <div><InboxOutlined style={{fontSize: '26px', marginTop: '8px'}} /></div>
+        <div>Click or Drag</div>
     </UploaderTileBase>
   );
 };
 
-const UploaderTileBase = (props) => {
+const UploaderTileBase = withFirebase((props) => {
   const [fileList, setFileList] = useState([]);
   const [artItems, setArtItems] = useState([]);
+  const {onSuccess} = props
+  useEffect(() => {
+    if (
+      fileList.length > 0 &&
+      Object.values(fileList).filter((item) => item.status === "done")
+        .length === fileList.length
+    ) {
+      if (onSuccess && artItems.length === fileList.length) {
+        onSuccess(artItems);
+        setFileList([]);
+      }
+    }
+  }, [fileList, artItems, onSuccess]);
 
-  console.log("UploaderTileBase", props);
   const validateFile = (file, fileList) => {
-    console.log("beforeUpload", file, fileList);
     if (!props.validation) return true;
     const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
     if (!isJpgOrPng) {
@@ -47,7 +59,6 @@ const UploaderTileBase = (props) => {
     const assetRef = await props.firebase.getNewAssetRef("art");
     const path = "art/" + assetRef.key;
     const uploadTask = props.firebase.storeAsset(path, file);
-    console.log("customRequest uploadTask", uploadTask);
     const next = (snapshot) => {
       const progress = snapshot.bytesTransferred / snapshot.totalBytes;
       onProgress({ percent: progress * 100 });
@@ -64,24 +75,14 @@ const UploaderTileBase = (props) => {
           const options = {
             url: url,
             title: title,
+            key: assetRef.key,
           };
           Object.assign(options, defaultArtValues);
           props.firebase.updateAsset(dbPath, options).then(() => {
-            console.log("db saved uploaded", dbPath, options);
-            onSuccess("Ok");
-            const newArtItems = artItems.push(options);
+            const newArtItems = artItems;
+            newArtItems.push(options);
             setArtItems(newArtItems);
-
-            if (
-              Object.values(fileList).filter((item) => item.status === "done")
-                .length === fileList.length
-            ) {
-              props.onSuccess && props.onSuccess(artItems);
-              setFileList([]);
-            }
-            console.log(
-              Object.values(fileList).filter((item) => item.status === "done")
-            );
+            onSuccess("Ok");
           });
         });
       });
@@ -92,7 +93,6 @@ const UploaderTileBase = (props) => {
     });
   };
   const handleChange = (e) => {
-    console.log("handleChange", e);
     setFileList(e.fileList);
   };
   return (
@@ -107,7 +107,7 @@ const UploaderTileBase = (props) => {
       {props.children}
     </Upload.Dragger>
   );
-};
+});
 
 const UploadButton = (props) => {
   const [uploadTitle, setUploadTitle] = useState("");
@@ -116,14 +116,12 @@ const UploadButton = (props) => {
   // debugger;
   const customRequest = ({ file, onProgress, onSuccess }) => {
     const uploadTask = props.changeHandler(file);
-    console.log("uploadTask", uploadTask);
     const next = (snapshot) => {
       const progress = snapshot.bytesTransferred / snapshot.totalBytes;
       onProgress({ percent: progress * 100 });
     };
 
     const complete = () => {
-      console.log("complete");
       setuploadFileName(file.name);
       const uploadTitle = file.name.replace(".zip", "");
       form.setFieldsValue({
@@ -145,7 +143,6 @@ const UploadButton = (props) => {
   };
 
   const normFile = (e) => {
-    console.log("Upload event:", e);
     if (Array.isArray(e)) {
       return e;
     }
@@ -201,10 +198,6 @@ class Uploader extends Component {
     imageURL: "",
     progress: 0,
   };
-  constructor(props) {
-    super(props);
-    console.log("uploader props", props);
-  }
 
   componentDidMount() {
     this.domElement = this.props.domElement || window;
@@ -227,7 +220,7 @@ class Uploader extends Component {
   }
 
   dragEnterHandler() {
-    console.log("dragEnterHandler");
+    // console.log("dragEnterHandler");
   }
 
   dragLeaveHandler = () => {
@@ -286,7 +279,6 @@ class Uploader extends Component {
     const uploadTask = this.props.firebase.storeAsset(path, file);
     this.props.fileDrop(e.target.result, uploadTask);
     uploadTask.then((snapshot) => {
-      console.log("uploaded file", snapshot);
       uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
         const title = file.name.split(".");
         title.pop();
@@ -297,8 +289,6 @@ class Uploader extends Component {
           key: assetRef.key,
         };
         Object.assign(options, defaultArtValues);
-        console.log("fileLoadedHandler", options);
-        debugger;
         this.props.firebase.updateAsset(
           "users/" + this.props.firebase.currentUID + "/" + path,
           options
@@ -315,11 +305,9 @@ class Uploader extends Component {
       image: filename,
       progress: 100,
     });
-    console.log("uploaded", filename);
   };
 
   uploadChangeHandler = (info) => {
-    console.log("uploadClickHandler", info);
     this.fileUpload(info.fileList[0]);
   };
 

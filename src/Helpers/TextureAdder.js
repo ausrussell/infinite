@@ -60,7 +60,7 @@ export default class TextureAdder {
                     this.material.roughness = item[1];
                     break;
                 case "density":
-                    console.log("case set desnity", item[1], this.textures["map"])
+                    // console.log("case set desnity", item[1], this.textures["map"])
 
                     if (this.textures["map"]) {
                         console.log("setting density", Array.isArray(item[1]), item[1][1], item[1][0])

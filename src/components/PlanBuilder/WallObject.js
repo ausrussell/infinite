@@ -67,10 +67,10 @@ class WallObject {
       const sideFrames = side.frames;
       sideFrames.forEach((item) => {
         const frameData = item.getExport();
-        // console.log("frameData",frameData.art.key)
+        console.log("frameData", frameData.art);
         framesToSave.push(JSON.stringify(frameData));
-        if (frameData.borrowed){
-          borrowedArtToSave.push(frameData.art.key)
+        if (frameData.borrowed) {
+          borrowedArtToSave.push(frameData.art.key);
         } else {
           artToSave.push(frameData.art.key);
         }
@@ -79,8 +79,8 @@ class WallObject {
     });
 
     if (artToSave.length) this.export.artKeys = artToSave;
-    if (borrowedArtToSave.length) this.export.borrowedArtToSave = borrowedArtToSave;
-
+    if (borrowedArtToSave.length)
+      this.export.borrowedArtToSave = borrowedArtToSave;
   }
 
   getExport = () => {
@@ -303,13 +303,22 @@ class WallObject {
     this.updateWallLight(side);
   }
 
-  addArtRapid({ itemData }) {
-    const side = "front";
-    this.sides[side].hasArt = true;
-    let index = this.sides[side].frames.push(new Frame(this, side));
+  addArtRapid({itemData} ) {
+    const side = this.col > 8 && this.pos === 0 ? "back" : "front";
+    this.setCurrentSideOver(side);
+    console.log("this.col", this.col, this.row, this.pos);
+    console.log("wallside", side);
+    this.currentSideOver.hasArt = true;
+
+    let index = this.currentSideOver.frames.push(new Frame(this, side));
     itemData.holder = this.currentSideOver.defaultFrame;
-    this.currentSideOver.frames[index - 1].addArtRapid(itemData);
+    const addingPromise = new Promise((resolve, reject) => {
+      console.log("resolved ");
+      this.currentSideOver.frames[index - 1].addArtRapid(itemData, resolve, reject );
+    });
+
     this.wallGroup.remove(this.currentSideOver.defaultFrame.group);
+    return addingPromise
   }
 
   addImageFile({
@@ -350,17 +359,16 @@ class WallObject {
   }
 
   addSidesFromData = (sides) => {
-    console.log("sides",sides)
+    console.log("sides", sides);
     Object.entries(sides).forEach((sideItem) => {
       const side = sideItem[0];
       this.sides[side].frames = [];
-      sideItem[1].forEach(item => {
+      sideItem[1].forEach((item) => {
         const newFrame = new Frame(this, side);
         this.sides[side].hasArt = true;
         this.sides[side].frames.push(newFrame);
         newFrame.addFrameFromData(JSON.parse(item));
-      })
-
+      });
     });
   };
   removeTexture() {

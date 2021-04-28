@@ -634,12 +634,8 @@ class FlaneurControls {
   }
 
   offArtHandler() {
-    console.log("offArtHandler");
     this.builder.offArtHandler();
-    // this.currentDestination = null;
-    // this.builder.setArtDetails(null);
     this.restoreDefaultFov();
-    // this.onArt = false;
     this.builder.setState({ onArt: false });
     this.selectedArt = null;
     this.domElement.style.cursor = "crosshair";
@@ -1141,7 +1137,6 @@ class FlaneurControls {
     this.restoreDefaultFovAni.end();
     if (this.object.fov !== defaultFov) {
       this.moveFromFov = this.object.fov;
-      console.log("begin restore fov", this.moveFromFov);
       this.restoreDefaultFovAni.begin();
     }
   }

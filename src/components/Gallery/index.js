@@ -84,8 +84,7 @@ class GalleryBase extends Component {
     });
   }
 
-  componentDidUpdate(oldProps, oldState) {
-    console.log("oldState, this.state", oldState, this.state);
+  componentDidUpdate() {
     if (this.props.firebase.isCurator && !this.state.guiAdded) {
       this.addGui();
       this.setupStats();
@@ -408,12 +407,10 @@ class GalleryBase extends Component {
 
   setArtDetails = (snap) => {
     const snapVal = !snap ? null : snap.val();
-    console.log("gotArtDetails onArt", snapVal);
     this.setState({ onArt: snapVal });
   };
 
   offArtHandler = () => {
-    console.log("offArtHandler");
     this.setArtDetails(null);
     this.setState({ focusEye: null });
   };

@@ -12,8 +12,6 @@ import { withFirebase } from "../Firebase";
 import Gui from "../Gui";
 import * as Stats from "stats-js";
 
-// import TilesFloor, { floorData } from "./TilesFloor";
-
 import VaultFloor from "../Elevator/VaultFloor";
 import LightFloor from "./LightFloor";
 
@@ -27,8 +25,6 @@ import ErrorBoundary from "../ErrorBoundary";
 
 import { TransformControls } from "./TransformControls";
 
-// import { TransformControls } from "three"
-
 import { TransformControls as TransformOrig } from "three/examples/jsm/controls/TransformControls";
 import Draggable from "./Draggable";
 
@@ -37,6 +33,8 @@ import BuilderHeader from "./BuilderHeader";
 import Sculpture from "./Sculpture";
 
 import { DragControls } from "../Gallery/drag";
+
+import { message } from "antd";
 
 const degreesToRadians = (degrees) => {
   return (degrees * Math.PI) / 180;
@@ -82,11 +80,11 @@ class Builder extends Component {
 
   componentDidUpdate(props) {
     // this.flaneurControls.dispose();
-    console.log(
-      "Builder componentDidUpdate props",
-      props.firebase.currentUID,
-      this.props.firebase.currentUID
-    );
+    // console.log(
+    //   "Builder componentDidUpdate props",
+    //   props.firebase.currentUID,
+    //   this.props.firebase.currentUID
+    // );
     if (this.props.firebase.currentUID && !this.floorplanProcessed) {
       this.processFloorplan();
       this.floorplanProcessed = true;
@@ -126,6 +124,8 @@ class Builder extends Component {
     guiAdded: false,
     stats: false,
     userId: null,
+    rapidArtToLoad: 0,
+    rapidArtCounnter: 0,
   });
 
   initialFloorAnimation() {
@@ -317,8 +317,6 @@ class Builder extends Component {
     });
   }
 
-  addRapidArt(dropData) {}
-
   removeSpotlight(spotLight) {
     const lights = this.state.lights;
     const index = lights.indexOf(spotLight);
@@ -357,7 +355,7 @@ class Builder extends Component {
   }
 
   surroundingsTileCallback(item) {
-    console.log("surroundingsTileCallback in planBuilder",item)
+    console.log("surroundingsTileCallback in planBuilder", item);
     this.state.surroundings.surroundingsTileCallback(item);
   }
 
@@ -438,7 +436,7 @@ class Builder extends Component {
   }
 
   lightConeHelperSelected(helper) {
-    console.log("helper",helper);
+    console.log("helper", helper);
     // if (!helper.parent) debugger;
     console.log("selected Spotlight", this.state.selectedSpotlight);
     this.state.selectedSpotlight &&
@@ -448,7 +446,6 @@ class Builder extends Component {
     this.dragging = true;
     this.setState({ selectedSpotlight: helper });
     this.transformControlsForMesh().attach(helper);
-    // window.addEventListener("mousedown", this.lightHelperMousedownHandler);
   }
   lightHelperMousedownHandler = () => {
     console.log("lightHelperMousedownHandler");
@@ -482,7 +479,7 @@ class Builder extends Component {
         surroundings: new Surroundings(this),
         userId: userId,
       });
-      console.log("newState to set",newState)
+      console.log("newState to set", newState);
       this.setState(newState, () => this.rebuildGallery(galleryData));
     }
   };
@@ -511,75 +508,126 @@ class Builder extends Component {
     this.setSceneMeshes();
   }
 
-  rapidBuild(newState, artItems) {
-    console.log("addArtItems", newState, artItems);
+  rapidBuild() {
+    console.log("rapidBuild");
     const newTitle = this.props.firebase.currentUser.displayName + " gallery";
     const galleryDesc = {
       title: newTitle,
     };
-    const newerState = Object.assign(newState, {
+    const newState = {
       galleryTitle: newTitle,
       galleryDesc: galleryDesc,
+    };
+    let returnNewGalleryId = this.props.firebase.pushAsset(
+      "users/" + this.props.firebase.currentUID + "/galleryDesc/"
+    );
+    returnNewGalleryId.then((snapshot) => {
+      newState.galleryId = snapshot.key;
+      // this.setState({ galleryId: snapshot.key });
+      this.addGeneralLight();
+      this.setSceneMeshes();
+      this.setState(newState, () => this.initialWallBuild(this.fadeInArt));
+      this.initialCameraAnimation();
     });
 
-    this.setState(newerState, () => this.rebuildFromRapid(artItems));
+    // this.setState(newState, () => this.initialWallBuild(this.fadeInArt));
   }
 
-  rebuildFromRapid = (data) => {
-    console.log("rebuildFromRapid", data);
+  rebuildFromRapid = (artItems) => {
+    console.log("rebuildFromRapid data", artItems);
     // this.checkForChanges();
     this.setFloor();
-    this.setWalls(() => this.addArtItems(data)); //?
-    this.addGeneralLight();
-    this.initialCameraAnimation();
-    this.setSceneMeshes();
+    this.setWalls(() => {
+      console.log("walls set now do add ArtItems", artItems);
+      this.addArtItems(artItems);
+    }); //() => this.addArtItems(data) //?
   };
 
   floorplanSelectedHandler = (data, artItems) => {
     console.log("Builder floorplanSelectedHandler", data, artItems);
     this.emptyScene();
-    // const floor = new Floor({ builder: this });
     console.log("intialState", this.getInitialState());
     const newState = Object.assign(this.getInitialState(), {
       floorplan: data,
       floor: new Floor({ builder: this }),
     });
-    console.log("newState", newState);
-    let returnVal = this.props.firebase.pushAsset(
-      "users/" + this.props.firebase.currentUID + "/galleryDesc/"
-    );
-    returnVal.then((snapshot) => {
-      newState.galleryId = snapshot.key;
-      // this.setState({ galleryId: snapshot.key });
-      if (artItems) {
-        this.rapidBuild(newState, artItems);
-      } else {
+    if (artItems) {
+      // this.rebuildFromRapid(newState, artItems);
+      newState.rapidArtToLoad = artItems.length;
+
+      this.setState(newState, () => this.rebuildFromRapid(artItems)); //,
+    } else {
+      // const floor = new Floor({ builder: this });
+      // console.log("intialState", this.getInitialState());
+      // const newState = Object.assign(this.getInitialState(), {
+      //   floorplan: data,
+      //   floor: new Floor({ builder: this }),
+      // });
+      console.log("newState", newState);
+      let returnNewGalleryId = this.props.firebase.pushAsset(
+        "users/" + this.props.firebase.currentUID + "/galleryDesc/"
+      );
+      returnNewGalleryId.then((snapshot) => {
+        newState.galleryId = snapshot.key;
+        // this.setState({ galleryId: snapshot.key });
+
         this.setState(newState, () => this.rebuildFromFloorplan());
-      }
-    });
+      });
+    }
   };
   addArtItems(artItems) {
-    console.log("artItems",artItems, this.state.wallMeshes);
-    // const artItemsLength = artItems.length;
+    //from rapid build
+    console.log("artItems", artItems, this.state.wallMeshes);
     const wallsLength = this.state.wallMeshes.length;
+    const artItemsLength = artItems.length;
+    const gap = Math.max(Math.floor(wallsLength / artItemsLength), 1);
+    const wallCenter = wallsLength / 2;
+    console.log("wallCenter", wallCenter);
 
-    let i = Math.floor(wallsLength/2);
-    // const intersectedData = {
-    //   wallOver: this.state.wallEntities[i],
-    //   wallSideOver: side,
-    //   // voxelClicked: voxelClicked
-    // };
-    this.state.wallEntities[i].setCurrentSideOver("front");
-    const addImageData = {
-      itemData: artItems[0],
-      side: "front",
-      // draggableImageRef: this.draggableImageRef,
-      // uploadTask: uploadTask,
-    };
+    let i = 0;
+    const addingAr = [];
+    const limit = Math.min(artItemsLength, wallsLength - 1);
+    if (artItemsLength > wallsLength) {
+      message.info({
+        content: `Can only automatically add ${
+          wallsLength - 1
+        } works. You can add the rest from your vault`,
+        duration: 10,
+      });
+    }
+    for (; i < limit; i++) {
+      console.log("i, i* gap", i, gap, i * gap);
+      const addImageData = {
+        itemData: artItems[i],
+        gap: gap,
+      };
 
-    this.state.wallEntities[i].addArtRapid(addImageData);
-
+      let wallIndexForArt =
+        i % 2 === 0
+          ? wallCenter - Math.ceil((Math.max(i - 1, 0) / 2) * gap)
+          : wallCenter + Math.ceil((i / 2) * gap);
+      const p = this.state.wallEntities[wallIndexForArt].addArtRapid(
+        addImageData
+      );
+      addingAr.push(p);
+    }
+    console.log("addingAr", addingAr.length, addingAr);
+    Promise.all(addingAr)
+      .then((returned) => {
+        console.log("returned", returned);
+        this.rapidBuild();
+      })
+      .catch((err) => {
+        console.log("err", err);
+        this.emptyScene();
+        message.error({
+          content:
+            "Sorry there was an issue creating the gallery. Check your vault because your images may have uploaded!",
+          duration: 10,
+        });
+      });
   }
+
   rebuildFromFloorplan = (data) => {
     console.log("rebuildFromFloorplan", data);
     // this.checkForChanges();
@@ -655,7 +703,6 @@ class Builder extends Component {
     this.setState({ selectedTile: null });
   };
 
-
   //**** SAVE  */
   saveGallery = () => {
     const galleryData = {};
@@ -668,7 +715,7 @@ class Builder extends Component {
       const wallExport = item.getExport();
       galleryData.walls.push(wallExport);
       wallExport.artKeys && galleryData.art.push(...wallExport.artKeys);
-      if (wallExport.borrowedArtToSave){
+      if (wallExport.borrowedArtToSave) {
         galleryData.borrowedArt.push(...wallExport.borrowedArtToSave);
       }
     });
@@ -1041,7 +1088,7 @@ class Builder extends Component {
     }
 
     if (intersect0.name === "LightConeHelper") {
-      console.log("intersects",intersects)
+      console.log("intersects", intersects);
       // debugger;
       this.hoverOverObject = intersect0;
       intersectedData[intersect0.name] = intersect0;
@@ -1272,7 +1319,6 @@ class Builder extends Component {
     const node = this.scene;
     for (var i = node.children.length - 1; i >= 0; i--) {
       var child = node.children[i];
-      console.log("emptyScene child.name", child.name);
       if (destroyAll || sceneHelperObjects.indexOf(child.name) === -1) {
         this.disposeNode(child);
         this.scene.remove(child);
@@ -1306,15 +1352,16 @@ class Builder extends Component {
         });
       }
     }
-
+    const wallCallback = callback ? callback : this.initialWallBuild;
+    console.log("wallCallback", wallCallback);
     this.setState(
       {
         wallEntities: wallEntities,
         wallMeshes: wallEntities.map((item) => item.getMesh()),
       },
-      callback || this.initialWallBuild
+      wallCallback
     );
-  }
+  };
 
   setEditWalls(walls, callback) {
     const wallEntities = [];
@@ -1329,8 +1376,9 @@ class Builder extends Component {
       };
       const newWall = new WallObject(options);
       if (sides) {
-        console.log("sides",sides);
-        newWall.addSidesFromData(sides);}
+        console.log("sides", sides);
+        newWall.addSidesFromData(sides);
+      }
       wallEntities.push(newWall);
     });
     this.setState(
@@ -1354,7 +1402,7 @@ class Builder extends Component {
     this.state.wallEntities.forEach((item, index) => {
       item.initialAnimateBuild(index, done);
     });
-    this.setState({ exportData: this.getExport() });
+    // this.setState({ exportData: this.getExport() });
     this.flaneurControls.setUpCollidableObjects();
   }
 

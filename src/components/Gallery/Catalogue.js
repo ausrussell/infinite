@@ -4,6 +4,8 @@ import { Button, List, Typography, message, Divider, Popover } from "antd";
 import { DownOutlined, StarOutlined, StarFilled } from "@ant-design/icons";
 import moment from "moment";
 import { ArtDetailsList } from "./ArtDetails";
+import rightsMap from "../Studio/RightsMap";
+
 const { Paragraph } = Typography;
 
 const IconText = ({ icon, text, borrowClickHandler }) => (
@@ -105,7 +107,7 @@ const Catalogue = ({ galleryData, owner, firebase, changeGallery }) => {
       }
     };
     setCatalogue();
-  }, [owner, galleryData, galleryData.galleryKey, borrowedCounter]);
+  }, [owner, galleryData, galleryData.galleryKey, borrowedCounter, firebase]);
 
   const borrowClickHandler = (item) => {
     console.log("borrowClickHandler", item);
@@ -178,9 +180,16 @@ const Catalogue = ({ galleryData, owner, firebase, changeGallery }) => {
         className="gallery-list-item-holder"
         key={`art-${i}`}
         extra={
-          <div className="gallery-list-item-image">
-            <img src={item.thumb || item.url} alt={item.title} />
-          </div>
+          <>
+            <div className="gallery-list-item-image">
+              <img src={item.thumb || item.url} alt={item.title} />
+            </div>
+            {item.license && (
+              <p style={{ marginTop: 8, textAlign: "right" }}>
+                {rightsMap[item.license].icon}
+              </p>
+            )}
+          </>
         }
         actions={[shareable]}
       >

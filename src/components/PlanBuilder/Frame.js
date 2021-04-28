@@ -45,9 +45,9 @@ class Frame {
       width: this.artMesh.geometry.parameters.width * this.artMesh.scale.x,
       height: this.artMesh.geometry.parameters.height * this.artMesh.scale.y,
       key: this.artKey,
-      borrowed: this.borrowed
+      borrowed: this.borrowed,
     };
-    console.log("this.export",this.export)
+    // console.log("this.export", this.export);
     return this.export;
   }
 
@@ -64,7 +64,6 @@ class Frame {
   }
 
   removeTexture() {
-    //console.log("remove frame texture")
     this.fmaterial.dispose();
     this.frameMesh.material = null;
     this.setDefaultFrameMaterial();
@@ -92,10 +91,8 @@ class Frame {
   }
 
   setFrameMesh(plane) {
-    // //console.log("setFrameMesh", this.frameData);
     const imageWidth = plane.parameters.width * this.artMesh.scale.x;
     const imageHeight = plane.parameters.height * this.artMesh.scale.y;
-    // console.log("imageWidth", imageWidth, this.artMesh.scale.x);
     this.setFrameGeometry(imageWidth, imageHeight);
     if (!this.fmaterial) this.setDefaultFrameMaterial();
     const mesh = new THREE.Mesh(this.fgeometry, this.fmaterial);
@@ -104,8 +101,6 @@ class Frame {
     this.frameMesh = mesh;
     this.frameMesh.name = "frameMesh";
     this.setFramePosition();
-    // console.log("setFrameMesh", this.frameData);
-
     return mesh;
   }
 
@@ -153,7 +148,6 @@ class Frame {
       totalHeight:
         this.artMesh.geometry.parameters.height * this.artMesh.scale.y,
     };
-    //console.log("rescale options", options);
     this.setFrameMeshRescaled(options);
     this.setFramePosition();
 
@@ -197,12 +191,9 @@ class Frame {
 
   setArtMesh(artMesh) {
     //only used by positionMovedHolder in WallObject
-    //console.log("setArtMesh", this.wall.col);
     this.artMesh = artMesh;
     this.oldGroup = artMesh.parent;
     this.frameData = this.oldGroup.holderClass.frameData;
-
-    // this.group.holderClass = this;//??
     this.fmaterial = this.oldGroup.holderClass.fmaterial;
     this.frameMesh = this.oldGroup.children.find(
       (item) => item.name === "frameMesh"
@@ -227,7 +218,6 @@ class Frame {
       );
     }
 
-    //console.log("this.offset", this.offset);
     this.artMesh.position.set(0, 0, this.wallDepth);
     this.artMesh.getWallData = this.getWallData;
     this.showFrameMesh();
@@ -262,7 +252,7 @@ class Frame {
     return this.group;
   }
 
-  addArtRapid(itemData) {
+  addArtRapid(itemData, addingPromise, reject) {
     const image = new Image();
     image.src = itemData.url;
     const options = {
@@ -270,32 +260,21 @@ class Frame {
       image: image,
       holder: itemData.holder,
     };
-    // const next = snapshot => {
-    //   // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-    //   var progress = snapshot.bytesTransferred / snapshot.totalBytes;
-    //   if (this.artMesh) this.show(progress);
-    //   //console.log("Upload is " + progress + "% done");
-    //   //console.log("snapshot", snapshot.ref);
-    // };
-
-    image.onload = () => this.imageLoadedHandler(options);
-    // this.show(1);
+    image.addEventListener('load', () => this.imageLoadedHandler(options, addingPromise), false);
+    image.onerror = () => reject(itemData);
   }
   addArt(options) {
     //from dropping or dragging an image
     const { file, uploadTask, holder, draggableImageRef } = options; //file is itemdata or dragged file
     const addingHolder = holder || this;
-    //console.log("addART", file);
     if (file.url || file.thumb) {
       //not sure why some old art has thumb but no url
-
       const options = {
         file: file.url || file.thumb,
         image: draggableImageRef.current,
         holder: addingHolder,
       };
       this.borrowed = file.borrowed ? file.borrowed : null;
-      console.log("addArt", options);
       this.imageLoadedHandler(options);
       this.show(1);
     } else {
@@ -310,17 +289,14 @@ class Frame {
         // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
         var progress = snapshot.bytesTransferred / snapshot.totalBytes;
         if (this.artMesh) this.show(progress);
-        //console.log("Upload is " + progress + "% done");
-        //console.log("snapshot", snapshot.ref);
       };
 
-      image.onload = (image) => this.imageLoadedHandler(options);
+      image.onload = () => this.imageLoadedHandler(options);
       uploadTask.on("state_changed", {
         next: next,
         // complete: complete
       });
       uploadTask.then((snapshot) => {
-        //console.log("uploaded file", snapshot);
         uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
           this.artMesh.file = downloadURL;
         });
@@ -335,7 +311,6 @@ class Frame {
 
   setArt(art) {
     //from art data
-    //console.log("setArt art", art);
     const texture = this.textureLoader.load(art.file);
     const artPlane = new THREE.PlaneGeometry(art.width, art.height, 0);
     this.iMaterial = new THREE.MeshBasicMaterial({
@@ -357,34 +332,25 @@ class Frame {
 
   getKeyFromFile() {
     const fileParts = this.artMesh.file.split("/");
-    //console.log("fileParts", fileParts);
     const finalBit = fileParts[fileParts.length - 1];
     const finalBits = finalBit.split("%2F");
-    //console.log("finalBits", finalBits)
-
     const keyToAdd = finalBits[3]; //art.key ||
-    //console.log("keyToAdd", keyToAdd)
     return keyToAdd;
   }
 
   setFrame(frame) {
-    //console.log("frame", frame);
     this.frameData = frame;
     this.setFrameMesh(this.artMesh.geometry);
     this.fmaterial.opacity = 0;
-    //console.log("setFrame this.frameMesh", this.frameMesh);
     this.setDataToMaterial(frame);
     this.group.add(this.frameMesh);
   }
 
   setPreviewFrame(frame) {
-    // console.log("frame", frame);
-    // this.frameData = frame;
     const options = {
       imageWidth: 30,
       imageHeight: 20,
     };
-
     this.setDefaultFrameGroup(options);
   }
 
@@ -412,7 +378,6 @@ class Frame {
   }
 
   fitToFrame(w, h, fitW, fitH) {
-    //console.log("fitToFrame w,h", w, h);
     let imageDimensions = w / h;
     const returnDimensions = [];
     let checkW = fitW / w;
@@ -425,7 +390,7 @@ class Frame {
     return returnDimensions;
   }
 
-  imageLoadedHandler(options) {
+  imageLoadedHandler(options, addingPromise) {
     const { image, file, holder } = options;
     this.file = file;
     const loader = new THREE.TextureLoader();
@@ -471,14 +436,14 @@ class Frame {
     this.group.add(this.frameMesh);
     this.group.add(this.artMesh);
     if (this.side === "back") this.group.rotateY(Math.PI);
-
-    //console.log("add art this.group", this.group.position);
-
     //ONLY add if added to default
     if (!holder.hasArt) {
       this.wall.wallGroup.add(this.group);
     }
     this.wall.builder.setSceneMeshes(); //maybe update method in builder
+    if (addingPromise) {
+      addingPromise(this);
+    }
   }
 
   setDataToMaterial(data) {

@@ -69,7 +69,7 @@ export const ArtDetails = ({ selectedArt, changeGallery }) => {
               {description && (
                 <div className="art-details-description">{description}</div>
               )}
-              {license && <p>{rightsMap[license].icon}</p>}
+              {license && <p style={{marginTop:8, textAlign:"right"}}>{rightsMap[license].icon}</p>}
             </div>
           ) : (
             <div className="art-details-card-open-holder">
@@ -91,7 +91,7 @@ export const ArtDetailsList = ({ selectedArt, changeGallery }) => {
     description,
     media,
     year,
-    license,
+    // license,
     borrowersNumber,
     borrowersNames,
     borrowed
@@ -109,7 +109,6 @@ export const ArtDetailsList = ({ selectedArt, changeGallery }) => {
       {description && (
         <div className="art-details-description">{description}</div>
       )}
-      {license && <p>{rightsMap[license].icon}</p>}
 
       {borrowersNumber && (
         <p>
@@ -117,7 +116,6 @@ export const ArtDetailsList = ({ selectedArt, changeGallery }) => {
           <span style={{fontStyle:"italic"}}>(
             {borrowersNames.map((item,index) => (
               <span key={`borrower${index}`}>{item}{index < borrowersNumber - 1 && ", "}</span>
-
             ))}
           )</span>
         </p>

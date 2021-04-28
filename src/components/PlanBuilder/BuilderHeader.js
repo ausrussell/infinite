@@ -27,7 +27,9 @@ import _ from "lodash";
 import * as ROUTES from "../../constants/routes";
 import { compose } from "recompose";
 import { withRouter } from "react-router-dom";
-import RapidUploader  from "./RapidUploader";
+// import RapidUploader from "./RapidUploader";
+import { UploadRapidButton } from "../Uploader";
+
 
 const { confirm } = Modal;
 
@@ -43,7 +45,6 @@ class DetailsDropdown extends Component {
   };
 
   componentDidUpdate(oldProps, oldState) {
-    // console.log("oldState, this.state", oldState, this.state)
     if (this.props.detailsOpen !== oldProps.detailsOpen) {
       //console.log("set to show");
       this.setState({ visible: this.props.detailsOpen });
@@ -303,7 +304,11 @@ const BuilderHeader = ({
     }
     values.location = location;
 
-    console.log("firebase.currentUser", firebase.currentUser, firebase.currentUser.displayName);
+    console.log(
+      "firebase.currentUser",
+      firebase.currentUser,
+      firebase.currentUser.displayName
+    );
     // if (!firebase.isCurator || firebase.currentUser.displayName === "curator")
     //   values.userDisplayName = firebase.currentUser.displayName;
 
@@ -325,7 +330,6 @@ const BuilderHeader = ({
   const saveProcessedValues = async (desc, galleryData) => {
     if (galleryData.art) desc.art = galleryData.art; //puts art keys in description and data
     if (galleryData.borrowedArt) desc.borrowedArt = galleryData.borrowedArt; //puts art keys in description and data
-
 
     const uidToSaveTo =
       firebase.isCurator && curatorsUID ? curatorsUID : firebase.currentUID;
@@ -391,7 +395,7 @@ const BuilderHeader = ({
   };
 
   const floorplanCallback = (data) => {
-    console.log("floorplanCallback data", data)
+    console.log("floorplanCallback data", data);
     if (galleryId) {
       checkForChanges(data, () => {
         floorplanSelectedHandler(data);
@@ -462,14 +466,13 @@ const BuilderHeader = ({
   const buildFloorplan = () => history.push(ROUTES.PLANNER);
 
   const rapidBuild = (artItems) => {
-      console.log("floorplans",floorplans, artItems);
-      console.log("firebase.currentUser.displayName",firebase.currentUser.displayName)
-      floorplanSelectedHandler(floorplans[6], artItems);
+    console.log("floorplans", floorplans, artItems);
+    console.log(
+      "firebase.currentUser.displayName",
+      firebase.currentUser.displayName
+    );
+    floorplanSelectedHandler(floorplans[4], artItems);
   };
-
-//   <div style={{ marginTop: 30 }}>
-//   <RapidUploader rapidBuild={rapidBuild} />
-// </div>
 
   return (
     <div className="page-header-area">
@@ -597,18 +600,22 @@ const BuilderHeader = ({
           </Col>
           <Col className="header-button-col" flex="200px">
             <div className="header-tile-title">or...</div>
-
-            <div style={{ marginTop: 30 }}>
+            <div>
+              <UploadRapidButton rapidBuild={rapidBuild} />
+            </div>
+            <div style={{ marginTop: 15 }}>
               <Button onClick={buildFloorplan}>Create a Floorplan</Button>
             </div>
 
-            <div style={{ marginTop: 30 }}>
+            <div style={{ marginTop: 15 }}>
               <GalleryEditDropdown
                 callback={editCallback}
                 galleryDesc={currentGalleryDesc}
                 id={id}
               />
             </div>
+
+
           </Col>
         </Row>
       )}

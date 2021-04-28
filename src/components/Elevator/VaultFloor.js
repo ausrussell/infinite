@@ -27,9 +27,7 @@ const RestoreDefaultTile = (props) => {
 };
 
 const SculptureController = (props) => {
-  console.log("SculptureController props", props);
   const onClick = (e) => {
-    console.log("SculptureController", e);
     props.onClick(e);
   };
   return (
@@ -86,7 +84,6 @@ class VaultFloor extends Component {
     // selectedTile: null
   };
   constructor(props) {
-    //console.log("VaultFloor props", props);
     super(props);
     this.tileCallback = props.tileCallback;
     this.refPath = props.refPath;
@@ -129,19 +126,16 @@ class VaultFloor extends Component {
     if (this.props.selectedTile && !selectedTilePresent) {
       this.clearSelected();
     }
-    console.log("getTilesCallback this.list", this.list, this.list.length);
     this.setState({ tilesData: this.list }, this.addBorrowedTiles);
   };
 
   addBorrowedTiles() {
     const borrowedRefPath = this.pathParts;
     borrowedRefPath[2] = `borrowed-${this.type}`;
-    console.log("borrowedRefPath", borrowedRefPath);
     this.tilesCall = this.props.firebase.getTiles(
       borrowedRefPath.join("/"),
       this.addBorrowedTilesCallback
     );
-    console.log("borrowedRefPath.join", borrowedRefPath.join("/"));
   }
 
   addMasterTiles() {
@@ -152,15 +146,12 @@ class VaultFloor extends Component {
   }
 
   addBorrowedTilesCallback = (data) => {
-    console.log("addBorrowedTilesCallback", data, this.list);
     const addingBorrowedTiles = this.list.slice();
-    console.log("addingBorrowedTiles.length", addingBorrowedTiles.length);
     if (data) {
       data.forEach((childSnapshot) => {
         const borrowedInfo = childSnapshot.val();
         borrowedInfo.userTypeClass = "borrowed";
         borrowedInfo.key = childSnapshot.key;
-        console.log("borrowedInfo.key", childSnapshot.key);
         addingBorrowedTiles.push(borrowedInfo);
       });
     }
@@ -176,7 +167,6 @@ class VaultFloor extends Component {
     const masterTiles = this.state.tilesData;
     if (data) {
       data.forEach((childSnapshot) => {
-        // console.log("masterTiles", childSnapshot);
         const masterInfo = childSnapshot.val();
         masterInfo.key = childSnapshot.key;
 
@@ -184,7 +174,6 @@ class VaultFloor extends Component {
         masterTiles.push(masterInfo);
       });
     }
-    console.log("masterTiles", masterTiles);
     this.setState({ tilesData: masterTiles });
   };
 
@@ -206,9 +195,6 @@ class VaultFloor extends Component {
       this.list.push(restoreOptions);
     }
     if (this.props.sculptureTransformClickHandler) {
-      // const restoreOptions = { title: "Clear", key: "clear" }
-      // Object.assign(restoreOptions, this.props.selectableRestoreDefault);
-      console.log("this.props.sculptureTransformControls");
       this.list.push(
         <SculptureController
           onClick={this.props.sculptureTransformClickHandler}
@@ -218,13 +204,11 @@ class VaultFloor extends Component {
   }
 
   clearSelected = () => {
-    //console.log("clearSelected");
     this.tileCallback(null);
   };
 
   tileClickHandler = (item, e) => {
     e && e.stopPropagation();
-    //console.log("tileClickHandler")
     this.tileCallback(item);
   };
 
@@ -254,7 +238,6 @@ class VaultFloor extends Component {
     const tileInfo = {};
     tileInfo.tileData = tileData;
     tileData.type = this.type;
-    // console.log("tileData.type",tileData,tileData.type);
     const { thumb, url, color, px, map, normalMap, bumpMap, title } = tileData; //ny for cubeboxes
     tileInfo.title = title;
     tileInfo.tileUrl = thumb || url || px || map || normalMap || bumpMap;
@@ -312,7 +295,6 @@ class VaultFloor extends Component {
     this.props.firebase.assetPath(tileData.borrowed ? "borrowed-art" : "art") +
     tileData.key; //might change type here
   doDelete = (item) => {
-    console.log("doDelete", item);
     // const dbDelete = this.props.firebase.deleteAsset(
     //   this.path(tileData),
     //   tileData
@@ -355,7 +337,6 @@ class VaultFloor extends Component {
       icon: <ExclamationCircleOutlined />,
       onOk: () => this.doDelete(tileData),
       onCancel() {
-        // console.log('Cancel delete');
       },
     };
     confirm(config);
@@ -365,7 +346,6 @@ class VaultFloor extends Component {
     const tileInfo = React.isValidElement(snapshot)
       ? this.getReactTile(snapshot)
       : this.getDataTile(snapshot);
-    // console.log("tileInfo", tileInfo);
     const { draggable } = this.props;
     const {
       key,
