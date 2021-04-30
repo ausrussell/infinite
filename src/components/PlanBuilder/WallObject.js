@@ -212,6 +212,7 @@ class WallObject {
 
   positionMovedHolder(artMesh, side) {
     this.builder.scene.updateMatrixWorld(true);
+    console.log("wallobject positionMovedHolder, artMesh",artMesh.parent.holderClass)
     let index = this.sides[side].frames.push(new Frame(this, side));
     this.sides[side].frames[index - 1].setArtMesh(artMesh);
     this.sides[side].hasArt = true;

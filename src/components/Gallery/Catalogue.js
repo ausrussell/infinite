@@ -216,7 +216,7 @@ const Catalogue = ({ galleryData, owner, firebase, changeGallery }) => {
             symbol: "Expand",
             onExpand: toggleExpanded,
           }}
-        >
+        ><h4><span style={{color:'gray'}}>Gallery built by :</span> {galleryData.userDisplayName}</h4>
           {galleryData.description}
           {expanded && (
             <span>

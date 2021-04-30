@@ -378,3 +378,32 @@ top:-26px;
 right: -3px;
 color:#fff8e1
 }
+
+.rte-wrapper {
+  margin-bottom: 25px !important;
+    height: 260px !important;
+}
+
+.rte-editor {
+  height:200px !important;
+  max-width: 100%;
+  /* height: auto; */
+  min-height: 32px;
+  line-height: 1.5715;
+  vertical-align: bottom;
+  -webkit-transition: all 0.3s, height 0s;
+  transition: all 0.3s, height 0s;
+  font-size: 14px;
+  line-height: 1.5715;
+  background-color: #F5F5F6;
+  background-image: none;
+  border: 1px solid #d9d9d9;
+  padding: 4px 11px;
+}
+.rte-editor__focus {
+border-color: #6345ad;
+border-right-width: 1px !important;
+outline: 0;
+-webkit-box-shadow: 0 0 0 2px rgb(69 39 160 / 20%);
+box-shadow: 0 0 0 2px rgb(69 39 160 / 20%);
+}

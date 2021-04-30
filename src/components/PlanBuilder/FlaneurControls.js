@@ -864,6 +864,7 @@ class FlaneurControls {
       : this.artOver.frameDisplayObject;
 
     const type = this.selectedArt.borrowed ? "borrowed-art" : "art";
+    console.log("move to this.selectedArt",this.selectedArt)
 
     this.selectedArt.data.art &&
       this.builder.getArtDetail(this.selectedArt.data.art.key, type);

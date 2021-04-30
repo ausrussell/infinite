@@ -195,6 +195,7 @@ class Frame {
     this.oldGroup = artMesh.parent;
     this.frameData = this.oldGroup.holderClass.frameData;
     this.fmaterial = this.oldGroup.holderClass.fmaterial;
+    this.borrowed = this.oldGroup.holderClass.borrowed;
     this.frameMesh = this.oldGroup.children.find(
       (item) => item.name === "frameMesh"
     );

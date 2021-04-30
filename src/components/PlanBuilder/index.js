@@ -777,8 +777,8 @@ class Builder extends Component {
     }
     let onWall = this.getWallFromIntersect(intersect0);
     console.log(
-      "resetTranslatedArt this.activeArtMesh.parent.holderClass.wall",
-      this.activeArtMesh.parent.holderClass.wall
+      "this.activeArtMesh.parent",
+      this.activeArtMesh.parent
     );
     this.activeArtMesh.parent.holderClass.wall.removeFrame(
       this.activeArtMesh.parent.holderClass,
