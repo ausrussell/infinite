@@ -35,18 +35,15 @@ const Catalogue = ({ galleryData, owner, firebase, changeGallery }) => {
         callback: setArtForCatalogue,
       };
       const assetCall = firebase.getAsset(options);
-      console.log("assetCall", assetCall);
     };
     const getBorrowedArtForCatalogueDetail = (key, type) => {
       const refPath = `users/${owner}/${type}/${key}`;
-
       const options = {
         refPath: refPath,
         once: true,
         callback: setBorrowedArt,
       };
       const assetCall = firebase.getAsset(options);
-      console.log("assetCall", assetCall);
     };
 
     const setBorrowedArt = (snap) => {
@@ -56,9 +53,7 @@ const Catalogue = ({ galleryData, owner, firebase, changeGallery }) => {
         const refPath = `users/${snapVal.owner}/art/${snapVal.key}`;
         const callback = (ownersSnap) => {
           const ownersSnapVal = ownersSnap.val();
-          console.log("ownersSnapVal", ownersSnapVal);
           const combinedSnapVal = Object.assign(snapVal, ownersSnapVal);
-          console.log("combinedSnapVal", combinedSnapVal);
           setArtForCatalogue(combinedSnapVal);
         };
 
@@ -79,7 +74,6 @@ const Catalogue = ({ galleryData, owner, firebase, changeGallery }) => {
         snapVal.key = snap.key;
         if ("borrowedBy" in snapVal) {
           snapVal.borrowersNumber = Object.keys(snapVal.borrowedBy).length;
-          console.log("snapVal", snapVal);
           snapVal.borrowersNames = Object.values(snapVal.borrowedBy).map(
             (item) => item.borrowerDisplayName
           );
@@ -95,7 +89,7 @@ const Catalogue = ({ galleryData, owner, firebase, changeGallery }) => {
       if (galleryData.art) {
         artCounter = galleryData.art.length;
         if (galleryData.borrowedArt) {
-          console.log("galleryData.borrowedArt", galleryData.borrowedArt);
+          // console.log("galleryData.borrowedArt", galleryData.borrowedArt);
           artCounter += galleryData.borrowedArt.length;
           galleryData.borrowedArt.forEach((art) => {
             getBorrowedArtForCatalogueDetail(art, "borrowed-art");
@@ -118,7 +112,6 @@ const Catalogue = ({ galleryData, owner, firebase, changeGallery }) => {
       item.borrowedBy && item.borrowedBy[firebase.currentUID]
     ); //borrowing or removing
     if (borrowFlag) {
-      console.log("borrow", item);
       options = {
         borrowed: moment().format("MMMM Do YYYY, h:mm:ss a"),
         borrower: firebase.currentUID,
@@ -208,6 +201,10 @@ const Catalogue = ({ galleryData, owner, firebase, changeGallery }) => {
       }}
     >
       <div key={counter}>
+        <h4>
+          <span style={{ color: "gray" }}>Gallery built by :</span>{" "}
+          {galleryData.userDisplayName}
+        </h4>
         <Paragraph
           strong
           ellipsis={{
@@ -216,7 +213,7 @@ const Catalogue = ({ galleryData, owner, firebase, changeGallery }) => {
             symbol: "Expand",
             onExpand: toggleExpanded,
           }}
-        ><h4><span style={{color:'gray'}}>Gallery built by :</span> {galleryData.userDisplayName}</h4>
+        >
           {galleryData.description}
           {expanded && (
             <span>

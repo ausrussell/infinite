@@ -4,7 +4,6 @@ import { DownOutlined, UpOutlined } from "@ant-design/icons";
 import rightsMap from "../Studio/RightsMap";
 import { ReactComponent as Footsteps } from "../../svg/footsteps_icon.svg";
 
-
 const borrowedDetails = (selectedArt, changeGallery) => {
   const {
     borrowed,
@@ -34,13 +33,12 @@ export const ArtDetails = ({ selectedArt, changeGallery }) => {
     media,
     year,
     license,
-    borrowed
+    borrowed,
   } = selectedArt;
 
   const openDetails = () => {
     setOpen(!open);
   };
-
 
   return (
     <div className="art-details">
@@ -67,9 +65,18 @@ export const ArtDetails = ({ selectedArt, changeGallery }) => {
               {artist && <h4>{artist}</h4>}
               {media && <h5>{media}</h5>}
               {description && (
-                <div className="art-details-description">{description}</div>
+                <div
+                  className="art-details-description"
+                  dangerouslySetInnerHTML={{
+                    __html: description,
+                  }}
+                ></div>
               )}
-              {license && <p style={{marginTop:8, textAlign:"right"}}>{rightsMap[license].icon}</p>}
+              {license && (
+                <p style={{ marginTop: 8, textAlign: "right" }}>
+                  {rightsMap[license].icon}
+                </p>
+              )}
             </div>
           ) : (
             <div className="art-details-card-open-holder">
@@ -94,9 +101,9 @@ export const ArtDetailsList = ({ selectedArt, changeGallery }) => {
     // license,
     borrowersNumber,
     borrowersNames,
-    borrowed
+    borrowed,
   } = selectedArt;
-  console.log("borrowersNames",borrowersNames)
+  console.log("borrowersNames", borrowersNames);
   // if (borrowersNames) );borrowersNames.map((item) => <p key={item}>{item}</p>)
   return (
     <div>
@@ -107,17 +114,27 @@ export const ArtDetailsList = ({ selectedArt, changeGallery }) => {
       {artist && <h4>{artist}</h4>}
       {media && <h5>{media}</h5>}
       {description && (
-        <div className="art-details-description">{description}</div>
+        <div
+          className="art-details-description"
+          dangerouslySetInnerHTML={{
+            __html: description,
+          }}
+        ></div>
       )}
 
       {borrowersNumber && (
         <p>
           Borrowed {borrowersNumber} time{borrowersNumber > 1 && "s"}{" "}
-          <span style={{fontStyle:"italic"}}>(
-            {borrowersNames.map((item,index) => (
-              <span key={`borrower${index}`}>{item}{index < borrowersNumber - 1 && ", "}</span>
+          <span style={{ fontStyle: "italic" }}>
+            (
+            {borrowersNames.map((item, index) => (
+              <span key={`borrower${index}`}>
+                {item}
+                {index < borrowersNumber - 1 && ", "}
+              </span>
             ))}
-          )</span>
+            )
+          </span>
         </p>
       )}
     </div>

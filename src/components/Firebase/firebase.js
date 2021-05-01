@@ -103,7 +103,7 @@ class Firebase {
   };
 
   getAsset = ({ refPath, callback, once }) => {
-    console.log("getAsset refPath", refPath);
+    // console.log("getAsset refPath", refPath);
     const ref = app.database().ref(refPath);
     if (once) {
       ref.once("value").then((snap) => {
@@ -321,11 +321,9 @@ class Firebase {
     this.userFloorplansRef && this.userFloorplansRef.off();
   }
   getTiles = (refPath, callback) => {
-    console.log("getTiles", refPath);
     this.tilesRef = refPath;
     this.newArtRef = app.database().ref(refPath);
     this.newArtRef.on("value", callback);
-    console.log("this.newArtRef", this.newArtRef);
     return this.newArtRef;
   };
 

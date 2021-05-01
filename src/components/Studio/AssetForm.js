@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Checkbox, Form, Input, Button, DatePicker } from "antd";
 import moment from "moment";
 import RightsDropdown from "./RightsDropdown";
-// import RteAntWrapper from "../Rte";
+import RteAntWrapper from "../Rte";
 
 const { TextArea } = Input;
 const layout = {
@@ -23,13 +23,11 @@ const tailLayout = {
 const yearFormat = "YYYY";
 
 const AssetForm = (props) => {
-  console.log("AssetForm props", props);
   const [item, setItem] = useState(props.item);
 
   const { saveToDb, saving, firebase } = props;
   const [form] = Form.useForm();
   useEffect(() => {
-    console.log("AssetForm useEffect", props.item);
     const updateFields = () => {
       let newYear = moment(props.item.year || moment().format("YYYY"), "YYYY");
       const fieldsValues = Object.assign(props.item, { year: newYear });
@@ -45,7 +43,7 @@ const AssetForm = (props) => {
     Object.keys(fieldsValues).forEach((key) => {
       fieldsValues[key] = fieldsValues[key] || null;
     });
-    console.log("fieldsValues",fieldsValues)
+    console.log("fieldsValues", fieldsValues);
     saveToDb(fieldsValues);
   };
 
@@ -72,6 +70,9 @@ const AssetForm = (props) => {
       onFinish={onFinish}
       initialValues={{
         artist: item.artist || firebase.currentUser.displayName,
+        description2: {
+          value: item.description2,
+        },
       }}
     >
       {item.borrowed && itemBorrowedContent(item)}
@@ -95,14 +96,15 @@ const AssetForm = (props) => {
       <Form.Item name="media" label="Medium/Media">
         <Input type="text" disabled={item.borrowed} />
       </Form.Item>
-{/* 
-      <Form.Item name="description2" label="Description2">
-        <RteAntWrapper value={item.description} />
-      </Form.Item> */}
-
-      <Form.Item name="description" label="Description">
-        <TextArea rows={4} disabled={item.borrowed} />
-      </Form.Item>
+      {item.borrowed ? (
+        <Form.Item name="description" label="Description">
+          <TextArea rows={4} disabled />
+        </Form.Item>
+      ) : (
+        <Form.Item name="description" label="Description">
+          <RteAntWrapper desc={item.description} />
+        </Form.Item>
+      )}
       <Form.Item label="Year" name="year">
         <DatePicker
           picker="year"

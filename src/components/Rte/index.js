@@ -1,60 +1,71 @@
 import React, { Component } from "react";
-import { EditorState, convertToRaw } from 'draft-js';
+import { EditorState, convertToRaw, ContentState } from "draft-js";
 import { Editor } from "react-draft-wysiwyg";
 import "../../../node_modules/react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
-import draftToHtml from 'draftjs-to-html';
+import draftToHtml from "draftjs-to-html";
+import htmlToDraft from "html-to-draftjs";
 
-export const RteAntWrapper = ({ value = {}, onChange }) => {
+export const RteAntWrapper = ({ value, onChange, desc }) => {
+  console.log("value in wrapper", value);
   const triggerChange = (changedValue) => {
+    console.log("triggerChange", changedValue);
     onChange({
       ...changedValue,
     });
   };
 
-  return <Rte triggerChange={triggerChange} value={value} />
-}
+  return <Rte triggerChange={triggerChange} value={value} desc={desc} />;
+};
 
 class Rte extends Component {
   constructor(props) {
     super(props);
+    console.log("value", this.props, this.props.value);
+    const html = this.props.desc;
+    let contentState;
+    if (html) {
+      const contentBlock = htmlToDraft(html);
+      contentState = ContentState.createFromBlockArray(
+        contentBlock.contentBlocks
+      );
+    }
     this.state = {
       activeRteClass: "",
-      editorState: EditorState.createEmpty()
+      editorState: contentState
+        ? EditorState.createWithContent(contentState)
+        : EditorState.createEmpty(),
     };
   }
 
-  onBlur(){
+  onBlur() {
     this.setState({ activeRteClass: "" });
-    console.log("this.state.editorState",this.state.editorState);
-    console.log("this.props",this.props)
-    const rawContentState = convertToRaw(this.state.editorState.getCurrentContent());
-    const markup = draftToHtml(
-      rawContentState
+    const rawContentState = convertToRaw(
+      this.state.editorState.getCurrentContent()
     );
+    const markup = draftToHtml(rawContentState);
     this.props.onChange(markup);
   }
 
   onEditorStateChange = (editorState) => {
-    
     this.setState({
       editorState,
     });
   };
 
   render() {
-    const { activeRteClass } = this.state;
+    const { editorState, activeRteClass } = this.state;
     return (
-        <Editor
-          toolbarClassName="demo-toolbar-custom"
-          wrapperClassName="rte-wrapper"
-          editorClassName={`rte-editor ${activeRteClass}`}
-          onFocus={() => {
-            
-            this.setState({ activeRteClass: "rte-editor__focus" });
-          }}
-          onBlur={() => this.onBlur()}
-          onEditorStateChange={this.onEditorStateChange}
-        />
+      <Editor
+        toolbarClassName="demo-toolbar-custom"
+        wrapperClassName="rte-wrapper"
+        editorClassName={`rte-editor ${activeRteClass}`}
+        editorState={editorState}
+        onFocus={() => {
+          this.setState({ activeRteClass: "rte-editor__focus" });
+        }}
+        onBlur={() => this.onBlur()}
+        onEditorStateChange={this.onEditorStateChange}
+      />
     );
   }
 }
