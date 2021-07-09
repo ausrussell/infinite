@@ -42,7 +42,7 @@
     "sharp": "^0.25.2",
     "stats-js": "^1.0.1",
     "styled-components": "^5.0.1",
-    "three": "^0.114.0",
+    "three": "^0.125.0",
     "three-gltf-exporter": "0.0.1",
     "three-gltf-loader": "^1.111.0",
     "three-orbit-controls": "^82.1.0",
