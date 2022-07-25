@@ -74,12 +74,11 @@ position: relative;
 
 }
 
-
-
 .art-details-description {
   overflow-y: auto;
   max-height: 33vh;
   padding-right: 10px;
+  word-break: break-word;
 }
 .art-details-description::-webkit-scrollbar {
   -webkit-appearance: none;

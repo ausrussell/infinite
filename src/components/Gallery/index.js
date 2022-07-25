@@ -7,6 +7,8 @@ import { withFirebase } from "../Firebase";
 import { withRouter } from "react-router-dom";
 
 import FlaneurControls from "../PlanBuilder/FlaneurControls";
+import {withCanvas} from "../Scene/CanvasContext"
+
 import MainCanvas from "./MainCanvas";
 import ErrorBoundary from "../ErrorBoundary";
 import GeneralLight from "../PlanBuilder/GeneralLight";
@@ -71,7 +73,7 @@ class GalleryBase extends Component {
 
     this.backListener = this.props.history.listen((loc, action) => {
       if (action === "POP") {
-      // debugger;
+
 
         this.emptyScene();
         this.galleryRef = this.props.firebase.getGalleryByName(
@@ -359,6 +361,7 @@ class GalleryBase extends Component {
       builder: this,
     };
     this.sceneLoader = new SceneLoader(options);
+
     this.sceneLoader.renderData();
 
     this.onWindowResize();
@@ -492,6 +495,7 @@ class GalleryBase extends Component {
     return (
       <ErrorBoundary>
         <div className="page-header-area">
+          {this.props.CanvasPrimary.render()}
           <PageTitle
             title={galleryData.title}
             help={this.GalleryHelp}
@@ -516,7 +520,8 @@ class GalleryBase extends Component {
 const Gallery = compose(
   withAuthentication,
   withFirebase,
-  withRouter
+  withRouter,
+  withCanvas
 )(GalleryBase);
 
 export default Gallery;

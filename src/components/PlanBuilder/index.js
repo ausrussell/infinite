@@ -1,5 +1,16 @@
 import React, { Component } from "react";
+import {connect} from "react-redux"
 import * as THREE from "three";
+import { message } from "antd";
+
+import { withFirebase } from "../Firebase";
+import Gui from "../Gui";
+import * as Stats from "stats-js";
+import ErrorBoundary from "../ErrorBoundary";
+import { TransformControls } from "./TransformControls";
+import { TransformControls as TransformOrig } from "three/examples/jsm/controls/TransformControls";
+import Draggable from "./Draggable";
+
 import Uploader from "../Uploader";
 import "../../css/builder.css";
 // import { withFirebase } from "../Firebase";
@@ -8,43 +19,32 @@ import FlaneurControls from "./FlaneurControls";
 import GeneralLight from "./GeneralLight";
 import WallLight from "./WallLight";
 
-import { withFirebase } from "../Firebase";
-import Gui from "../Gui";
-import * as Stats from "stats-js";
-
 import VaultFloor from "../Elevator/VaultFloor";
 import LightFloor from "./LightFloor";
-
 import Floor from "./Floor";
-
 import Surroundings from "./Surroundings";
-
 import Elevator from "../Elevator";
 
-import ErrorBoundary from "../ErrorBoundary";
-
-import { TransformControls } from "./TransformControls";
-
-import { TransformControls as TransformOrig } from "three/examples/jsm/controls/TransformControls";
-import Draggable from "./Draggable";
 
 import BuilderHeader from "./BuilderHeader";
+
+import DropdownHeader from "./DropdownHeader";
+
 
 import Sculpture from "./Sculpture";
 
 import { DragControls } from "../Gallery/drag";
 
-import { message } from "antd";
+import Scene from "./Scene/index.js";
+import {createScene, addSculptures, addSculpture} from "../../redux/actions"
+import {emptyScene} from "../../Helpers/sceneHelpers"
+
 
 const degreesToRadians = (degrees) => {
   return (degrees * Math.PI) / 180;
 };
 
-const sceneHelperObjects = [
-  "footHover",
-  "clickFloorPlane",
-  "TransformControls",
-];
+
 
 class Builder extends Component {
   constructor(props) {
@@ -68,7 +68,7 @@ class Builder extends Component {
     console.log("Builder did mount");
     this.setUpScene();
     // this.addHelperGrid()
-    this.initialFloorAnimation();
+    // this.initialFloorAnimation();
   }
 
   componentWillUnmount() {
@@ -85,6 +85,7 @@ class Builder extends Component {
     //   props.firebase.currentUID,
     //   this.props.firebase.currentUID
     // );
+    console.log("PB updated ",this.props,props)
     if (this.props.firebase.currentUID && !this.floorplanProcessed) {
       this.processFloorplan();
       this.floorplanProcessed = true;
@@ -109,6 +110,7 @@ class Builder extends Component {
     lights: [],
     sculptures: [],
     sculptureAnimations: [],
+    activeSculpture: null,
     selectedSpotlight: null,
     generalLight: null,
     plannerGallery: false,
@@ -125,7 +127,6 @@ class Builder extends Component {
     stats: false,
     userId: null,
     rapidArtToLoad: 0,
-    rapidArtCounnter: 0,
   });
 
   initialFloorAnimation() {
@@ -324,6 +325,17 @@ class Builder extends Component {
     this.setState({ lights: lights });
   }
 
+  remove3d() {
+    const sculptures = this.state.sculptures;
+    const index = sculptures.indexOf(this.state.activeSculpture);
+    if (index > 0) {
+      sculptures.splice(index, 1);
+      this.setState({ sculptures: sculptures });
+      this.detach3dTransform();
+      this.state.activeSculpture.destroy();
+    }
+  }
+
   //tileclick handlers
 
   artClickHandler(item) {
@@ -364,6 +376,7 @@ class Builder extends Component {
     new3d.addItemToBuilder(item);
     const sculptures = this.state.sculptures;
     sculptures.push(new3d);
+    this.props.addSculpture(new3d);//new store
 
     this.setState({ sculptures: sculptures });
   }
@@ -383,6 +396,7 @@ class Builder extends Component {
   }
 
   selectingArtHandler = () => {
+    // no longer using for featured image
     console.log("setting selectingArt to ", !this.state.selectingArt);
 
     this.setState({ selectingArt: !this.state.selectingArt });
@@ -437,7 +451,6 @@ class Builder extends Component {
 
   lightConeHelperSelected(helper) {
     console.log("helper", helper);
-    // if (!helper.parent) debugger;
     console.log("selected Spotlight", this.state.selectedSpotlight);
     this.state.selectedSpotlight &&
       this.state.selectedSpotlight.controllerClass.deselectSpotlight();
@@ -464,10 +477,12 @@ class Builder extends Component {
 
   onEditDropdownChangeHandler = ({ galleryDesc, galleryData, id, userId }) => {
     console.log("galleryDesc, galleryData, id ", galleryDesc, galleryData, id);
+    emptyScene(this.scene)
+debugger;
     this.emptyScene();
+    console.log("onEditDropdownChangeHandler", id);
     if (!id) {
-      let initState = this.getInitialState();
-      this.setState(initState);
+      this.setState(this.getInitialState());
     } else {
       const { name, floorplan } = galleryData;
       const newState = Object.assign(this.getInitialState(), {
@@ -490,20 +505,18 @@ class Builder extends Component {
       galleryData,
       this.state
     );
-    const {
-      walls,
-      floor,
-      lights,
-      generalLight,
-      surrounds,
-      sculptures,
-    } = galleryData;
+    const { walls, floor, lights, generalLight, surrounds, sculptures } =
+      galleryData;
+      this.props.addSculptures(sculptures)
     this.setEditFloor(floor);
     this.setEditWalls(walls);
     surrounds && this.state.surroundings.surroundingsTileCallback(surrounds);
     generalLight && this.setEditGeneralLight(generalLight);
     this.setEditWallLights(lights);
-    sculptures && this.setEdit3d(sculptures);
+    // sculptures && this.setEdit3d(sculptures);
+
+
+
     this.initialCameraAnimation();
     this.setSceneMeshes();
   }
@@ -557,20 +570,11 @@ class Builder extends Component {
 
       this.setState(newState, () => this.rebuildFromRapid(artItems)); //,
     } else {
-      // const floor = new Floor({ builder: this });
-      // console.log("intialState", this.getInitialState());
-      // const newState = Object.assign(this.getInitialState(), {
-      //   floorplan: data,
-      //   floor: new Floor({ builder: this }),
-      // });
-      console.log("newState", newState);
       let returnNewGalleryId = this.props.firebase.pushAsset(
         "users/" + this.props.firebase.currentUID + "/galleryDesc/"
       );
       returnNewGalleryId.then((snapshot) => {
         newState.galleryId = snapshot.key;
-        // this.setState({ galleryId: snapshot.key });
-
         this.setState(newState, () => this.rebuildFromFloorplan());
       });
     }
@@ -606,9 +610,8 @@ class Builder extends Component {
         i % 2 === 0
           ? wallCenter - Math.ceil((Math.max(i - 1, 0) / 2) * gap)
           : wallCenter + Math.ceil((i / 2) * gap);
-      const p = this.state.wallEntities[wallIndexForArt].addArtRapid(
-        addImageData
-      );
+      const p =
+        this.state.wallEntities[wallIndexForArt].addArtRapid(addImageData);
       addingAr.push(p);
     }
     console.log("addingAr", addingAr.length, addingAr);
@@ -714,12 +717,12 @@ class Builder extends Component {
     this.state.wallEntities.forEach((item) => {
       const wallExport = item.getExport();
       galleryData.walls.push(wallExport);
+      console.log("wallExport", wallExport);
       wallExport.artKeys && galleryData.art.push(...wallExport.artKeys);
       if (wallExport.borrowedArtToSave) {
         galleryData.borrowedArt.push(...wallExport.borrowedArtToSave);
       }
     });
-    debugger;
 
     galleryData.lights = [];
     this.state.lights.forEach((item) => {
@@ -757,8 +760,8 @@ class Builder extends Component {
   };
 
   offArtHandler() {
-    console.log("offArtHandler");
-    this.setArtDetails(null);
+    // console.log("offArtHandler");
+    // this.setArtDetails(null);
   }
 
   resetTranslatedArt() {
@@ -776,10 +779,7 @@ class Builder extends Component {
       return;
     }
     let onWall = this.getWallFromIntersect(intersect0);
-    console.log(
-      "this.activeArtMesh.parent",
-      this.activeArtMesh.parent
-    );
+    console.log("this.activeArtMesh.parent", this.activeArtMesh.parent);
     this.activeArtMesh.parent.holderClass.wall.removeFrame(
       this.activeArtMesh.parent.holderClass,
       onWall.wallSideOver
@@ -890,21 +890,12 @@ class Builder extends Component {
     this.dragControls.transformGroup = true;
     this.dragControls.addEventListener("hoveron", ({ type, object }) => {
       console.log("hover on sculpture object", object);
-      // console.log("transforming", object.parent.parent.parent.parent)
-      // console.log("object.position", object.parent.parent.parent.parent.position);
       object.traverseAncestors((item) => {
         // console.log("traverseAncestors", item);
         let attached = false;
-        if (item.name === "OSG_Scene" && !attached) {
+        if (item.scope instanceof Sculpture && !attached) {
           this.attach3dTransform(item);
-          attached = true;
-          this.transformOrig.attach(item);
-          this.flaneurControls.disable();
-          this.transformControls.enabled = false;
-          this.transformControls2.enabled = false;
-          // this.transformOrig.addEventListener("change",
-          //   // (data) => console.log("changed", data)
-          // );
+          this.setState({ activeSculpture: item.scope });
         }
       });
     });
@@ -916,6 +907,7 @@ class Builder extends Component {
   }
 
   attach3dTransform(item) {
+    console.log("attach3dTransform");
     this.transformOrig.attach(item);
     this.flaneurControls.disable();
     this.transformControls.enabled = false;
@@ -926,7 +918,6 @@ class Builder extends Component {
 
   transforming3dMouseDown = (e) => {
     let onControls = this.isOnControls();
-
     !onControls && this.detach3dTransform();
     // this.detach3dTransform();
   };
@@ -935,15 +926,10 @@ class Builder extends Component {
       this.scene.children,
       true
     );
-    console.log(
-      "transforming3dMouseDown recursiveIntersects",
-      recursiveIntersects
-    );
     let onControl = false;
     recursiveIntersects.forEach((intersect) => {
       if (!onControl) {
         intersect.object.traverseAncestors((item) => {
-          console.log("item", item);
           if (item.parent?.type === "TransformControlsGizmo") {
             onControl = true;
           }
@@ -958,6 +944,7 @@ class Builder extends Component {
     this.transformControls.enabled = true;
     this.transformControls2.enabled = true;
     this.transforming3d = false;
+    // this.setState({ activeSculpture: null });
     window.removeEventListener("mousedown", this.transforming3dMouseDown);
   }
 
@@ -1089,7 +1076,6 @@ class Builder extends Component {
 
     if (intersect0.name === "LightConeHelper") {
       console.log("intersects", intersects);
-      // debugger;
       this.hoverOverObject = intersect0;
       intersectedData[intersect0.name] = intersect0;
     }
@@ -1123,10 +1109,12 @@ class Builder extends Component {
 
   //scene setup and animation
   setUpScene() {
+    return;
     const width = this.mount.clientWidth;
     const height = this.mount.clientHeight; // height wasn't getting set after new landing animation
     this.setState({ width: width, height: height });
     this.scene = new THREE.Scene();
+    this.props.createScene(this.scene)
     // this.scene.background = new THREE.Color().setHSL(0.6, 0, 1);
     this.camera = new THREE.PerspectiveCamera(45, width / height, 1, 5000);
     this.renderer = new THREE.WebGLRenderer({
@@ -1313,26 +1301,29 @@ class Builder extends Component {
   };
 
   emptyScene(destroyAll) {
+    // emptyScene(this.scene,destroyAll)
     // return;
-    console.log("scene before", this.scene.children);
-    this.transformOrig && this.transformOrig.detach();
-    const node = this.scene;
-    for (var i = node.children.length - 1; i >= 0; i--) {
-      var child = node.children[i];
-      if (destroyAll || sceneHelperObjects.indexOf(child.name) === -1) {
-        this.disposeNode(child);
-        this.scene.remove(child);
-      }
-    }
-    console.log("scene after", this.scene.children);
-    return;
+    // console.log("scene before", this.scene.children);
+    // // this.transformOrig && this.transformOrig.detach();
+    // this.detach3dTransform();
+    // const node = this.scene;
+    // for (var i = node.children.length - 1; i >= 0; i--) {
+    //   var child = node.children[i];
+    //   if (destroyAll || sceneHelperObjects.indexOf(child.name) === -1) {
+    //     this.disposeNode(child);
+    //     this.scene.remove(child);
+    //   }
+    // }
+    // console.log("scene after", this.scene.children);
+    // return;
   }
 
   destroyScene() {
-    this.emptyScene(true);
-    this.scene.dispose();
-    this.renderer.forceContextLoss();
-    this.renderer.dispose();
+    //have to get better clean up for scene in state
+    // this.emptyScene(true);
+    // this.scene.dispose();//??
+    // this.renderer.forceContextLoss();
+    // this.renderer.dispose();
   }
 
   //set objects
@@ -1534,14 +1525,14 @@ class Builder extends Component {
   };
 
   getVaultFloorInstance = (props) => {
-    // console.log("getVaultFloorInstance", props)
+    console.log("getVaultFloorInstance", props)
     return <VaultFloor {...props} selectedTile={this.state.selectedTile} />;
   };
 
   getLightFloorInstance = (props) => {
     return (
       <LightFloor
-        {...props}
+        {...props}//?????
         lights={this.state.lights}
         selectedSpotlight={this.state.selectedSpotlight}
         generalLight={this.state.generalLight}
@@ -1552,7 +1543,12 @@ class Builder extends Component {
 
   sculptureTransformControls = (e) => {
     console.log("sculptureTransformControls", e.target.id);
-    this.transformOrig.setMode(e.target.id);
+    if (e.target.id === "remove") {
+      this.remove3d();
+    } else {
+      this.transformOrig.setMode(e.target.id);
+    }
+    //check for delete
   };
   getElevatorFloors() {
     const floors = {
@@ -1617,9 +1613,8 @@ class Builder extends Component {
         refPath: "users/" + this.props.firebase.currentUID + "/3d object",
         level: 6,
         tileCallback: this.sculptureTileCallback.bind(this),
-        sculptureTransformClickHandler: this.sculptureTransformControls.bind(
-          this
-        ),
+        sculptureTransformClickHandler:
+          this.sculptureTransformControls.bind(this),
       },
     };
     return floors;
@@ -1672,22 +1667,23 @@ class Builder extends Component {
 
     return (
       <ErrorBoundary>
-        {this.props.firebase.currentUID && (
+        {this.props.authUser && (//this.props.firebase.currentUID
           <BuilderHeader
             onEditDropdownChangeHandler={this.onEditDropdownChangeHandler}
             saveGallery={this.saveGallery}
             galleryDesc={this.state.galleryDesc}
-            setSelectingArt={this.selectingArtHandler}
             selectingArt={this.state.selectingArt}
             plannerGallery={this.state.plannerGallery}
             galleryId={galleryId}
             floorplan={floorplan}
             floorplanSelectedHandler={this.floorplanSelectedHandler}
             exportData={exportData}
-            userId={userId}
+            userId={this.props.authUser.uid}
           />
         )}
-        <div id="boardCanvas" ref={(mount) => (this.mount = mount)} />
+        {/* <DropdownHeader /> */}
+        <Scene />
+        {/* <div id="boardCanvas" ref={(mount) => (this.mount = mount)} /> */}
         {this.state.draggableVaultElementActive && (
           <Draggable
             itemDragover={this.dragOverHandler}
@@ -1738,8 +1734,10 @@ const DraggableVaultElement = React.forwardRef((props, ref) => (
   </div>
 ));
 
-// const MainCanvas = props => {
-//   return <div id="boardCanvas" ref={mount => props.refer(mount)} />;
-// };
+const mapStateToProps = state => {
+  console.log("PlanBuilder state",state)
+  return{
+  authUser: state.sessionState.authUser,
+}};
 
-export default withFirebase(Builder);
+export default connect(mapStateToProps, {createScene, addSculptures, addSculpture})(withFirebase(Builder));

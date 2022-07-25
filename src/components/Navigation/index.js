@@ -1,84 +1,81 @@
-import React, { Component } from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
 import SignOutButton from "../SignOut";
 import * as ROUTES from "../../constants/routes";
-import { AuthUserContext, withAuthentication } from "../Session";
-import { Menu } from 'antd';
-
-class Navigation extends Component {
-  state = {
-    current: "map"
+import { connect } from "react-redux";
+import { Menu } from "antd";
+import { withRouter } from "react-router-dom";
+const Navigation = ({ authUser, history }) => {
+  const [current, setCurrent] = useState("LANDING");
+  const clickHandler = (current) => {
+    setCurrent(current);
+    history.push({ pathname: ROUTES[current] });
   };
-
-  componentDidMount() {
-    this.listener = this.props.firebase.auth.onAuthStateChanged(authUser => {
-      console.log("onAuthStateChanged", authUser);
-      this.setState({ user: authUser });
-      console.log("Navigation componentDidMount", authUser);
-    });
-  }
-
-  componentWillUnmount() {
-    this.listener();
-  }
-
-  onClick = e => {
-    console.log('click ', e);
-    this.setState({
-      current: e.key,
-    });
-  };
-
-  render() {
-    return (
-      <AuthUserContext.Consumer>
-        {authUser =>
-          authUser ? (
-            <NavigationAuth selectedKeys={[this.state.current]} onClick={this.onClick} />
-          ) : (
-              <NavigationNonAuth />
-            )
-        }
-      </AuthUserContext.Consumer>
-    );
-  }
-}
-
-const NavigationAuth = ({ selectedKeys, onClick}) => {
   return (
-    <Menu selectedKeys={selectedKeys} mode="horizontal" onClick={onClick}>
-      <Menu.Item key="map">
-        <Link to={ROUTES.LANDING}>World</Link>
-      </Menu.Item>
-      <Menu.Item key="builder">
-        <Link to={ROUTES.BUILDER}>Build</Link>
-      </Menu.Item>
-      <Menu.Item key="studio">
-        <Link to={ROUTES.STUDIO}>Resources</Link>
-      </Menu.Item>
-      <Menu.Item key="signout">
-        <SignOutButton />
-      </Menu.Item>
-    </Menu>
+    <div>
+      {authUser ? (
+        <NavigationAuth selectedKeys={[current]} onClick={clickHandler} />
+      ) : (
+        <NavigationNonAuth selectedKeys={[current]} onClick={clickHandler} />
+      )}
+    </div>
   );
 };
 
-const NavigationNonAuth = (props) => {
-  const { selectedKeys } = props;
+const NavigationAuth = ({ selectedKeys, onClick }) => {
+  const items = [
+    {
+      label: "World",
+      key: "LANDING",
+    },
+    {
+      label: "Build",
+      key: "BUILDER",
+    },
+    {
+      label: "Resources",
+      key: "STUDIO",
+    },
+    {
+      label: <SignOutButton />,
+      key: "signout", //??
+    },
+  ];
   return (
-    <Menu selectedKeys={selectedKeys} mode="horizontal" onClick={props.onClick}>
-
-      <Menu.Item key="map">
-        <Link to={ROUTES.LANDING}>World</Link>
-      </Menu.Item>
-      <Menu.Item key="builder">
-        <Link to={ROUTES.SIGN_IN}>Build</Link>
-      </Menu.Item>
-
-      <Menu.Item key="signin">
-        <Link to={ROUTES.SIGN_IN}>Sign In</Link>
-      </Menu.Item>
-    </Menu>)
+    <Menu
+      selectedKeys={selectedKeys}
+      mode="horizontal"
+      onClick={(entry) => onClick(entry.key)}
+      items={items}
+    ></Menu>
+  );
 };
 
-export default withAuthentication(Navigation);
+const NavigationNonAuth = ({ selectedKeys, onClick }) => {
+  const items = [
+    {
+      label: "World",
+      key: "LANDING",
+    },
+    {
+      label: "Build",
+      key: "BUILDER",
+    },
+    {
+      label: "Sign in",
+      key: "SIGN_IN",
+    },
+  ];
+  return (
+    <Menu
+      selectedKeys={selectedKeys}
+      mode="horizontal"
+      onClick={(entry) => onClick(entry.key)}
+      items={items}
+    ></Menu>
+  );
+};
+const mapStateToProps = (state) => ({
+  authUser: state.sessionState.authUser,
+});
+
+export default connect(mapStateToProps)(withRouter(Navigation));

@@ -44,7 +44,7 @@ export const BuilderHelp = {
                         <p>Once on a wall, you can hover of an artwork and see handles to move a work (on the plane it's on) or to scale the image larger or smaller.</p>
                         <Divider orientation="left">Frames, Walls, Floors and Surrounds</Divider>
                         <p>On different floors in the vault you will find different materials to add to your gallery. There are provided collections of each and you can make your own in the Studio.</p>
-                        <p>Click on a material for a frame on wall and then click on the work/s or wall/s you want it applied to. Click back on the tile to cancel.</p>
+                        <p>Click on a material for a frame or wall and then click on the work/s or wall/s you want it applied to. Click back on the tile to cancel.</p>
                         <p>Clicking on a material for the floor or surrounds makes an immediate change.</p>
                         <Divider orientation="left">Lights</Divider>
                         <p>Every time you drag an image onto a wall a spotlight is added to illuminate it. You can move, remove, or add spotlights and change their intensity and color. When on the lighting floor the spotlights will have a cone which you can use as a handle to move around - this might be necessary if you've moved an artwork.</p>

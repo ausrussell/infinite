@@ -1,3 +1,6 @@
+
+/* @import url('https://fonts.googleapis.com/css?family=Lato:100'); */
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap');
 .tile-holder {
   /* display: flex; */
   /* overflow: auto; */
@@ -145,7 +148,7 @@ section.ant-layout {
   box-shadow: 6px 0px 10px 0px rgba(28, 49, 58, 0.7);
 }
 .gallery-list-item-holder {
-  border-bottom: 1px solid #b0bec5!important;
+  border-bottom: 1px solid #b0bec5 !important;
 }
 .gallery-list-item-holder.gallery-list-item--selected {
   border: 2px solid #d1c4e9;
@@ -320,7 +323,7 @@ section.ant-layout {
   position: absolute;
   border: 8px solid #6345ad;
   /* border-radius: 50%; */
-  opacity: .5;
+  opacity: 0.5;
   top: -2px;
   left: -2px;
   /* animation: cursorAnim2 .7s infinite alternate; */
@@ -328,64 +331,63 @@ section.ant-layout {
 
 @keyframes cursorAnim {
   from {
-      transform: scale(1);
+    transform: scale(1);
   }
   to {
-      transform: scale(.9);
+    transform: scale(0.9);
   }
 }
 
 @keyframes cursorAnim2 {
   from {
-      transform: scale(.9);
+    transform: scale(0.9);
   }
   to {
-      transform: scale(.65);
+    transform: scale(0.65);
   }
 }
 
 @keyframes cursorAnim3 {
   0% {
-      transform: scale(1);
+    transform: scale(1);
   }
   50% {
-      transform: scale(3);
+    transform: scale(3);
   }
   100% {
-      transform: scale(1);
-      opacity: 0;
+    transform: scale(1);
+    opacity: 0;
   }
 }
 
 .focus-escape {
   position: absolute;
-  top:130px;
+  top: 130px;
   right: 30px;
-width:30px;
-height:30px;
-border: 2px solid #6345ad;
-border-radius: 50%;
-background-color: #333;
-pointer-events: none;
-
+  width: 30px;
+  height: 30px;
+  border: 2px solid #6345ad;
+  border-radius: 50%;
+  background-color: #333;
+  pointer-events: none;
 }
 
 .focus-escape:after {
-content: "X";
-font-size: 50px;
-position: absolute;
-top:-26px;
-right: -3px;
-color:#fff8e1
+  content: "X";
+  font-size: 50px;
+  position: absolute;
+  top: -26px;
+  right: -3px;
+  color: #fff8e1;
 }
 
 .rte-wrapper {
   margin-bottom: 25px !important;
-    height: 260px !important;
+  height: 260px !important;
 }
 
 .rte-editor {
-  height:200px !important;
+  height: 200px !important;
   max-width: 100%;
   /* height: auto; */
   min-height: 32px;
@@ -395,15 +397,137 @@ color:#fff8e1
   transition: all 0.3s, height 0s;
   font-size: 14px;
   line-height: 1.5715;
-  background-color: #F5F5F6;
+  background-color: #f5f5f6;
   background-image: none;
   border: 1px solid #d9d9d9;
   padding: 4px 11px;
 }
 .rte-editor__focus {
-border-color: #6345ad;
-border-right-width: 1px !important;
-outline: 0;
--webkit-box-shadow: 0 0 0 2px rgb(69 39 160 / 20%);
-box-shadow: 0 0 0 2px rgb(69 39 160 / 20%);
+  border-color: #6345ad;
+  border-right-width: 1px !important;
+  outline: 0;
+  -webkit-box-shadow: 0 0 0 2px rgb(69 39 160 / 20%);
+  box-shadow: 0 0 0 2px rgb(69 39 160 / 20%);
 }
+
+.right-justified-button-tail {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.right-justified-button-tail button {
+  margin-left:8px;
+}
+
+#glass-title-pane:before {
+  box-shadow: inset 0 0 2000px rgba(255, 255, 255, .5);
+  filter: blur(10px);
+} 
+#glass-title-pane, .glass-description-pane-description {
+color:#333;
+width: 200px;
+height: 200px;
+position: absolute;
+visibility: hidden;
+/* From https://css.glass */
+background: rgba(255, 248, 252, 0.87);
+
+border-radius: 2px;
+
+box-shadow: rgba(0, 0, 0, 0.09) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px;
+backdrop-filter: blur(3px);
+-webkit-backdrop-filter: blur(3px);
+border: 1px solid rgba(255, 247, 247, 0.1);
+}
+
+#glass-title-pane-text {
+  font-family: 'Lato',"Helvetica Neue", Helvetica, sans-serif;
+  /* font-size: 50px; */
+  padding: 15px;
+font-weight: 300;
+line-height: 1.2;
+}
+
+#glass-title-pane-text svg {
+  width: 100%
+}
+
+.glass-title-pane-bottom {
+  width: 100%;
+  position:absolute;
+  bottom:0px;
+  padding:10px;
+}
+
+.glass-title-pane-bottom-image {
+  width: 30%;
+  position:absolute;
+  /* top:160;
+  left: -30px; */
+}
+
+.glass-title-pane-bottom-image img {
+  width: 100%;
+  border: 1px solid rgb(53, 47, 47);
+  box-shadow: rgba(0, 0, 0, 0.9) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px;
+
+}
+
+.glass-title-pane-by {
+  font-weight: 400;
+  float:right;
+  clear:both;
+}
+
+.glass-title-pane-built {
+  float:right;
+  clear:both;
+
+}
+
+.glass-description-pane-description {
+  font-family: 'Lato',"Helvetica Neue", Helvetica, sans-serif;
+  /* font-size: 50px; */
+background: rgba(255, 247, 250, 0.83);
+font-size: 1.1em;
+font-weight: 400;
+line-height: 1.3;
+position: absolute;
+padding: 10px;
+overflow-y: auto;
+}
+
+.glass-title-pane-enter {
+background: rgba(250, 255, 252, 1);
+font-size: 1.3em;
+font-weight: 400;
+padding-left:.5em;
+position:absolute;
+color: rgb(45, 91, 0);
+display: flex;
+height: 55px;
+border: 2px solid rgb(90, 180, 0);
+align-items: center;
+transform: rotate3d(1, 0, 0, 85deg);
+transform-style: preserve-3d;
+fill: rgb(45, 91, 0);
+box-shadow: rgba(0, 0, 0, 0.9) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px;
+visibility: hidden;
+transition: all .3s;
+}
+
+.glass-title-pane-enter .footsteps-link {
+  transform: rotate(-35deg);
+  float:none;
+}
+
+.glass-title-pane-enter:hover {
+  background: rgba(253, 255, 254);
+  transform: rotate3d(1, 0, 0, 105deg);
+
+  color: rgb(90, 180, 0);
+  cursor: n-resize;
+    
+    fill: rgb(108, 255, 75);
+  
+  }

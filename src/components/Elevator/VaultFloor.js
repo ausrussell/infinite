@@ -41,6 +41,9 @@ const SculptureController = (props) => {
       <Button id="scale" onClick={onClick}>
         Scale (y)
       </Button>
+      <Button id="remove" onClick={onClick}>
+        Remove
+      </Button>
     </div>
   );
 };

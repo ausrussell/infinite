@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import { compose } from "recompose";
+import { connect } from "react-redux";
 import { Select } from "antd";
 import { withFirebase } from "../Firebase";
 import { isEmpty, isNil } from 'lodash';
@@ -31,8 +33,10 @@ class GalleryEditDropdown extends Component {
         orderField: "title"
       }
     } else {
+      const dbPath = "users/" + this.props.sessionState.authUser.uid + "/galleryDesc";
+      console.log("dbPath for galleries",dbPath)
       options = {
-        refPath: "users/" + this.props.firebase.currentUID + "/galleryDesc",
+        refPath: dbPath,
         callback: this.fillList,
         orderField: "title"
       }
@@ -82,7 +86,7 @@ class GalleryEditDropdown extends Component {
     console.log("getGalleryData for", id)
     this.selectedId = id;
     this.desc = this.state.dataList[id];
-    this.userId = this.curatorUsers[id] || this.props.firebase.currentUID;
+    this.userId = this.curatorUsers[id] || this.props.sessionState.authUser.uid;
     const options = {
       refPath: "users/" + this.userId + "/galleryData/" + id,
       callback: this.returnData,
@@ -129,4 +133,11 @@ class GalleryEditDropdown extends Component {
     );
   }
 }
-export default withFirebase(GalleryEditDropdown);
+const mapStateToProps = (state) => {
+  console.log("GalleryEditDropdown state", state);
+  return state;
+};
+
+export default compose(connect(mapStateToProps), withFirebase)(GalleryEditDropdown);//,connect(mapStateToProps, { fetchGalleries })
+
+// export default withFirebase(GalleryEditDropdown);

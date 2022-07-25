@@ -65,7 +65,6 @@ class SceneLoader {
     this.wallEntities.forEach(wall => {
       wall.renderWall();
       wallMeshes.push(wall.wallMesh);
-      // console.log("getArt", wall.getArt());
       const gotArt = wall.getArt();
       if (gotArt.length) {
         gotArt.forEach(item => {
@@ -74,7 +73,7 @@ class SceneLoader {
         })
       }
     });
-    // console.log("artMeshes in renderwalls", artMeshes)
+    console.log("artMeshes in renderwalls", artMeshes)
     this.builder.setState({ wallMeshes: wallMeshes, artMeshes: artMeshes })
      
   }
@@ -110,7 +109,6 @@ class SceneLoader {
     let length = (lights.length > 10) ? 10 : lights.length;
     console.log("lights", length, lights)
     for (i = 0; i < length; i++) {
-      // debugger;
       const options = lights[i];
       options.builder = this;
       this.wallLights.push(WallLightDisplay(options));

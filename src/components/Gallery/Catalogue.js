@@ -34,7 +34,8 @@ const Catalogue = ({ galleryData, owner, firebase, changeGallery }) => {
         once: true,
         callback: setArtForCatalogue,
       };
-      const assetCall = firebase.getAsset(options);
+      firebase.getAsset(options);
+      // console.log("getArtForCatalogueDetail",refPath,key,type)
     };
     const getBorrowedArtForCatalogueDetail = (key, type) => {
       const refPath = `users/${owner}/${type}/${key}`;
@@ -43,7 +44,7 @@ const Catalogue = ({ galleryData, owner, firebase, changeGallery }) => {
         once: true,
         callback: setBorrowedArt,
       };
-      const assetCall = firebase.getAsset(options);
+      firebase.getAsset(options);
     };
 
     const setBorrowedArt = (snap) => {
@@ -56,7 +57,6 @@ const Catalogue = ({ galleryData, owner, firebase, changeGallery }) => {
           const combinedSnapVal = Object.assign(snapVal, ownersSnapVal);
           setArtForCatalogue(combinedSnapVal);
         };
-
         const options = {
           refPath: refPath,
           once: true,
@@ -68,6 +68,7 @@ const Catalogue = ({ galleryData, owner, firebase, changeGallery }) => {
 
     const setArtForCatalogue = (snap) => {
       const snapVal = snap.val ? snap.val() : snap;
+      console.log("snapVal",snapVal)
       let duplicateArray = itemsArray.filter((item) => item.key === snap.key);
       if (duplicateArray.length > 0 || !snapVal) artCounter--; //maybe add || !snapVal
       if (snapVal && duplicateArray.length === 0) {
@@ -78,7 +79,9 @@ const Catalogue = ({ galleryData, owner, firebase, changeGallery }) => {
             (item) => item.borrowerDisplayName
           );
         }
+
         itemsArray.push(snapVal);
+        console.log("itemsArray",itemsArray)
         if (itemsArray.length === artCounter) {
           setCatalogueData(itemsArray);
         }
@@ -89,7 +92,6 @@ const Catalogue = ({ galleryData, owner, firebase, changeGallery }) => {
       if (galleryData.art) {
         artCounter = galleryData.art.length;
         if (galleryData.borrowedArt) {
-          // console.log("galleryData.borrowedArt", galleryData.borrowedArt);
           artCounter += galleryData.borrowedArt.length;
           galleryData.borrowedArt.forEach((art) => {
             getBorrowedArtForCatalogueDetail(art, "borrowed-art");
@@ -98,6 +100,7 @@ const Catalogue = ({ galleryData, owner, firebase, changeGallery }) => {
         galleryData.art.forEach((art) => {
           getArtForCatalogueDetail(art, "art");
         });
+        console.log("artCounter",artCounter)
       }
     };
     setCatalogue();

@@ -103,7 +103,7 @@ export const ArtDetailsList = ({ selectedArt, changeGallery }) => {
     borrowersNames,
     borrowed,
   } = selectedArt;
-  console.log("borrowersNames", borrowersNames);
+  // console.log("borrowersNames", borrowersNames);
   // if (borrowersNames) );borrowersNames.map((item) => <p key={item}>{item}</p>)
   return (
     <div>

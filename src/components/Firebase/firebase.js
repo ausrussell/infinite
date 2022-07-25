@@ -3,42 +3,70 @@ import "firebase/database";
 import "firebase/auth";
 import moment from "moment";
 
-const config = {
-  apiKey: process.env.REACT_APP_API_KEY,
-  authDomain: process.env.REACT_APP_AUTH_DOMAIN,
-  databaseURL: process.env.REACT_APP_DATABASE_URL,
-  projectId: process.env.REACT_APP_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_ID,
-  measurementId: process.env.REACT_APP_MEASUREMENT_ID,
-};
+// const config = {
+//   apiKey: process.env.REACT_APP_API_KEY,
+//   authDomain: process.env.REACT_APP_AUTH_DOMAIN,
+//   databaseURL: process.env.REACT_APP_DATABASE_URL,
+//   projectId: process.env.REACT_APP_PROJECT_ID,
+//   storageBucket: process.env.REACT_APP_STORAGE_BUCKET,
+//   messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID,
+//   appId: process.env.REACT_APP_ID,
+//   measurementId: process.env.REACT_APP_MEASUREMENT_ID,
+// };
 
 class Firebase {
   constructor() {
-    app.initializeApp(config);
+    console.log("Firebase constructor");
+    // app.initializeApp(config);
     this.auth = app.auth();
     this.storage = app.storage();
     this.database = app.database();
     this.functions = app.functions();
     this.isCurator = false;
-    this.auth.onAuthStateChanged((user) => {
-      this.currentUID = user ? user.uid : null;
-      this.currentUser = user;
-      console.log("call updateAccount", this.currentUID);
+    // this.auth.onAuthStateChanged((user) => {
+    //   this.currentUID = user ? user.uid : null;
+    //   this.currentUser = user;
+    //   console.log("call updateAccount", this.currentUID);
 
-      this.updateAccount();
-      this.isCurator =
-        this.currentUID === "0XHMilIweAghhLcophtPU4Ekv7D3" ||
-        this.currentUID === "bGXdibczHIWMfdbHCgAiCsjGEPx2";
-      console.log(
-        "this.auth.onAuthStateChanged",
-        this.currentUID,
-        "is curator",
-        this.isCurator
-      );
-    });
+    //   this.updateAccount();
+    //   this.isCurator =
+    //     this.currentUID === "0XHMilIweAghhLcophtPU4Ekv7D3" ||
+    //     this.currentUID === "bGXdibczHIWMfdbHCgAiCsjGEPx2";
+    //   console.log(
+    //     "this.auth.onAuthStateChanged",
+    //     this.currentUID,
+    //     "is curator",
+    //     this.isCurator
+    //   );
+    // });
   }
+
+  onAuthUserListener = (next, fallback) =>
+    this.auth.onAuthStateChanged((authUser) => {
+      if (authUser) {
+        this.user(authUser.uid)
+          .once("value")
+          .then((snapshot) => {
+            const dbUser = snapshot.val();
+
+            // default empty roles
+            if (!dbUser.roles) {
+              dbUser.roles = {};
+            }
+
+            // merge auth and db user
+            authUser = {
+              uid: authUser.uid,
+              email: authUser.email,
+              ...dbUser,
+            };
+
+            next(authUser);
+          });
+      } else {
+        fallback();
+      }
+    });
 
   setupNewUser = (user, { displayName, email, username }) => {
     user.user.updateProfile({
@@ -79,9 +107,10 @@ class Firebase {
       console.error(error); //Handle error
     });
 
-  doSignInWithEmailAndPassword = (email, password) =>
+  doSignInWithEmailAndPassword = (email, password) => {
+    console.log("doSignInWithEmailAndPassword", this.auth);
     this.auth.signInWithEmailAndPassword(email, password);
-
+  };
   doSignOut = () => this.auth.signOut();
 
   doPasswordReset = (email) => this.auth.sendPasswordResetEmail(email);
@@ -103,7 +132,7 @@ class Firebase {
   };
 
   getAsset = ({ refPath, callback, once }) => {
-    // console.log("getAsset refPath", refPath);
+    console.log("getAsset refPath", refPath);
     const ref = app.database().ref(refPath);
     if (once) {
       ref.once("value").then((snap) => {
@@ -129,10 +158,9 @@ class Firebase {
   };
 
   updateAsset = (path, object) => {
-    // console.log("updateAsset", path, object);
+    console.log("updateAsset", path, object);
     delete object.ref;
     object.updateTime = moment().format("MMMM Do YYYY, h:mm:ss a"); //new Date().getTime(); //app.database.ServerValue.TIMESTAMP;//new Date();
-
     const ref = this.database.ref(path);
     return ref.update(object);
   };

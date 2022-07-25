@@ -1,14 +1,17 @@
 import React, { Component } from "react";
 import { withRouter } from "react-router-dom";
+import { withFirebase } from "../Firebase";
+
 import { compose } from "recompose";
 
 import { SignUpLink } from "../SignUp";
 import { PasswordForgetLink } from "../PasswordForget";
-import { withFirebase } from "../Firebase";
 import * as ROUTES from "../../constants/routes";
 import { Form } from 'antd';
 // import '@ant-design/compatible/assets/index.css';
 import { Row, Col, Card, Input, Button } from "antd";
+
+import { connect } from 'react-redux';
 
 const SignInPage = () => (
   <Row style={{ marginTop: 32 }}>
@@ -32,10 +35,14 @@ class SignInFormBase extends Component {
   state = {
     error:""
   }
+  constructor(props){
+super();
+console.log("SignInFormBase props",props)
+  }
   onSubmit = values => {
 
     const { email, password } = values;
-
+console.log("SignInFormBase this.props",this.props)
     this.props.firebase
       .doSignInWithEmailAndPassword(email, password)
       .then(() => {
@@ -90,7 +97,14 @@ class SignInFormBase extends Component {
   }
 }
 
+const mapStateToProps = state =>{
+  console.log("signin state",state)
+  return  {
+  authUser: state.sessionState.authUser,
+}};
+
 const SignInForm = compose(
+  connect(mapStateToProps),
   withRouter,
   withFirebase
 )(SignInFormBase);

@@ -35,7 +35,7 @@ class Frame {
   setArt() {
     const { art } = this.data;
     const texture = this.textureLoader.load(art.file);
-    const artPlane = new THREE.PlaneGeometry(art.width, art.height, 0);
+    const artPlane = new THREE.PlaneGeometry(art.width, art.height);//, 0
     this.iMaterial = new THREE.MeshBasicMaterial({
       side: THREE.DoubleSide,
       map: texture,

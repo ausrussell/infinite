@@ -99,7 +99,7 @@ var TransformControls = function(camera, domElement, callingClass) {
   var parentScale = new Vector3();
 
   var worldPositionStart = new Vector3();
-  var worldQuaternionStart = new Quaternion();
+  var worldQuaternionStart = new Quaternion(); 
   var worldScaleStart = new Vector3();
 
   var worldPosition = new Vector3();
