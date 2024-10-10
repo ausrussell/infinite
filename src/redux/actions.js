@@ -1,4 +1,4 @@
-import { CREATE_SCENE, ADD_SCULPTURES, ADD_SCULPTURE, CREATE_SCENE_DATA, RESET_SCENE_DATA, SELECT_GALLERY, ADD_IMAGE_LOADED,FETCH_GALLERIES } from "./actionTypes";
+import { CREATE_SCENE, CREATE_CAMERA, CREATE_RENDERER, ADD_SCULPTURES, ADD_SCULPTURE, CREATE_SCENE_DATA, RESET_SCENE_DATA, SELECT_GALLERY, ADD_IMAGE_LOADED,ADD_ANIMATION_UPDATABLES,REMOVE_ANIMATION_UPDATABLES, ADD_PHYSICS_OBJECT, REMOVE_PHYSICS_OBJECT} from "./actionTypes";
 
 export const createScene = (scene) => {
   return { type: CREATE_SCENE, payload: scene };
@@ -6,6 +6,14 @@ export const createScene = (scene) => {
 
 export const createSceneData = (sceneData) => {
   return { type: CREATE_SCENE_DATA, payload: sceneData };
+};
+
+export const createCamera = (camera) => {
+  return { type: CREATE_CAMERA, payload: camera };
+};
+
+export const createRenderer = (renderer) => {
+  return { type: CREATE_RENDERER, payload: renderer };
 };
 
 export const resetSceneData = (initData) => {
@@ -33,11 +41,19 @@ export const addImageLoaded = (img) => {
   return { type: ADD_IMAGE_LOADED, payload: img };
 };
 
-// export const fetchGalleries = () => {
-//   //to do
-//   return { type: FETCH_GALLERIES, payload: {} };
-// };
 
-// export const removeSculpture = (id) => {
-//   return { type: ADD_SCULPTURE, payload: sculpture };
-// };
+export const addAnimationUpdatables = (updatables) => {
+  return { type: ADD_ANIMATION_UPDATABLES, payload: updatables };
+};
+
+export const removeAnimationUpdatables = (updatables) => {
+  return { type: REMOVE_ANIMATION_UPDATABLES, payload: updatables }
+};
+
+export const addPhysicsObject = (physicsObject) => {
+  return { type: ADD_PHYSICS_OBJECT, payload: physicsObject };
+};
+
+export const removePhysicsObject = (physicsObject) => {
+  return { type: REMOVE_PHYSICS_OBJECT, payload: physicsObject }
+};

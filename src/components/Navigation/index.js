@@ -4,6 +4,9 @@ import * as ROUTES from "../../constants/routes";
 import { connect } from "react-redux";
 import { Menu } from "antd";
 import { withRouter } from "react-router-dom";
+
+
+
 const Navigation = ({ authUser, history }) => {
   const [current, setCurrent] = useState("LANDING");
   const clickHandler = (current) => {
@@ -30,6 +33,10 @@ const NavigationAuth = ({ selectedKeys, onClick }) => {
     {
       label: "Build",
       key: "BUILDER",
+    },
+    {
+      label: "PLANNER2",
+      key: "PLANNER2",
     },
     {
       label: "Resources",

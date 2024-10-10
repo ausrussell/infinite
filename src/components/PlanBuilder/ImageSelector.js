@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Button } from "antd";
-import { QuestionOutlined } from "@ant-design/icons";
 import { withFirebase } from "../Firebase";
 
 import VaultFloor from "../Elevator/VaultFloor";

@@ -3,14 +3,10 @@ import { SET_GALLERIES_LIST } from "./actionTypes";
 const placeholderImage = {thumb:"/imagery/foot.png"}
 
 export const fetchGalleries = () => {
-  console.log("fetchGalleries fn")
   return async (dispatch, getState, getFirebase) => {
     const firebase = getFirebase();
-    console.log("fetch firebase",firebase)
     firebase.ref("publicGalleries").on("value", (snap) => {
       let galleriesData = snap.val();
-      console.log("fetchGalleries publicGalleries",galleriesData)
-
       const galleryPromises = [];
       for (const galleryKey in galleriesData) {
         if (!galleriesData[galleryKey].galleryImg) {

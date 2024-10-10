@@ -4,14 +4,14 @@ const initialState = {
   floor: {},
   generalLight: {
     color: [1, 1, 1],
-    intensity: 0.1,
+    intensity: 0.9,
   },
   sculptures: [],
   floorplan: {
     data: new Array(12).fill(new Array(12)),
     defaults: {
       wallWidth: 20,
-      wallHeight: 60,
+      wallHeight: 100,
       wallDepth: 5,
     },
   },
@@ -24,7 +24,7 @@ const wallDefaultDefaults = {
   wallDepth: 5,
 };
 
-export default function (state = initialState, action) {
+const sceneData = function (state = initialState, action) {
   switch (action.type) {
     case CREATE_SCENE_DATA: {
       console.log("CREATE_SCENE_DATA state", action.payload, state);
@@ -33,7 +33,6 @@ export default function (state = initialState, action) {
     }
 
     case RESET_SCENE_DATA: {
-      // console.log("CREATE_SCENE_DATA state", action.payload, state);
       // action.payload.floorplan.defaults = action.payload.floorplan.defaults || wallDefaultDefaults;
       return initialState;
     }
@@ -42,3 +41,5 @@ export default function (state = initialState, action) {
       return state;
   }
 }
+
+export default sceneData;

@@ -18,6 +18,7 @@ export default class Wall extends THREE.Mesh {
     this.createWall(wall);
     this.setDataToNewMaterial();
     this.addFramesToSides();
+    this.art = [];
   }
   createWall() {
     const { wallWidth, wallHeight, wallDepth } = this.floorplan.defaults;
@@ -56,7 +57,9 @@ export default class Wall extends THREE.Mesh {
           side,
           data,
         };
-        new Art(options);
+        const artItem = new Art(options);
+        // this.art.push(artItem)
+        console.log("this.art",this,artItem)
       });
     });
   }

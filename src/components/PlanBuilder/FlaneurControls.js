@@ -1,6 +1,11 @@
+import React, { Component } from "react";
+import { connect } from "react-redux";
+
 import * as THREE from "three";
 import Animate from "../../Helpers/animate";
-import { isEqual } from "lodash";
+import { addAnimationUpdatables } from "../../redux/actions";
+
+import _, { isEqual } from "lodash";
 
 const { Quaternion, Vector3, Vector2, Plane, Raycaster } = THREE;
 export const Events = new THREE.EventDispatcher();
@@ -12,13 +17,14 @@ const degreesToRadians = (degrees) => {
 const defaultFov = 60;
 
 const defaultCameraSpeed = 1;
-
-class FlaneurControls {
-  constructor(object, builder) {
-    this.object = object;
-    this.builder = builder;
-    this.mode = this.builder.flaneurMode;
-    this.domElement = this.builder.mount;
+//adapted from FirstPersonControls
+class FlaneurControls extends Component {
+  constructor(props) {
+    super(props);
+    this.object = this.props.camera;
+    // this.builder = builder;
+    this.mode = "Gallery";
+    this.domElement = this.props.renderer.domElement;
 
     this.enabled = true;
 
@@ -73,7 +79,7 @@ class FlaneurControls {
     this.mouse = new Vector2();
     this.raycaster = new Raycaster();
     this.handleResize();
-    this.createClickFloor();
+    // this.createClickFloor(); //make floor 
     this.loadImagery();
     this.currentDestination = null;
     this.defaultObjectY = 40;
@@ -95,6 +101,28 @@ class FlaneurControls {
     this._intersections = [];
     this._hovered = null;
     this.scope = this;
+    this.props.addAnimationUpdatables({flaneurControls:this.update})
+  }
+  componentDidUpdate(prevProps, prevState) {
+    // console.log("FlaneurControls this state, prev", this.state, prevState);
+    console.log("FlaneurControls prev props this",prevProps, this.props);
+    // console.log("newprops.scene.children.length",prevProps.collidableObjects, this.props.collidableObjects)
+    // if(this.props.collidableObjects.le);
+    console.log("props", isEqual(prevProps, this.props));
+    function changedKeys(o1, o2) {
+      var keys = _.union(_.keys(o1), _.keys(o2));
+      return _.filter(keys, function (key) {
+        return o1[key] !== o2[key];
+      });
+    }
+    // let changedKeysAr = changedKeys(prevState, this.state);
+    // console.log("FlaneurControls changedKeys for State", changedKeysAr);
+
+    // console.log("FlaneurControls chnaged state", this.state[changedKeysAr[0]]);
+    let changedKeysAr = changedKeys(prevProps, this.props);
+    console.log("FlaneurControls changedKeys for props", changedKeysAr);
+    console.log("chnaged props 0 ", this.props[changedKeysAr[0]]);
+    console.log("chnaged props 1 ", this.props[changedKeysAr[1]]);
   }
 
   setUpAnimations() {
@@ -138,22 +166,29 @@ class FlaneurControls {
     this.cameraRotationSpeed = defaultCameraSpeed;
   };
 
-  setUpCollidableObjects() {
-    this.collidableObjects = [
-      this.clickFloorPlane,
-      ...this.builder.state.wallMeshes,
-    ];
-    if (this.mode === "Gallery" && this.builder.state.artMeshes) {
-      this.collidableObjects.push(...this.builder.state.artMeshes);
-    }
-    if (this.footstepsHoverMesh)
-      this.collidableObjects.push(this.footstepsHoverMesh);
-    console.log("setUpCollidableObjects", this.collidableObjects);
-  }
+  // setUpCollidableObjects() {
+  //   console.log("setUpCollidableObjects",this.collidableObjects )
+
+  //   this.collidableObjects = [
+  //     this.clickFloorPlane,
+  //     ...this.builder.props.collidableObjects,
+  //     // ...this.builder.props.art//state.wallMeshes
+  //   ];
+  //   if (this.mode === "Gallery" && this.builder.props.art) {
+  //     console.log("this.builder.props.art",this.builder.props.art)
+  //     this.collidableObjects.push(...this.builder.props.art);
+  //   }
+  //   if (this.footstepsHoverMesh)
+  //     this.collidableObjects.push(this.footstepsHoverMesh);
+  // }
 
   addCollidableObject(obj) {
     this.collidableObjects.push(obj);
     console.log("addCollidableObject", obj, this.collidableObjects);
+  }
+
+  setArt(artWorks){
+    this.artWorks = artWorks;
   }
 
   loadImagery() {
@@ -282,19 +317,27 @@ class FlaneurControls {
     this._intersections.length = 0;
 
     this.raycaster.intersectObjects(
-      this.collidableObjects,
+      this.props.art,
       true,
       this._intersections
     );
+
+// const intersectType = this.getIntersectType(this._intersections[0]);
+// console.log("intersectType",intersectType)
+// this._intersections[0].
+this.checkForArtHover(this.getIntersectType(this._intersections[0]));
+return;
+
     if (this.enabled) {
       this.checkForFloorHover(this.getIntersectType(this._intersections[0]));
     }
-    if (this.mode === "Gallery")
+    if (this.mode === "Gallery"){
+      console.log("mousemove in gallery")
       this.checkForArtHover(this.getIntersectType(this._intersections[0]));
-
+}
     if (this._intersections.length > 0) {
       var object = this._intersections[0].object;
-      // console.log("intersected", object);
+      console.log("intersected", object);
 
       this._plane.setFromNormalAndCoplanarPoint(
         this.object.getWorldDirection(this._plane.normal),
@@ -337,7 +380,7 @@ class FlaneurControls {
   }
 
   onKeyDown = (event) => {
-    // console.log("onKeyDown", event.keyCode)
+    console.log("onKeyDown", event.keyCode)
 
     if (!this.moveToArtAni.stop) {
       this.moveToArtAni.end();
@@ -346,7 +389,7 @@ class FlaneurControls {
       }
     }
     if (this.focusArt && event.key === "Escape") {
-      this.offArtHandler();
+      // this.offArtHandler();
     }
     switch (event.keyCode) {
       case 38: /*up*/
@@ -514,11 +557,14 @@ class FlaneurControls {
     }
   }
 
-  update(delta) {
-    // console.log("delta",delta)
-    return this.builder.state.focusEye
-      ? this.updateFocus(delta)
-      : this.updateWalking(delta);
+  update = (delta) => {
+    // console.log("this delta",this, delta);
+
+    this.updateWalking(delta);
+    return null;
+    // return this.builder.state.focusEye
+    //   ? this.updateFocus(delta)
+    //   : this.updateWalking(delta);
   }
 
   updateFocus(delta) {
@@ -580,14 +626,14 @@ class FlaneurControls {
     }
     let actualMoveSpeed = delta * this.movementSpeed;
 
-    if (this.detectPlayerCollision()) {
-      // return;
+    // if (this.detectPlayerCollision()) {
+    //   // return;
 
-      this.moveForward = false;
-      this.moveRight = true;
-      this.collideCoast = true;
-      actualMoveSpeed *= 0.1;
-    }
+    //   this.moveForward = false;
+    //   this.moveRight = true;
+    //   this.collideCoast = true;
+    //   actualMoveSpeed *= 0.1;
+    // }
 
     if (this.moveForward || (this.autoForward && !this.moveBackward)) {
       this.object.translateZ(-(actualMoveSpeed + this.autoSpeedFactor));
@@ -610,7 +656,6 @@ class FlaneurControls {
     if (this.moveDown) {
       this.object.translateY(-actualMoveSpeed);
     }
-
     if (this.moveCameraRight) {
       this.rotateCamera("right");
       this.checkForArtHover();
@@ -621,11 +666,11 @@ class FlaneurControls {
       this.checkForArtHover();
     }
 
-    if (!isEqual(oldPosition, Object.assign({}, this.object.position))) {
-      !this.moveToDestinationAni.stop && this.doneMoveToDestination();
-      this.checkForArtHover();
-      this.offArtHandler();
-    }
+    // if (!isEqual(oldPosition, Object.assign({}, this.object.position))) {
+    //   !this.moveToDestinationAni.stop && this.doneMoveToDestination();
+    //   this.checkForArtHover();
+    //   this.offArtHandler();
+    // }
 
     if (this.collideCoast) {
       this.moveRight = false;
@@ -636,7 +681,7 @@ class FlaneurControls {
   offArtHandler() {
     this.builder.offArtHandler();
     this.restoreDefaultFov();
-    this.builder.setState({ onArt: false });
+    // this.builder.setState({ onArt: false });
     this.selectedArt = null;
     this.domElement.style.cursor = "crosshair";
   }
@@ -659,7 +704,6 @@ class FlaneurControls {
       default:
         break;
     }
-    // console.log("rot",rot)
     return rot;
   }
 
@@ -799,38 +843,38 @@ class FlaneurControls {
 
   setUpFootsteps(imagery) {
     // this.footTexture = imagery;
-    const footGeo = new THREE.PlaneBufferGeometry(20, 20);
+    // const footGeo = new THREE.PlaneBufferGeometry(20, 20);
 
-    footGeo.rotateX(-Math.PI / 2);
-    const footHoverMaterial = new THREE.MeshStandardMaterial({
-      // color: 0xfefaf1,
-      opacity: 0.4,
-      transparent: true,
-      map: imagery,
-      // repeat: 1
-    });
-    const footDestinationMaterial = new THREE.MeshBasicMaterial({
-      // color: 0xfefaf1,
-      map: imagery,
-      opacity: 1,
-      transparent: true,
-    });
+    // footGeo.rotateX(-Math.PI / 2);
+    // const footHoverMaterial = new THREE.MeshStandardMaterial({
+    //   // color: 0xfefaf1,
+    //   opacity: 0.4,
+    //   transparent: true,
+    //   map: imagery,
+    //   // repeat: 1
+    // });
+    // const footDestinationMaterial = new THREE.MeshBasicMaterial({
+    //   // color: 0xfefaf1,
+    //   map: imagery,
+    //   opacity: 1,
+    //   transparent: true,
+    // });
 
-    // footHoverMaterial.map = footDestinationMaterial.map = this.footTexture;
-    // footHoverMaterial.alphaMap = imagery;
-    footHoverMaterial.needsUpdate = footDestinationMaterial.needsUpdate = true;
-    this.footstepsHoverMesh = new THREE.Mesh(footGeo, footHoverMaterial);
-    this.footstepsHoverMesh.name = "footHover";
-    this.footstepsDestinationMesh = new THREE.Mesh(
-      footGeo,
-      footDestinationMaterial
-    );
-    this.footstepsDestinationMesh.name = "footDestination";
-    this.footstepsHoverMesh.translateY(-1); //initial hide
-    this.builder.scene.add(this.footstepsHoverMesh);
-    this.footstepHoverOffset = new THREE.Vector3(10, 0.2, 10);
+    // // footHoverMaterial.map = footDestinationMaterial.map = this.footTexture;
+    // // footHoverMaterial.alphaMap = imagery;
+    // footHoverMaterial.needsUpdate = footDestinationMaterial.needsUpdate = true;
+    // this.footstepsHoverMesh = new THREE.Mesh(footGeo, footHoverMaterial);
+    // this.footstepsHoverMesh.name = "footHover";
+    // this.footstepsDestinationMesh = new THREE.Mesh(
+    //   footGeo,
+    //   footDestinationMaterial
+    // );
+    // this.footstepsDestinationMesh.name = "footDestination";
+    // this.footstepsHoverMesh.translateY(-1); //initial hide
+    // this.builder.scene.add(this.footstepsHoverMesh);
+    // this.footstepHoverOffset = new THREE.Vector3(10, 0.2, 10);
     this.bindEvents();
-    this.collidableObjects.push(this.footstepsHoverMesh);
+    // this.collidableObjects.push(this.footstepsHoverMesh);
     // console.log("setUpFootsteps collidableObjects", this.collidableObjects)
   }
 
@@ -1028,6 +1072,7 @@ class FlaneurControls {
       this.collidableObjects
     );
     const intersected0 = intersectedCollidable[0];
+    // console.log("intersected0",intersected0)
     return this.getIntersectType(intersected0);
   }
 
@@ -1046,8 +1091,8 @@ class FlaneurControls {
         intersect.clickFloorPlane = intersected0;
         break;
 
-      case "artMesh":
-        intersect.artMesh = intersected0;
+      case "art":
+        intersect.art = intersected0;
         intersect.point = intersected0.point;
         break;
       // case "3d object":
@@ -1074,9 +1119,10 @@ class FlaneurControls {
 
   checkForArtHover(intersectType) {
     const intersect = intersectType || this.checkForIntersecting();
-    if (intersect.artMesh) {
-      // console.log("intersect.artMesh");
-      this.overArtHandler(intersect.artMesh);
+    // this.builder.setState({hoverOnArt:intersect.art || null});
+
+    if (intersect.art) {
+      this.overArtHandler(intersect.art);
     } else {
       this.artOver && this.leaveArtHandler();
     }
@@ -1087,15 +1133,16 @@ class FlaneurControls {
       !this.artOver ||
       (this.artOver && artMesh.object.uuid !== this.artOver.uuid)
     ) {
-      // console.log("artMesh.object.uuid !== this.artOver.uuid", artMesh.object, this.artOver);
-      this.artOver && this.artOver.frameDisplayObject.endArtHoverAni();
+      console.log("artMesh.object.uuid !== this.artOver.uuid", artMesh.object, this.artOver);
+      this.artOver && this.artOver.unhoverHandler();
       this.artOver = artMesh.object;
-      this.artOver.frameDisplayObject.artHoverHandler();
+      // this.artOver.frameDisplayObject.artHoverHandler();
+      this.artOver.hoverHandler();
     }
   }
 
   leaveArtHandler() {
-    this.artOver.frameDisplayObject.endArtHoverAni();
+    this.artOver.unhoverHandler();
     this.artOver = null;
   }
 
@@ -1151,6 +1198,22 @@ class FlaneurControls {
   doneDefaultFov() {
     this.restoreDefaultFovAni.end();
   }
+  render() { return null; }
 }
+const mapStateToProps = (state) => {
+  console.log("gallerystate",state)
+  const { camera, scene, renderer, sceneData, animationUpdatables } = state;
+  const collidableObjects = state.scene.children.filter(
+    (item) => item.name === "wall"
+  );
+  console.log("collidableObjects in mapState", collidableObjects);
+  const art = [];
+  state.scene.traverse(function (node) {
+    if (node.name === "art") {
+      art.push(node);
+    }
+  });
 
-export default FlaneurControls;
+  return { sceneData, camera, scene: state.scene, renderer, collidableObjects, art,animationUpdatables }; //{scene: state.scene};
+};
+export default connect(mapStateToProps, {addAnimationUpdatables})( FlaneurControls);

@@ -501,7 +501,7 @@ const ShardFocus = ({
         h,
       ];
 
-      console.log("insetScene ", insetSceneViewport);
+      // console.log("insetScene ", insetSceneViewport);
       setInsetScene(insetSceneViewport);
       // title
       const titlePaneMargin = 0;
@@ -780,7 +780,7 @@ const ShardFocus = ({
 
     // setPane();
     // insetScene();
-    const {x,y,w,h} = insetScene
+    const {x,y,w,h} = insetScene;
     setInsetScene([x,y,w,h]);
 
   };
@@ -816,7 +816,6 @@ const ShardFocus = ({
       enterRef.current.style.visibility =
         "hidden";
     descriptionRef.current.innerHTML = titlePaneTextRef.current.innerText = "";
-    // history.push({ pathname: "/Gallery/" + focusGallery.item.nameEncoded });
   };
 
   return (

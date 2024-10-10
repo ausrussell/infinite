@@ -5,49 +5,55 @@ import "../../css/builder.css";
 import { withAuthentication } from "../Session";
 import { withFirebase } from "../Firebase";
 import { withRouter } from "react-router-dom";
+import { compose } from "recompose";
+import { connect } from "react-redux";
+
+import  AnimateUpdatables  from "../Scene/AnimateUpdatables";
+import { addAnimationUpdatables } from "../../redux/actions";
 
 import FlaneurControls from "../PlanBuilder/FlaneurControls";
-import {withCanvas} from "../Scene/CanvasContext"
 
-import MainCanvas from "./MainCanvas";
+// import MainCanvas from "./MainCanvas";
+import MainCanvas from "../Scene/MainCanvas";
+
 import ErrorBoundary from "../ErrorBoundary";
-import GeneralLight from "../PlanBuilder/GeneralLight";
-import SceneLoader from "./SceneLoader";
+
 import PageTitle from "../Navigation/PageTitle";
 import { GalleryHelp } from "./GalleryHelp";
 import { ArtDetails } from "./ArtDetails";
-import { FocusEye } from "./FocusEye";
-
-import { compose } from "recompose";
+// import { FocusEye } from "./FocusEye";
 
 import { MapControls } from "./orbit";
 import { DragControls } from "./drag";
-
-import { Events } from "../PlanBuilder/FlaneurControls";
 
 import { isMobile } from "react-device-detect";
 
 import Catalogue from "./Catalogue";
 
 import Gui from "../Gui";
-import * as Stats from "stats-js";
+
+import Walls from "../PlanBuilder/Scene/Walls";
+import GeneralLight from "../PlanBuilder/Scene/GeneralLight";
+
+import Lights from "../PlanBuilder/Scene/Lights";
+
+import Sculptures from "../PlanBuilder/Scene/Sculptures";
+import Floor from "../PlanBuilder/Scene/Floor";
+import ForwardStats from "../Scene/ForwardStats"
+
+import { createSceneData } from "../../redux/actions";
+import _, { isEqual } from "lodash";
+
+let cameraLookAt = new THREE.Vector3(0, 45, -5); //0, 50, -200
 
 class GalleryBase extends Component {
   state = {
-    galleryData: {},
-    voxelsX: 14,
-    voxelsY: 10,
-    wallWidth: 20,
-    wallMeshes: [],
-    artMeshes: [],
-    onArt: null, //art details -- frame
+    onArt: null, //art details -- frame 
     focusEye: false,
+    hoverOnArt: null,
     guiAdded: false,
-    stats: false,
-    owner: null,
     sculptures: [],
     sculptureAnimations: [],
-    visible: false,
     catalogue: [],
   };
 
@@ -55,51 +61,76 @@ class GalleryBase extends Component {
     super(props);
     console.log("Gallery", props.match.params.galleryName, props);
     this.flaneurMode = "Gallery";
-    this.walls = props.walls;
-    console.log(this.walls, this.voxelsX);
-    this.clock = new THREE.Clock();
-    this.frameObjects = [];
+    const { camera, scene, renderer } = this.props;
+    this.scene = scene; // new THREE.Scene();
+    this.camera = camera; //new THREE.PerspectiveCamera(60, width / height, 1, 1000);
+    this.renderer = renderer;
+
     this.GalleryHelp = GalleryHelp({ callback: this.helpCallback });
+    console.log("this.props.camera", this.props.camera);
+    this.props.addAnimationUpdatables({gallery:this.animate})
+    this.stats = React.createRef();
   }
 
   componentDidMount() {
     console.log("Gallery this.props", this.props);
     this.setUpScene();
-
-    this.galleryRef = this.props.firebase.getGalleryByName(
-      this.props.match.params.galleryName,
-      this.processGallery
-    );
+    console.log("!this.scene.children.length", !this.scene.children.length);
+    if (this.scene.children.length === 0) {//no scene loaded
+      console.log("Gallery didMount");
+      this.galleryRef = this.props.firebase.getGalleryByName(
+        this.props.match.params.galleryName,
+        this.processGallery
+      );
+    }
 
     this.backListener = this.props.history.listen((loc, action) => {
       if (action === "POP") {
-
-
         this.emptyScene();
         this.galleryRef = this.props.firebase.getGalleryByName(
           this.props.match.params.galleryName,
           this.processGallery
         );
-    this.flaneurControls.moveToInitial();
-
+        // this.flaneurControls.moveToInitial();
       }
     });
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(prevProps, prevState) {
+    console.log("this state, prev", this.state, prevState);
+    // console.log("prev this",prevProps, this.props)
+    // console.log("newprops.scene.children.length",prevProps.collidableObjects, this.props.collidableObjects)
+    // if(this.props.collidableObjects.le);
+    console.log("props", isEqual(prevProps, this.props));
+    function changedKeys(o1, o2) {
+      var keys = _.union(_.keys(o1), _.keys(o2));
+      return _.filter(keys, function (key) {
+        return o1[key] !== o2[key];
+      });
+    }
+    let changedKeysAr = changedKeys(prevState, this.state);
+    console.log("changedKeys for State", changedKeysAr);
+
+    console.log("chnaged state", this.state[changedKeysAr[0]]);
+    changedKeysAr = changedKeys(prevProps, this.props);
+    console.log("changedKeys for props", changedKeysAr);
+    console.log("chnaged props 0 ", this.props[changedKeysAr[0]]);
+    console.log("chnaged props 1 ", this.props[changedKeysAr[1]]);
+    if (this.props.art.length !== prevProps.art.length) {
+      // console.log("set ART");
+    }
+
     if (this.props.firebase.isCurator && !this.state.guiAdded) {
       this.addGui();
-      this.setupStats();
     }
   }
 
   componentWillUnmount() {
     console.log("Gallery unmount");
     window.removeEventListener("resize", this.onWindowResize);
-    this.flaneurControls && this.flaneurControls.dispose();
+    // this.flaneurControls && this.flaneurControls.dispose();
     this.emptyScene(true);
     this.gui && this.gui.gui.destroy();
-    this.stats && document.body.removeChild(this.stats.dom);
     this.backListener();
   }
 
@@ -149,11 +180,6 @@ class GalleryBase extends Component {
     if (!this.sceneLoader) return;
     if (this.animateCall) this.animateCall = undefined;
 
-    this.state.artMeshes.forEach((item) => {
-      console.log("arftMeshItem", item);
-      item.frameDisplayObject &&
-        item.frameDisplayObject.destroyViewingPosition();
-    });
     this.disposeNode(this.scene);
     this.sceneLoader.destroy(); //only disposing background at the moment
     const node = this.scene;
@@ -165,7 +191,6 @@ class GalleryBase extends Component {
     console.log("renderer.info after", this.renderer.info);
     if (completeDestruction) {
       this.scene.dispose();
-      this.setState({ artMeshes: null });
       console.log("renderer.info.memory after", this.renderer.info.memory);
       this.renderer.forceContextLoss();
       this.renderer.dispose();
@@ -183,38 +208,28 @@ class GalleryBase extends Component {
     // });
   }
 
-  setupStats() {
-    console.log("planbuilder setupStats");
-    if (!this.state.stats) {
-      this.setState({ stats: true });
-      this.stats = new Stats();
-      this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-      document.body.appendChild(this.stats.dom);
-      this.stats.dom.style.top = "48px";
-      this.stats.dom.style.position = "absolute";
-    }
-  }
+
 
   setupListeners() {
     this.focusGallery();
-    this.setupFlaneurControls();
+    // this.setupFlaneurControls();
     window.addEventListener("resize", this.onWindowResize, false);
-    Events.addEventListener("hoveron", this.hoverOn);
-    Events.addEventListener("hoveroff", this.hoverOff);
+    // Events.addEventListener("hoveron", this.hoverOn);
+    // Events.addEventListener("hoveroff", this.hoverOff);
   }
-  hoverOn = (data) => {
-    console.log("hoveron data", data);
-    data.object.scope &&
-      data.object.scope.hoverOn &&
-      data.object.scope.hoverOn();
-  };
+  // hoverOn = (data) => {
+  //   console.log("hoveron data", data);
+  //   data.object.scope &&
+  //     data.object.scope.hoverOn &&
+  //     data.object.scope.hoverOn();
+  // };
 
-  hoverOff = (data) => {
-    console.log("hoverOff data", data);
-    data.object.scope &&
-      data.object.scope.hoverOn &&
-      data.object.scope.hoverOff();
-  };
+  // hoverOff = (data) => {
+  //   console.log("hoverOff data", data);
+  //   data.object.scope &&
+  //     data.object.scope.hoverOn &&
+  //     data.object.scope.hoverOff();
+  // };
 
   onWindowResize = () => {
     const width = this.mount.clientWidth;
@@ -224,24 +239,11 @@ class GalleryBase extends Component {
     this.camera.updateProjectionMatrix();
   };
 
-  //scene setup and animation
+  //scene setup
   setUpScene() {
-    const width = this.mount.clientWidth;
-    // const height = this.mount.clientHeight;
-    const height = this.mount.clientHeight; // height wasn't getting set after new landing animation
-    this.setState({ width: width, height: height });
-    console.log("height, width", height, width);
-    this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(60, width / height, 1, 1000);
-    this.renderer = new THREE.WebGLRenderer({
-      antialias: true,
-    });
-    this.renderer.setSize(width, height);
-
+    this.camera.position.set(0, 45, 200); //260
+    this.camera.lookAt(cameraLookAt);
     this.mount.appendChild(this.renderer.domElement);
-    // this.addHelperGrid();
-
-    this.renderer.render(this.scene, this.camera);
   }
 
   focusGallery = () => {
@@ -249,10 +251,9 @@ class GalleryBase extends Component {
   };
   setupFlaneurControls() {
     // this.setUpFlyControls();
-    this.flaneurControls = new FlaneurControls(this.camera, this);
+    // this.flaneurControls = new FlaneurControls(this.camera, this);
 
     if (isMobile) {
-      // this.mapControls =  (this.state.galleryData.title === "501A") ? new OrbitControls(this.camera, this.renderer.domElement): new MapControls(this.camera, this.renderer.domElement);
       this.mapControls = new MapControls(this.camera, this.renderer.domElement); //new
       this.mapControls.enableZoom = false;
       this.mapControls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
@@ -276,7 +277,7 @@ class GalleryBase extends Component {
 
   setupDragControls() {
     this.dragControls = new DragControls(
-      this.state.artMeshes,
+      this.props.art,
       this.camera,
       this.renderer.domElement
     );
@@ -297,90 +298,52 @@ class GalleryBase extends Component {
         e.object.traverseAncestors((item) => {
           if (item.name === "OSG_Scene" && !hoveredOn3d) hoveredOn3d = item;
         });
-        if (hoveredOn3d) {
-          this.flaneurControls.moveTo3d(hoveredOn3d);
-        } else {
-          this.flaneurControls.moveToArt(e.object);
-        }
+        // if (hoveredOn3d) {
+        //   this.flaneurControls.moveTo3d(hoveredOn3d);
+        // } else {
+        //   this.flaneurControls.moveToArt(e.object);
+        // }
       } else {
         console.log("setting this.lastTap", this.lastTap);
         this.lastTap = now;
       }
     });
-    this.mapControls.addEventListener("moveLeaveArt", (e) => {
-      this.flaneurControls.offArtHandler();
-    });
+    // this.mapControls.addEventListener("moveLeaveArt", (e) => {
+    //   this.flaneurControls.offArtHandler();
+    // });
   }
 
   rayIntersect(ray, distance) {
+    // console.log("ray",ray);
+
     //used by flaneur controls
     // let collidableObjects = this.wallEntities.map(item => item.getMesh()); //used for raycaster
-    // var intersects = ray.intersectObjects(collidableObjects);
-    // for (var i = 0; i < intersects.length; i++) {
-    //   // Check if there's a collision
-    //   if (intersects[i].distance < distance) {
-    //     console.log("collide");
-    //     return true;
-    //   }
-    // }
+    var intersects = ray.intersectObjects(this.props.collidableObjects);
+    for (var i = 0; i < intersects.length; i++) {
+      // Check if there's a collision
+      if (intersects[i].distance < distance) {
+        console.log("collide");
+        return true;
+      }
+    }
     return false;
   }
 
   initialCameraAnimation() {
     // this.flaneurControls.initialCameraAnimation();
   }
-  addLight() {
-    // Add the light to the scene
-    this.generalLight = new GeneralLight();
-    this.lightGroup = this.generalLight.getLight();
-    this.scene.add(this.lightGroup);
-  }
+
   processGallery = (data, val) => {
     console.log("processGallery", data);
-    this.setState({ owner: data.owner });
-    if (this.galleryData) this.emptyScene();
-    this.setState({ galleryData: data }, this.setScene);
-    this.setupListeners();
-    this.setCamera();
-    this.animate();
-    this.flaneurControls && this.flaneurControls.setUpCollidableObjects(); //removed for OrbitControls
+    this.onWindowResize();
+    this.props.createSceneData(data);
+    this.startAnimating();
   };
 
-  isWallMesh(item) {
-    if (item.name === "wallGroup") {
-      return item.children.filter((child) => child.name === "wallMesh");
-    }
-  }
-
-  setScene() {
-    // Load a glTF resource
-    console.log("setScene",this.state.galleryData)
-    const options = {
-      scene: this.scene,
-      sceneData: this.state.galleryData,
-      builder: this,
-    };
-    this.sceneLoader = new SceneLoader(options);
-
-    this.sceneLoader.renderData();
-
-    this.onWindowResize();
-    // this.addBox();
-    // this.addHelperGrid();
-  }
-  setCamera() {
-    this.camera.position.z = 245;
-    this.camera.position.y = 45;
-    // this.initialCameraAnimation();
-  }
-  addHelperGrid() {
-    const gridHelper = new THREE.GridHelper(
-      this.voxelsX * this.wallWidth,
-      this.voxelsX,
-      0x0000ff,
-      0x808080
-    );
-    this.scene.add(gridHelper);
+  startAnimating() {
+    this.setupListeners();
+    this.animate();
+    // this.flaneurControls && this.flaneurControls.setUpCollidableObjects(); //removed for OrbitControls
   }
 
   addBox() {
@@ -392,7 +355,7 @@ class GalleryBase extends Component {
 
   helpCallback = () => {
     setTimeout(
-      () => this.flaneurControls && this.flaneurControls.setFocus(),
+      () => this.render.domElement.focus(),// this.flaneurControls && this.flaneurControls.setFocus(),
       500
     ); //to overcome ant d difficult refocussing
   };
@@ -401,7 +364,7 @@ class GalleryBase extends Component {
     const options = {
       refPath: "users/" + this.state.owner + "/" + type + "/" + key,
       once: true,
-      callback: this.setArtDetails,
+      callback: () => {}, //this.setArtDetails,
     };
 
     console.log("getArtDetail", options);
@@ -410,12 +373,12 @@ class GalleryBase extends Component {
 
   setArtDetails = (snap) => {
     const snapVal = !snap ? null : snap.val();
-    this.setState({ onArt: snapVal });
+    this.state.onArt !== snapVal && this.setState({ onArt: snapVal });
   };
 
   offArtHandler = () => {
     this.setArtDetails(null);
-    this.setState({ focusEye: null });
+    this.state.onArt !== null && this.setState({ focusEye: null });
   };
 
   onArtHandler(selectedArt) {
@@ -465,7 +428,6 @@ class GalleryBase extends Component {
     console.log("changeGallery", galleryKey);
     this.emptyScene();
     this.props.history.push(`/Gallery/${nameEncoded}`);
-    // this.props.history.replace({ pathname: `/Gallery/${nameEncoded}`})
     this.props.firebase.getPublicGalleryById(
       galleryKey,
       this.buildGalleryChange
@@ -477,51 +439,82 @@ class GalleryBase extends Component {
   };
 
   animate = () => {
-    // console.log("animate")
+    // this.stats.current.update();
+    this.renderer.render(this.scene, this.camera);
+
+  };
+
+  animateOLD = () => {
     const delta = this.clock.getDelta();
-    this.flaneurControls && this.flaneurControls.update(delta);
+    // this.flaneurControls && this.flaneurControls.update(delta);
     this.mapControls && this.mapControls.update();
     this.flyControls && this.flyControls.update(delta);
     this.state.sculptureAnimations.forEach((item) => {
       item.mixer.update(delta);
     });
     this.renderer.render(this.scene, this.camera);
-    this.stats && this.stats.update();
+    // this.stats && this.stats.update();
     this.animateCall = requestAnimationFrame(() => this.animate());
   };
 
   render() {
-    const { galleryData, owner } = this.state;
+    const { sceneData, owner } = this.props;
+    console.log("sceneData, owner, this.props",sceneData, owner, this.props)
     return (
       <ErrorBoundary>
-        <div className="page-header-area">
-          {this.props.CanvasPrimary.render()}
-          <PageTitle
-            title={galleryData.title}
-            help={this.GalleryHelp}
-            titleClickHandler={this.titleClickHandler}
-          >
-            <Catalogue galleryData={galleryData} owner={owner} changeGallery={this.changeGallery} />
-          </PageTitle>
-        </div>
+        <PageTitle
+          title={sceneData.title}
+          help={this.GalleryHelp}
+          titleClickHandler={this.titleClickHandler}
+        >
+          <Catalogue
+            galleryData={sceneData}
+            owner={sceneData.owner}
+            changeGallery={this.changeGallery}
+          />
+        </PageTitle>
         <MainCanvas refer={(mount) => (this.mount = mount)} />
+        <AnimateUpdatables />
+        <FlaneurControls  />
+        <Walls />
+        <Sculptures />
+        <GeneralLight />
+        <Floor />
+        <Lights />
         {this.state.onArt && (
           <ArtDetails
             selectedArt={this.state.onArt}
             changeGallery={this.changeGallery}
           />
         )}
-        {this.state.focusEye && <FocusEye focusEye={this.state.focusEye} />}
+        {/* {this.state.focusEye && <FocusEye focusEye={this.state.focusEye} />} */}
+        <ForwardStats />
       </ErrorBoundary>
     );
   }
 }
+const mapStateToProps = (state) => {
+  console.log("gallerystate",state)
+  const { camera, renderer, sceneData } = state;
+  const collidableObjects = state.scene.children.filter(
+    (item) => item.name === "wall"
+  );
+  console.log("collidableObjects in mapState", collidableObjects);
+  const art = [];
+  state.scene.traverse(function (node) {
+    if (node.name === "art") {
+      art.push(node);
+    }
+  });
+
+  return { sceneData, camera, scene: state.scene, renderer, collidableObjects, art }; //{scene: state.scene};
+};
 
 const Gallery = compose(
+  connect(mapStateToProps, { createSceneData, addAnimationUpdatables }),
   withAuthentication,
   withFirebase,
-  withRouter,
-  withCanvas
+  withRouter
 )(GalleryBase);
 
 export default Gallery;

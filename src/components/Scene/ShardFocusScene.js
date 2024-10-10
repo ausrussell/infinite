@@ -1,4 +1,4 @@
-import React, { Component, useEffect, useRef } from "react";
+import React, {  useEffect } from "react";
 import { withFirebase } from "../Firebase";
 import { compose } from "recompose";
 import { connect } from "react-redux";
@@ -30,10 +30,12 @@ const ShardFocusScene = ({
   firebase,
   onInsetGalleryLoaded,
   scene,
+  sceneData,
   createSceneData,
   resetSceneData,
+  camera,
 }) => {
-  const camera = useRef();
+  // const camera = useRef();
 
   useEffect(() => {
     const setupScene = () => {
@@ -190,60 +192,18 @@ const ShardFocusScene = ({
       });
       return new THREE.Mesh(geometry, material);
     };
-    const makeScene = () => {
-      // scene.background = new THREE.Color(0xfeee4f);
-      // scene.current = new THREE.Scene();
-      // scene.background = null;
-
-      camera.current = new THREE.PerspectiveCamera(
-        60,
-        window.innerWidth / window.innerHeight,
-        1,
-        10000
-      );
-      // camera.position.z = 2;
-      camera.current.position.set(...cameraStartPos);
-      camera.current.lookAt(cameraLookAt);
-
-      {
-        const color = 0xffffff;
-        const intensity = 1;
-        const light = new THREE.DirectionalLight(color, intensity);
-        light.position.set(-1, 2, 4);
-        scene.add(light);
-
-        const ambientLight = new THREE.AmbientLight(0x404040);
-        scene.add(ambientLight);
-        onInsetGalleryLoaded({
-          focus: focusGallery,
-          camera: camera.current,
-          scene,
-        });
-      }
-
-      setupScene();
-
-      // return { scene, camera };
-    };
-    console.log("makeScene in shard focus");
-    // makeScene();
 
     //new technique
     const returnData = (snapshot) => {
       const galleryData = snapshot.val();
-      createSceneData(galleryData);
+      
+      createSceneData(Object.assign(galleryData, focusGallery.item));
 
-      camera.current = new THREE.PerspectiveCamera(
-        45,
-        window.innerWidth / window.innerHeight,
-        1,
-        5000
-      );
-      camera.current.position.set(0, 45, 200); //260
-      camera.current.lookAt(cameraLookAt);
+      camera.position.set(0, 45, 200); //260
+      camera.lookAt(cameraLookAt);
       onInsetGalleryLoaded({
         focus: focusGallery,
-        camera: camera.current,
+        camera,
         scene,
       });
     };
@@ -265,7 +225,7 @@ const ShardFocusScene = ({
       <Walls />
       <Sculptures />
       <GeneralLight />
-      <Floor /> 
+      <Floor />
       <Lights />
     </>
   );

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Vector2, Vector3 } from "three";
+import {  Vector3 } from "three";
 import { gsap } from "gsap";
 
 const shardColors = [
@@ -23,8 +23,7 @@ const rectHeight = 4.75 / 1.5;
 const margin = 0.1;
 const holeStartHeight = rectHeight * 0.5;
 const holeEndHeight = rectHeight * 0.75;
-const holeWidth = rectWidth * (1 - margin) - rectWidth * margin;
-const holeHeight = holeEndHeight - holeStartHeight;
+
 const shardPlane = new THREE.BoxGeometry(...shardCoords);
 const shardMaterial = new THREE.MeshStandardMaterial({
   // color: 0xd1c4e9,

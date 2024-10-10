@@ -1,5 +1,5 @@
 import React from "react";
-import LandingAnimationScene from "../Scene/LandingAnimationScene";
+import LandingAnimationScene from "./LandingAnimationScene";
 
 const LandingAnimation = () => {
 

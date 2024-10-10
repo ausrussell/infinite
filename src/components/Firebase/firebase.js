@@ -277,14 +277,10 @@ class Firebase {
     console.log("getGalleryByName", name);
     const galleryRef = this.database.ref("publicGalleries");
     const selected = galleryRef.orderByChild("nameEncoded").equalTo(name);
-    selected.on("child_added", (snapshot) => {
+    selected.once("child_added", (snapshot) => {
       const returnedValues = snapshot.val();
-      console.log("getGalleryByName returnedValues", returnedValues);
       const ref = app.database().ref(returnedValues.dataPath);
-      ref.on("value", (snapshot) => {
-        console.log("getGalleryByName snapshot data", snapshot.val());
-        this.detachRefListener(selected);
-        this.detachRefListener(ref);
+      ref.once("value", (snapshot) => {
         const refParts = returnedValues.dataPath.split("/");
         const owner = refParts[1];
         returnedValues.owner = owner;

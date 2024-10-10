@@ -24,6 +24,7 @@ export default class Frame extends THREE.Mesh {
     this.data = frame;
     this.name = "frame";
     this.setFrameMesh();
+    console.log("Frame new",this)
   }
 
   setFrameGeometry(imageWidth, imageHeight) {
@@ -65,4 +66,6 @@ export default class Frame extends THREE.Mesh {
     this.setFramePosition(imageWidth, imageHeight);
     this.art.add(this);
   }
+
+
 }

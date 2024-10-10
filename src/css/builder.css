@@ -71,10 +71,11 @@ section.ant-layout {
 
 #boardCanvas {
   /* height: calc(100vh - 48px); */
-  height: 100%;
+  /* height: 900px; */
 
   width: 100vw;
   overflow: hidden;
+  position:relative;
 }
 
 .footstep-help {
@@ -136,16 +137,27 @@ section.ant-layout {
 .gallery-list-column {
   box-shadow: 0px 0px 10px 0px rgba(28, 49, 58, 0.7);
   z-index: 10;
+  position:relative
+}
+
+.landing-main {
+  /* box-shadow: 0px 0px 10px 0px rgba(28, 49, 58, 0.7);
+  z-index: 10;
+  position:relative */
 }
 
 .gallery-list-holder {
-  position: relative;
-  height: calc(100vh - 126px);
+  position: absolute;
+  top:0;
+  width: 400px;
+  opacity:0.93;
+   height: 100%; 
+   z-index:10;
   overflow: auto;
   padding-bottom: 10px;
-  -webkit-box-shadow: 6px 0px 10px 0px rgba(28, 49, 58, 0.7);
-  -moz-box-shadow: 6px 0px 10px 0px rgba(28, 49, 58, 0.7);
-  box-shadow: 6px 0px 10px 0px rgba(28, 49, 58, 0.7);
+  -webkit-box-shadow: 15px 10px 10px 0px rgba(28, 49, 58, 0.7);
+  -moz-box-shadow: 15px 10px 10px 0px rgba(28, 49, 58, 0.7);
+  box-shadow: 15px 10px 10px 0px rgba(28, 49, 58, 0.7);
 }
 .gallery-list-item-holder {
   border-bottom: 1px solid #b0bec5 !important;

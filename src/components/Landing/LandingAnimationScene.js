@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
 import { connect } from "react-redux";
-import {withCanvas} from "./CanvasContext"
-
+import { withCanvas } from "../Scene/CanvasContext";
+import MainCanvas from "../Scene/MainCanvas";
 import { gsap } from "gsap";
-import Shards from "./Shards";
-import ShardFocus from "./ShardFocus";
+import Shards from "../Scene/Shards";
+import ShardFocus from "../Scene/ShardFocus";
+import { compose } from "recompose";
 
 import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { ObjControls } from "../../Helpers/ObjControls";
-import Stats from "three/examples/jsm/libs/stats.module.js";
+// import { ObjControls } from "../../Helpers/ObjControls";
+import ForwardStats from "../Scene/ForwardStats";
+import LandingObjControls from "./LandingObjControls";
+import AnimateUpdatables from "../Scene/AnimateUpdatables";
+import { addAnimationUpdatables } from "../../redux/actions";
 
 const numberOfShards = 45;
 
@@ -26,9 +29,13 @@ const startSpherical = new THREE.Spherical();
 let picPosHolder = new THREE.Vector3();
 let shardPosHolder = new THREE.Vector3();
 
-const LandingAnimationScene = ({ galleries, focusScene, CanvasPrimary }) => {
+const LandingAnimationScene = ({
+  galleries,
+  focusScene,
+  focusCamera,
+  renderer
+}) => {
   const mountRef = useRef(null);
-  // const [sphere, setSphere] = useState(new THREE.Mesh());
   const [camera] = useState(
     new THREE.PerspectiveCamera(
       60,
@@ -37,30 +44,16 @@ const LandingAnimationScene = ({ galleries, focusScene, CanvasPrimary }) => {
       1000
     )
   );
-  const [renderer] = useState(new THREE.WebGLRenderer({ antialias: true }));
   const [scene, setScene] = useState();
 
-  const [focusCamera, setFocusCamera] = useState();
-  // const [focusScene, setFocusScene] = useState();
-  // const focusCamera = useRef();
-  // const focusScene = useRef();
   const [linesToPicsMesh] = useState(new THREE.LineSegments());
-
-  const [objControls, setObjControls] = useState();
-
   const [galleriesArray, _setGalleriesArray] = useState([]);
   const [focusGallery, setFocusGallery] = useState({ index: null });
-
-  // const [shardCurves] = useState(new Shards({ numberOfShards }));
-
   const shardCurves = useRef();
   const [shardsFocusAnimSet, setShardsFocusAnimSet] = useState(false);
-
   const insetSceneViewport = useRef([0, 0, 0, 0]);
-
   const requestRef = useRef();
   const galleriesArrayRef = useRef(galleriesArray);
-  const stats = useRef();
 
   const setGalleriesArray = (x) => {
     galleriesArrayRef.current = x; // keep updated
@@ -74,10 +67,8 @@ const LandingAnimationScene = ({ galleries, focusScene, CanvasPrimary }) => {
   const animTl = useRef();
   const animTlfocusSphere = useRef();
 
-
   useEffect(() => {
-    let controls,
-      helperLine,
+    let helperLine,
       sceneToSet = new THREE.Scene();
     const generateLinesBetweenShards = () => {
       lineBetween.current = new THREE.Line();
@@ -150,13 +141,11 @@ const LandingAnimationScene = ({ galleries, focusScene, CanvasPrimary }) => {
 
     const generateScene = () => {
       //scene
-      sceneToSet.background = new THREE.Color(0x37474f); //null;//new THREE.Color(0x37474f);
+      sceneToSet.background = new THREE.Color(0x37474f);
       sceneToSet.fog = new THREE.FogExp2(0xcccccc, 0.001);
       camera.position.set(initCameraPos);
       camera.lookAt(cameraLookAt);
       renderer.setSize(window.innerWidth, window.innerHeight);
-      setFocusCamera(camera.clone());
-      // setFocusScene(new THREE.Scene());
       mountRef.current.appendChild(renderer.domElement);
     };
     const addSphereHelper = () => {
@@ -197,28 +186,6 @@ const LandingAnimationScene = ({ galleries, focusScene, CanvasPrimary }) => {
       sceneToSet.add(shardCurves.current.shardsMesh);
     };
 
-    // const setupControls = () => {
-    //   //controls
-    //   controls = new OrbitControls(sphere.current, renderer.domElement); //camera
-    //   // controls = new MapControls(camera, renderer.domElement); //camera
-    //   controls.enableDamping = true;
-    //   controls.dampingFactor = 0.015;
-    //   controls.screenSpacePanning = false;
-    //   controls.minDistance = 0.2; //??
-    //   // controls.maxPolarAngle = Math.PI / 2;
-    // };
-
-    // const setupObjOrbitControls = () => {
-    //   //controls
-    //   controls = new ObjControls(sphere.current, renderer.domElement); //camera
-    //   // controls = new MapControls(camera, renderer.domElement); //camera
-    //   controls.enableDamping = true;
-    //   controls.dampingFactor = 0.015;
-    //   controls.screenSpacePanning = false;
-    //   controls.minDistance = 8;
-    //   controls.maxPolarAngle = Math.PI / 2;
-    // };
-
     const generateLight = () => {
       const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
       directionalLight.position.set(2, 6.3, 9.3);
@@ -253,128 +220,122 @@ const LandingAnimationScene = ({ galleries, focusScene, CanvasPrimary }) => {
       sceneToSet.add(linesToPicsMesh);
     };
 
-    const setUpObjControls = () => {
-      setObjControls(
-        new ObjControls(sphere.current, renderer.domElement, camera)
-      );
-
-      console.log("images added");
-    };
-
-    const initStats = () => {
-      stats.current = new Stats();
-      stats.current.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-      let statDom = stats.current.dom;
-      statDom.style.top = "50px";
-      document.body.appendChild(statDom);
-    };
 
     generateScene();
     generateSphere();
 
     generateShards();
     generateSphereClone();
-    setUpObjControls();
+    // setUpObjControls();
 
     generateLight();
     generateLinesBetweenShards();
     generateLinesToPic();
     generateHelperLine();
     setScene(sceneToSet);
-    initStats();
+    // initStats();
 
-    let onWindowResize = function () {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      // insetScene();
-    };
-    window.addEventListener("resize", onWindowResize, false);
     const cleanUp = mountRef.current;
-    console.log("with canvas, ",CanvasPrimary)
     return () => {
       cleanUp.removeChild(renderer.domElement);
+    };
+  }, []);
+
+  useEffect(() => {
+    let onWindowResize = function () {
+      const { offsetWidth, offsetHeight } = mountRef.current;
+      camera.aspect = offsetWidth / offsetHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(offsetWidth, offsetHeight);
+      renderer.setViewport(0, 0, offsetWidth, offsetHeight);
+    };
+    console.log("add window listener");
+    window.addEventListener("resize", onWindowResize, false);
+    return () => {
       window.removeEventListener("resize", onWindowResize, false);
     };
-  }, [CanvasPrimary]);
+  }, []);
 
   const updateLines = () => {
-    if (lineBetween.current?.geometry) {
-      const linesBetweenShards =
-        lineBetween.current.geometry.attributes.position.array;
-      const linesToPicsPositions =
-        linesToPicsMesh.geometry.attributes.position.array;
-      let index = 0;
-      let orig = linesToPicsMesh.geometry.getAttribute("originalPosition");
+    if (!lineBetween.current?.geometry) return;
+    const linesBetweenShards =
+      lineBetween.current.geometry.attributes.position.array;
+    const linesToPicsPositions =
+      linesToPicsMesh.geometry.attributes.position.array;
+    let index = 0;
+    let orig = linesToPicsMesh.geometry.getAttribute("originalPosition");
 
-      for (let i = 0, l = numberOfShards; i < l; i++) {
-        // shardPosHolder.fromArray(shardpositions, index);
-        shardPosHolder.copy(shardCurves.current.positions[i]);
-        // generateHelperPoint(shardPosHolder);
-        let { x, y, z } = shardPosHolder;
-        linesBetweenShards[index++] = x;
-        linesBetweenShards[index++] = y;
-        linesBetweenShards[index++] = z;
-        if (linesToPicsMesh.geometry.drawRange.count > i * 6 + 3) {
-          picPosHolder.fromBufferAttribute(orig, i * 2 + 1);
-          picPosHolder = sphere.current.localToWorld(picPosHolder);
-          linesToPicsPositions[i * 6] = x;
-          linesToPicsPositions[i * 6 + 1] = y;
-          linesToPicsPositions[i * 6 + 2] = z;
-          linesToPicsPositions[i * 6 + 3] = picPosHolder.x;
-          linesToPicsPositions[i * 6 + 4] = picPosHolder.y;
-          linesToPicsPositions[i * 6 + 5] = picPosHolder.z;
-        }
+    for (let i = 0, l = numberOfShards; i < l; i++) {
+      shardPosHolder.copy(shardCurves.current.positions[i]);
+      // generateHelperPoint(shardPosHolder);
+      let { x, y, z } = shardPosHolder;
+      linesBetweenShards[index++] = x;
+      linesBetweenShards[index++] = y;
+      linesBetweenShards[index++] = z;
+      if (linesToPicsMesh.geometry.drawRange.count > i * 6 + 3) {
+        picPosHolder.fromBufferAttribute(orig, i * 2 + 1);
+        picPosHolder = sphere.current.localToWorld(picPosHolder);
+        linesToPicsPositions[i * 6] = x;
+        linesToPicsPositions[i * 6 + 1] = y;
+        linesToPicsPositions[i * 6 + 2] = z;
+        linesToPicsPositions[i * 6 + 3] = picPosHolder.x;
+        linesToPicsPositions[i * 6 + 4] = picPosHolder.y;
+        linesToPicsPositions[i * 6 + 5] = picPosHolder.z;
       }
-      linesToPicsMesh.geometry.attributes.position.needsUpdate = true;
-      lineBetween.current.geometry.attributes.position.needsUpdate = true;
-    } else {
-      // console.log("line",line)
     }
+    linesToPicsMesh.geometry.attributes.position.needsUpdate = true;
+    lineBetween.current.geometry.attributes.position.needsUpdate = true;
   };
 
   useEffect(() => {
-    var animate = function () {
-      stats.current.begin();
-      objControls?.update();
+    const animate = () => {
+      // stats.current.update();
+      // objControls?.update();
       shardCurves.current.update();
       updateLines();
-      renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
       renderer.render(scene, camera);
-      stats.current.end();
       requestRef.current = requestAnimationFrame(animate);
     };
-    var animateWithInset = function () {
-      stats.current.begin();
+    const animateWithInset = () => {
+      // stats.current.begin();
 
-      objControls?.update();
+      // objControls?.update();
       shardCurves.current.update();
       updateLines();
       renderer.autoClear = false;
-      renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
+      renderer.setViewport(
+        0,
+        0,
+        mountRef.current.offsetWidth,
+        mountRef.current.offsetHeight
+      );
       renderer.render(scene, camera);
       renderer.autoClear = false;
       renderer.clearDepth();
       renderer.setViewport(...insetSceneViewport.current);
       renderer.render(focusScene, focusCamera);
       renderer.autoClear = true;
-      stats.current.end();
+      // stats.current.end();
       requestRef.current = requestAnimationFrame(animateWithInset);
     };
     if (scene && renderer) {
       cancelAnimationFrame(requestRef.current);
       console.log("cancelAnimationFrame", requestRef.current);
       if (shardsFocusAnimSet) {
-    console.log("run animateWithInset",insetSceneViewport.current);
+        console.log("run animateWithInset", insetSceneViewport.current);
 
         requestRef.current = requestAnimationFrame(animateWithInset);
       } else {
-    console.log("run animate");
+        console.log("run animate");
+        const { offsetWidth, offsetHeight } = mountRef.current;
+        camera.aspect = offsetWidth / offsetHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(offsetWidth, offsetHeight);
+        renderer.setViewport(0, 0, offsetWidth, offsetHeight);
 
         requestRef.current = requestAnimationFrame(animate);
       }
     }
-    // }
     return () => cancelAnimationFrame(requestRef.current);
   }, [scene, renderer, focusScene, focusCamera, shardsFocusAnimSet]); // Make sure the effect runs only once//, focusScene, focusCamera
 
@@ -508,7 +469,7 @@ const LandingAnimationScene = ({ galleries, focusScene, CanvasPrimary }) => {
       let timeoutCounter = 0;
       const cutImages = galleries.list
         .filter((item) => {
-           return item.galleryImg.thumb;
+          return item.galleryImg.thumb;
         })
         .splice(0, numberOfShards);
       console.log("cutImages", cutImages);
@@ -644,7 +605,6 @@ const LandingAnimationScene = ({ galleries, focusScene, CanvasPrimary }) => {
   useEffect(() => {
     const doFocus = () => {
       console.log("dofocus", focusGallery);
-      console.log("stats.current", stats.current);
       if (focusGallery.index !== null) {
         animTl.current.pause();
         setShardsFocusAnimSet(false);
@@ -699,17 +659,19 @@ const LandingAnimationScene = ({ galleries, focusScene, CanvasPrimary }) => {
 
   const handleInsetGalleryLoaded = (data) => {
     console.log("handleInsetScene", data);
-    setFocusCamera(data.camera);
+    // setFocusCamera(data.camera);
   };
 
   const setInsetScene = (data) => {
-    console.log("setInsetScene",data)
+    console.log("setInsetScene", data);
     insetSceneViewport.current = data;
   };
 
   return (
-    <div ref={mountRef}>
-      {CanvasPrimary.render()}
+    <MainCanvas refer={(mount) => (mountRef.current = mount)}>
+      <ForwardStats />
+      <LandingObjControls sphere={sphere.current} camera={camera} />
+      <AnimateUpdatables />
       <ShardFocus
         renderer={renderer}
         camera={camera}
@@ -719,13 +681,23 @@ const LandingAnimationScene = ({ galleries, focusScene, CanvasPrimary }) => {
         onInsetGalleryLoaded={handleInsetGalleryLoaded}
         shardsFocusAnimSet={shardsFocusAnimSet}
       />
-    </div>
+    </MainCanvas>
   );
 };
 
 const mapStateToProps = (state) => {
   console.log("animation scene state", state, state.scene.children);
-  return { focusScene: state.scene, galleries: state.galleries };
+  const { galleries, renderer } = state;
+  return {
+    focusScene: state.scene,
+    focusCamera: state.camera,
+    galleries,
+    renderer,
+  };
 };
 
-export default connect(mapStateToProps)(withCanvas(LandingAnimationScene));
+export default compose(
+  withCanvas,
+  connect(mapStateToProps, {addAnimationUpdatables}),
+  
+)(LandingAnimationScene);

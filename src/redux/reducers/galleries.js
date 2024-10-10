@@ -10,8 +10,7 @@ const initialState = {
   loadedImages: [],
 };
 
-
-export default function (state = initialState, action) {
+const galleries = function (state = initialState, action) {
   switch (action.type) {
     case SET_GALLERIES_LIST: {
       console.log("FETCH_GALLERIES payload state", action.payload, state);
@@ -31,3 +30,5 @@ export default function (state = initialState, action) {
       return state;
   }
 }
+
+export default galleries;

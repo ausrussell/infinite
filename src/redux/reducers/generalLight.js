@@ -2,11 +2,10 @@
 
 const defaultValues = {
     color: [1,1,1],
-    intensity: 0.1
+    intensity: .5
 }
 
-export default function (state = defaultValues, action) {
-  console.log("scene.js ", state, action)
+const generalLight = function (state = defaultValues, action) {
   switch (action.type) {
     // case ADD_SCULPTURES: {
     //   return action.payload;
@@ -19,3 +18,5 @@ export default function (state = defaultValues, action) {
       return state;
   }
 }
+
+export default generalLight;

@@ -1,21 +1,13 @@
-import React from "react";
 import ReactDOM from "react-dom";
 import * as serviceWorker from "./serviceWorker";
 import Firebase, { FirebaseContext } from "./components/Firebase";
-import CanvasPrimary from "./components/Scene/Canvas";
-import { CanvasContext } from "./components/Scene/CanvasContext";
-
 import { Provider } from "react-redux";
 import store from "./redux/store";
-
 import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/auth";
-
 import App from "./components/App";
-
 import { ReactReduxFirebaseProvider } from "react-redux-firebase";
-// import { fetchGalleries } from "./redux/reducers/galleries";
 
 const rrfConfig = {
   userProfile: "users",
@@ -34,7 +26,7 @@ const fbConfig = {
 };
 
 // Initialize firebase instance
-firebase.initializeApp(fbConfig); //.auth().onAuthStateChanged(user => store.dispatch(fetchGalleries));;
+firebase.initializeApp(fbConfig); 
 
 const rrfProps = {
   firebase,
@@ -42,15 +34,12 @@ const rrfProps = {
   dispatch: store.dispatch,
   // createFirestoreInstance // <- needed if using firestore
 };
-// store.dispatch(fetchGalleries); //should be in store setup
 
 ReactDOM.render(
   <Provider store={store}>
     <ReactReduxFirebaseProvider {...rrfProps}>
       <FirebaseContext.Provider value={new Firebase()}>
-        <CanvasContext.Provider value={new CanvasPrimary()}>
           <App />
-        </CanvasContext.Provider>
       </FirebaseContext.Provider>
     </ReactReduxFirebaseProvider>
   </Provider>,

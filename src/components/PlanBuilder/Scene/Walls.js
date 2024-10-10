@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import Wall from "./Wall";
+import { createScene } from "../../../redux/actions";
 
-const Walls = ({ walls, scene, floorplan }) => {
+const Walls = ({ walls, scene, floorplan,createScene }) => {
   useEffect(() => {
     const old =
       scene?.children.filter((item) => item.name === "wall") || [];
@@ -19,6 +20,7 @@ const Walls = ({ walls, scene, floorplan }) => {
         new Wall(options);
       });
     }
+    createScene(scene)
   }, [walls, scene]);
   return null;
 };
@@ -30,4 +32,4 @@ const mapStateToProps = ({ sceneData, scene }) => {
   return { walls, floorplan, scene };
 };
 
-export default connect(mapStateToProps)(Walls);
+export default connect(mapStateToProps, {createScene})(Walls);

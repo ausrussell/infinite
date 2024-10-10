@@ -13,6 +13,8 @@ import AccountPage from "../Account";
 import AdminPage from "../Admin";
 
 import Planner from "../Planner";
+import Planner2 from "../Planner2";
+
 import Gallery from "../Gallery";
 import Builder from "../PlanBuilder";
 import StudioPage from "../Studio";
@@ -30,7 +32,7 @@ const App = () => {
       <img src={logoSrc} style={{ display: "none" }} alt="" />
       <Router>
         <Navigation />
-        <Route path={ROUTES.LANDING} component={LandingKept} />
+        <Route exact path={ROUTES.LANDING} component={LandingKept} />
         <Route path={`${ROUTES.GALLERY}/:galleryName`} component={Gallery} />
         <Route path={ROUTES.SIGN_UP} component={SignUpPage} />
         <Route path={ROUTES.SIGN_IN} component={SignInPage} />
@@ -42,6 +44,7 @@ const App = () => {
         <Route path={ROUTES.BUILDER} component={Builder} />
         <Route path={ROUTES.STUDIO} component={StudioPage} />
         <Route path={ROUTES.ACCOUNT_MANAGEMENT} component={AccountManagement} />
+        <Route path={ROUTES.PLANNER2} component={Planner2} />
       </Router>
     </Layout>
   );
